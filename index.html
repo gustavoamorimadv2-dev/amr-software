@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Amorim & Souza Advocacia</title>
+  <link rel="icon" type="image/png" href="https://img.icons8.com/?size=100&id=65200&format=png&color=000000">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; overflow-x: hidden; }
+    body { font-family: 'Roboto', sans-serif; background: #ffffff; color: #333; overflow-x: hidden; }
+    header { background-image: url('https://images.squarespace-cdn.com/content/v1/581c7148be6594d155f50234/1581617132961-PNOIJYH2ZYILG6JP9XRV/macroarq_arquitetura_interiores_corporativo_projeto_escritorio_advocacia_hall_entrada_piso_elevado_carpete_madeira_cumaru_divisoria_serralheria_vidro_funcional_clean.jpg'); background-size: cover; background-position: center; background-repeat: no-repeat; color: white; padding: 120px 20px 80px; text-align: center; position: relative; }
+    header::after { content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.3); z-index: 1; }
+    header h1, header p { position: relative; z-index: 2; }
+    header h1 a { color: white; text-decoration: none; font-size: 2.8em; font-family: 'Montserrat', sans-serif; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; transition: color 0.3s, transform 0.3s; display: inline-flex; align-items: center; gap: 10px; }
+    header h1 a:hover { color: #ccc; transform: scale(1.05); }
+    header img { width: 45px; }
+    header p { margin-top: 12px; font-size: 18px; }
+    nav { background: #002244; text-align: center; position: sticky; top: 0; z-index: 999; overflow-x: hidden; }
+    nav a { display: inline-block; padding: 15px 20px; color: white; text-decoration: none; transition: background 0.3s; }
+    nav a:hover { background: #004080; }
+    section { padding: 120px 20px; text-align: center; overflow-x: hidden; }
+    h2 { font-size: 32px; color: #003366; margin-bottom: 20px; }
+    .area-boxes { display: flex; justify-content: center; flex-wrap: wrap; gap: 30px; margin-top: 40px; }
+    .box { background: white; border-radius: 12px; padding: 30px; width: 300px; box-shadow: 0 6px 15px rgba(0,0,0,0.1); text-align: center; text-decoration: none; color: inherit; transition: transform 0.3s, box-shadow 0.3s; }
+    .box:hover { transform: translateY(-8px); box-shadow: 0 10px 20px rgba(0,0,0,0.15); }
+    .box img { width: 60px; margin-bottom: 20px; }
+    .testimonials { background: #f2f2f2; padding: 80px 20px; }
+    .testimonials h2 { color: #003366; margin-bottom: 40px; }
+    .testimonial { max-width: 600px; margin: 0 auto 30px; font-style: italic; }
+    .testimonial span { display: block; margin-top: 10px; font-weight: bold; }
+    .back-to-top { position: fixed; bottom: 30px; right: 30px; background: #003366; color: white; padding: 10px 15px; border-radius: 50px; font-size: 16px; text-decoration: none; display: none; box-shadow: 0 4px 8px rgba(0,0,0,0.2); z-index: 999; }
+    .back-to-top:hover { background: #0055aa; }
+    .acompanhamento-button { display: inline-block; margin-top: 40px; padding: 15px 30px; background: #003366; color: white; font-weight: bold; border-radius: 8px; text-decoration: none; transition: background 0.3s; }
+    .acompanhamento-button:hover { background: #0055aa; }
+    footer { background: #003366; color: white; text-align: center; padding: 50px 20px; font-size: 14px; overflow-x: hidden; }
+    footer a { color: white; text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>
+      <img src="https://img.icons8.com/ios-filled/50/ffffff/scales.png" alt="Balança da Justiça">
+      <a href="/index.html">AMORIM & SOUZA ADVOCACIA</a>
+    </h1>
+    <p>Excelência e ética em primeiro lugar</p>
+  </header>
+
+  <nav>
+    <a href="sobre.html">Sobre</a>
+    <a href="#areas">Áreas de Atuação</a>
+    <a href="contato.html">Contato</a>
+    <a href="enderecos.html">Endereços</a>
+    <a href="acompanhamento.html">Acompanhamento Processual</a>
+  </nav>
+
+  <section id="sobre">
+    <h2>Sobre o Escritório</h2>
+    <p>O escritório Amorim & Souza atua com dedicação e seriedade nas áreas de Direito Civil e Empresarial, buscando sempre as melhores soluções jurídicas para seus clientes.</p>
+  </section>
+
+  <section id="areas">
+    <h2>Áreas de Atuação</h2>
+    <div class="area-boxes">
+      <a class="box" href="civil.html">
+        <img src="https://img.icons8.com/ios-filled/50/003366/contract.png"/>
+        <h3>Direito Civil</h3>
+        <p>Contratos, responsabilidade civil, família e sucessões.</p>
+      </a>
+      <a class="box" href="empresarial.html">
+        <img src="https://img.icons8.com/ios-filled/50/003366/briefcase.png"/>
+        <h3>Direito Empresarial</h3>
+        <p>Consultoria, contratos empresariais e contencioso empresarial.</p>
+      </a>
+      <a class="box" href="tributario.html">
+        <img src="https://img.icons8.com/ios-filled/50/003366/money.png"/>
+        <h3>Direito Tributário e Fiscal</h3>
+        <p>Planejamento tributário, contencioso fiscal e consultoria especializada.</p>
+      </a>
+      <a class="box" href="previdenciario.html">
+        <img src="https://img.icons8.com/ios-filled/50/003366/retirement.png"/>
+        <h3>Direito Previdenciário</h3>
+        <p>Aposentadorias, pensões, revisões e benefícios do INSS.</p>
+      </a>
+    </div>
+
+    <a href="acompanhamento.html" class="acompanhamento-button">Acompanhamento Processual</a>
+  </section>
+
+  <section class="testimonials">
+    <h2>O que dizem nossos clientes</h2>
+    <div class="testimonial">
+      "Excelente atendimento e muito profissionalismo em todas as etapas. Recomendo fortemente."
+      <span>— Maria Fernandes</span>
+    </div>
+    <div class="testimonial">
+      "A equipe do Amorim & Souza foi fundamental para resolver uma situação jurídica complexa da minha empresa."
+      <span>— João Lima</span>
+    </div>
+  </section>
+
+  <a href="#top" class="back-to-top" id="backToTop">↑</a>
+
+  <footer>
+    <p>&copy; 2025 Amorim & Souza Advocacia. Todos os direitos reservados.<br>CNPJ: 60.546.044/0001-43</p>
+  </footer>
+
+  <script>
+    const backToTop = document.getElementById('backToTop');
+    window.addEventListener('scroll', () => {
+      backToTop.style.display = window.scrollY > 300 ? 'block' : 'none';
+    });
+  </script>
+</body>
+</html>
+
