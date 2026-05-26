@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -74,7 +75,7 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 #buscarCliente:focus { background:rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); }
 #buscarCliente::placeholder { color: rgba(255,255,255,0.5); }
 
-/* ================= KANBAN / CARDS ================= */
+/* ================= CARDS ================= */
 .container { flex:1; overflow-y:auto; padding:30px; display:flex; flex-wrap:wrap; gap:25px; align-content: flex-start; }
 
 .card { 
@@ -91,24 +92,14 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 .card p { font-size:13px; color:rgba(255,255,255,0.7); margin:2px 0; }
 .card p strong { color: #fff; font-weight: 600; }
 
-/* Lista de Boletos no Card */
+/* Lista de Boletos */
 .boletos-list {
-    margin-top: 15px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    overflow-y: auto;
-    padding-right: 5px;
-    flex: 1;
+    margin-top: 15px; display: flex; flex-direction: column; gap: 8px;
+    overflow-y: auto; padding-right: 5px; flex: 1;
 }
 .boleto-item {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.05);
-    padding: 10px;
-    border-radius: 10px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.05);
+    padding: 10px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center;
 }
 .boleto-info { display: flex; flex-direction: column; gap: 4px; }
 .boleto-info .val { font-size: 14px; font-weight: 700; color: #10b981; }
@@ -161,6 +152,92 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 }
 
 </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2 onclick="window.location.href='dashboard.html'">AMR ADV</h2>
+    <button onclick="location.href='crm.html'"><img src="https://img.icons8.com/ios-filled/50/ffffff/dashboard.png"/><span>CRM</span></button>
+    <button onclick="window.location.href='relatorios.html'"><img src="https://img.icons8.com/ios-filled/50/ffffff/combo-chart.png"/><span>Relatórios</span></button>
+    <button onclick="window.location.href='agenda.html'"><img src="https://img.icons8.com/ios-filled/50/ffffff/calendar.png"/><span>Agenda</span></button>
+    <button onclick="window.location.href='contatos.html'"><img src="https://img.icons8.com/ios-filled/50/ffffff/contacts.png"/><span>Contatos</span></button>
+    <button onclick="window.location.href='clientes.html'"><img src="https://img.icons8.com/ios-filled/50/ffffff/user-group-man-man.png"/><span>Clientes</span></button>
+    <button onclick="window.location.href='processos.html'"><img src="https://img.icons8.com/ios-filled/50/ffffff/file.png"/><span>Processos</span></button>
+    <button><img src="https://img.icons8.com/ios-filled/50/ffffff/settings.png"/><span>Configurações</span></button>
+</div>
+
+<div class="main">
+    <header>
+        <h1>Clientes Fechados</h1>
+    </header>
+
+    <div class="search-container">
+        <input type="text" id="buscarCliente" placeholder="Buscar cliente por nome...">
+    </div>
+
+    <div class="container" id="clientesContainer"></div>
+</div>
+
+<div id="modalBoleto" class="modal-backdrop">
+    <div class="modal">
+        <h3>Gerar Boleto</h3>
+        
+        <div class="form-grid">
+            <div class="full-width">
+                <label>Nome Completo</label>
+                <input type="text" id="modalNome" placeholder="Nome do cliente">
+            </div>
+            
+            <div>
+                <label>CPF/CNPJ</label>
+                <input type="text" id="modalCpf" placeholder="Somente números">
+            </div>
+            <div>
+                <label>Telefone</label>
+                <input type="text" id="modalTelefone" placeholder="(11) 99999-9999">
+            </div>
+
+            <div class="full-width">
+                <label>E-mail</label>
+                <input type="email" id="modalEmail" placeholder="email@exemplo.com">
+            </div>
+
+            <div>
+                <label>CEP</label>
+                <input type="text" id="modalCep" placeholder="00000-000">
+            </div>
+            <div>
+                <label>Endereço</label>
+                <input type="text" id="modalEndereco" placeholder="Rua, número">
+            </div>
+
+            <div>
+                <label>Cidade</label>
+                <input type="text" id="modalCidade" placeholder="Cidade">
+            </div>
+            <div>
+                <label>Estado (UF)</label>
+                <input type="text" id="modalEstado" placeholder="Ex: SP" maxlength="2">
+            </div>
+
+            <div>
+                <label>Valor (R$)</label>
+                <input type="text" id="modalValor" placeholder="0,00">
+            </div>
+            <div>
+                <label>Vencimento</label>
+                <input type="date" id="modalVencimento">
+            </div>
+        </div>
+
+        <div class="actions">
+            <button class="btn ghost" id="btnCancel">Cancelar</button>
+            <button class="btn primary" id="confirmBoletoBtn">Gerar Boleto</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
@@ -186,7 +263,7 @@ const toastEl = document.getElementById("toast");
 let clienteAtualId = null;
 let clientesData = [];
 
-// Sidebar hover + blur
+// Hover Sidebar
 sidebar.addEventListener('mouseenter', () => { sidebar.classList.add('expanded'); mainContent.classList.add('blur'); });
 sidebar.addEventListener('mouseleave', () => { sidebar.classList.remove('expanded'); mainContent.classList.remove('blur'); });
 
@@ -196,11 +273,6 @@ function showToast(msg) {
     toastEl.style.display = 'block';
     clearTimeout(toastEl._t);
     toastEl._t = setTimeout(() => toastEl.style.display = 'none', 3000);
-}
-
-// Formatador de Moeda para o HTML
-function formatBRL(value) {
-    return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
 // Carregar Dados
@@ -229,7 +301,6 @@ function exibirClientes(lista) {
         const card = document.createElement("div");
         card.className = "card";
         
-        // Renderização dos boletos
         const boletosHtml = (cliente.boletos || []).map(b => `
             <div class="boleto-item">
                 <div class="boleto-info">
@@ -254,7 +325,6 @@ function exibirClientes(lista) {
             </div>
         `;
         
-        // Abre o modal ao clicar no card (exceto se clicar no botão de copiar)
         card.onclick = (e) => {
             if(!e.target.closest('.btn-copy')) abrirModal(cliente, cliente.id);
         };
@@ -328,18 +398,14 @@ function abrirModal(cliente, id) {
     modalNome.value = cliente.nome || "";
     modalCpf.value = cliente.cpf || "";
     modalEmail.value = cliente.email || "";
-    
-    // Pega o primeiro telefone se houver vários
     const tel = cliente.numeros ? cliente.numeros.split(',')[0].trim() : "";
     modalTelefone.value = tel;
-    
     modalCep.value = cliente.cep || "";
     modalEndereco.value = cliente.endereco || "";
     modalCidade.value = cliente.cidade || "";
     modalEstado.value = cliente.estado || "";
     modalValor.value = "";
     
-    // Seta data de vencimento para +5 dias por padrão
     const date = new Date();
     date.setDate(date.getDate() + 5);
     modalVencimento.value = date.toISOString().split('T')[0];
@@ -349,7 +415,6 @@ function abrirModal(cliente, id) {
 
 document.getElementById('btnCancel').onclick = () => { modal.style.display = "none"; clienteAtualId = null; };
 
-// Fechar modal clicando fora
 modal.addEventListener('click', (e) => {
     if(e.target === modal) { modal.style.display = 'none'; }
 });
@@ -373,7 +438,6 @@ confirmBtn.onclick = async () => {
         return;
     }
 
-    // Converte valor de volta para string formato banco (ex: 1500.00)
     const valor = valorVisual.replace(/\./g, '').replace(',', '.');
 
     const originalText = confirmBtn.innerHTML;
@@ -394,14 +458,13 @@ confirmBtn.onclick = async () => {
         
         if(data.sucesso) {
             showToast("Boleto gerado com sucesso!");
-            
             const docRef = doc(db, "clientes", clienteAtualId);
             const clienteData = clientesData.find(c => c.id === clienteAtualId);
             const novosBoletos = clienteData.boletos || [];
             const novo = data.boletos[0];
             
             novosBoletos.push({
-                valor: valorVisual, // Salva formatado para exibição
+                valor: valorVisual, 
                 vencimento,
                 codigo: novo.codigo,
                 qrCodeUrl: novo.qrCodeUrl,
@@ -409,9 +472,9 @@ confirmBtn.onclick = async () => {
             });
             
             await updateDoc(docRef, { boletos: novosBoletos });
-            clienteData.boletos = novosBoletos; // Atualiza local
+            clienteData.boletos = novosBoletos;
             
-            exibirClientes(clientesData); // Re-renderiza a grid
+            exibirClientes(clientesData);
             modal.style.display = "none";
             
         } else {
@@ -420,20 +483,6 @@ confirmBtn.onclick = async () => {
     } catch(err) {
         console.error(err);
         showToast("Erro de conexão com o servidor local.");
-        
-        // Opcional: Se quiser que a interface funcione mesmo sem o backend rodando para testes visuais
-        // Descomente o bloco abaixo para simular o sucesso caso a API falhe por timeout/cors
-        /*
-        showToast("Simulando sucesso (API offline).");
-        const docRef = doc(db, "clientes", clienteAtualId);
-        const clienteData = clientesData.find(c => c.id === clienteAtualId);
-        const novosBoletos = clienteData.boletos || [];
-        novosBoletos.push({ valor: valorVisual, vencimento, codigo: "34191.09008 63571.277308 71444.640008 1 970100000" + valor.replace('.',''), classe: "Boleto" });
-        await updateDoc(docRef, { boletos: novosBoletos });
-        clienteData.boletos = novosBoletos;
-        exibirClientes(clientesData);
-        modal.style.display = "none";
-        */
     } finally {
         confirmBtn.innerHTML = "Gerar Boleto";
         confirmBtn.disabled = false;
