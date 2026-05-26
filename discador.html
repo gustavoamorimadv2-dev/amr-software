@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Discador CRM - AMR ADV</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
+    <style>
+        /* === Seu CSS Original (com pequenas adições para discador e feedback) === */
+        * { margin:0; padding:0; box-sizing:border-box; font-family: 'Segoe UI', sans-serif; }
+        body { display:flex; background:#f0f2f5; height:100vh; overflow:hidden; }
+        .sidebar { width:80px; background:#1e1e2f; display:flex; flex-direction:column; align-items:center; padding:20px 0; flex-shrink:0; transition:width 0.4s ease; position:relative; z-index:10; }
+        .sidebar.expanded { width:220px; }
+        .sidebar h2 { font-size:22px; font-family:'Poppins', sans-serif; font-weight:600; color:#fff; letter-spacing:1px; margin-bottom:30px; text-align:center; cursor:pointer; width:100%; white-space:nowrap; overflow:hidden; transition:opacity 0.3s; opacity:0; }
+        .sidebar.expanded h2 { opacity:1; }
+        .sidebar button { width:100%; background:transparent; border:none; color:#fff; display:flex; align-items:center; gap:15px; padding:12px 20px; margin:5px 0; cursor:pointer; border-radius:10px; transition:background 0.3s, color 0.3s; font-size:14px; white-space:nowrap; overflow:hidden; }
+        .sidebar button img { width:28px; height:28px; filter: invert(1); flex-shrink:0; transition:transform 0.3s; }
+        .sidebar button span { display:inline-block; opacity:0; transition:opacity 0.3s; font-weight:500; }
+        .sidebar.expanded button span { opacity:1; }
+        .sidebar button:hover img { transform:scale(1.1); }
+        .sidebar button:hover { background:#2a2a40; color:#fff; }
+        .main { flex:1; display:flex; flex-direction:column; overflow:hidden; transition:filter 0.3s; }
+        .main.blur { filter:blur(4px) brightness(0.85); }
+        header { height:60px; background:#fff; border-bottom:1px solid #ddd; display:flex; justify-content:space-between; align-items:center; padding:0 20px; flex-shrink:0; }
+        header h1 { font-size:22px; color:#1e1e2f; font-family:'Poppins', sans-serif; }
+        header .header-actions { display: flex; gap: 10px; align-items: center; }
+        header button { padding:8px 16px; background:#1e1e2f; color:#fff; border:none; border-radius:6px; cursor:pointer; }
+        .search-bar { padding:10px 20px; background:#fff; border-bottom:1px solid #ddd; display:flex; gap:10px; align-items:center; flex-shrink:0; }
+        .search-bar input, .search-bar select { padding:8px; border:1px solid #ccc; border-radius:6px; }
+        .search-bar input { flex:1; }
+        .kanban-container { flex:1; overflow-x:auto; padding:20px; }
+        .kanban { display:flex; gap:20px; min-width:max-content; height:100%; }
+        .column { background:#fff; border-radius:15px; padding:15px; min-width:320px; max-height:calc(100%); display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 12px rgba(0,0,0,0.08); overflow-y:auto; }
+        .column h2 { margin-bottom:10px; font-size:18px; color:#1e1e2f; text-transform:uppercase; }
+        .card { display:flex; background:#fff; border-radius:15px; box-shadow:0 12px 30px rgba(0,0,0,0.12); cursor:pointer; overflow:hidden; transition:0.3s; min-height:160px; flex-direction:row; position:relative; }
+        .card:hover { transform:scale(1.03); }
+        .card .color-bar { width:8px; height:100%; border-radius:15px 0 0 15px; }
+        .card-content { padding:20px; flex:1; display:flex; flex-direction:column; justify-content:center; }
+        .card h3 { font-size:20px; margin-bottom:6px; color:#333; }
+        .card p { font-size:14px; color:#555; margin:3px 0; }
+        .lista-fria .color-bar { background:#3498db; }
+        .negociacao .color-bar { background:#f1c40f; }
+        .contrato-assinado .color-bar { background:#9b59b6; }
+        .fechado .color-bar { background:#2ecc71; }
+        .card-actions { position:absolute; top:10px; right:10px; display:flex; gap:10px; }
+        .card-actions button { background:none; border:none; cursor:pointer; padding:4px; }
+        .card-actions img { width:20px; height:20px; opacity:0.7; transition:opacity 0.2s; }
+        .card-actions img:hover { opacity:1; }
+
+        /* Adições para Drag and Drop Feedback */
+        .card.dragging {
+            opacity: 0.5;
+            border: 2px dashed #007bff;
+        }
+        .column.drag-over {
+            background: #e0e6ec;
+            border: 2px dashed #007bff;
+        }
+
+        /* Estilos para o Modo Discador */
+        .dialer-mode-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+            padding: 20px;
+        }
+        .dialer-mode-overlay.active {
+            display: flex;
+        }
+        .dialer-card-display {
+            background: #fff;
+            border-radius: 15px;
+            padding: 30px;
+            width: 600px;
+            max-width: 90%;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            position: relative;
+        }
+        .dialer-card-display h2 {
+            font-size: 24px;
+            color: #1e1e2f;
+            margin-bottom: 10px;
+        }
+        .dialer-card-display p {
+            font-size: 16px;
+            color: #555;
+            margin: 5px 0;
+        }
+        .dialer-actions {
+            display: flex;
+            justify-content: space-around;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .dialer-actions button {
+            padding: 12px 25px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+            flex: 1;
+        }
+        .dialer-actions .call-button { background: #2ecc71; color: #fff; }
+        .dialer-actions .call-button:hover { background: #28a745; }
+        .dialer-actions .next-button { background: #007bff; color: #fff; }
+        .dialer-actions .next-button:hover { background: #0056b3; }
+        .dialer-actions .stop-button { background: #dc3545; color: #fff; }
+        .dialer-actions .stop-button:hover { background: #c82333; }
+        .dialer-status {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .toast { position:fixed; right:20px; bottom:20px; background:#222; color:#fff; padding:8px 12px; border-radius:8px; box-shadow:0 6px 24px rgba(0,0,0,.3); display:none; z-index:60; }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2 onclick="window.location.href='dashboard.html'">AMR ADV</h2>
+    <button onclick="window.location.href='crm.html'"><img src="https://img.icons8.com/ios-filled/50/ffffff/dashboard.png"/><span>CRM</span></button>
+    <button><img src="https://img.icons8.com/ios-filled/50/ffffff/phone.png"/><span>Discador</span></button>
+</div>
+
+<div class="main">
+    <header>
+        <h1>Discador</h1>
+        <div class="header-actions">
+            <button id="startDialerButton">Iniciar Discador</button>
+        </div>
+    </header>
+
+    <div class="search-bar">
+        <input id="searchInput" placeholder="Buscar cliente..." />
+        <select id="filterStatus">
+            <option value="">Todos os status</option>
+            <option value="lista-fria">Lista Fria</option>
+            <option value="negociacao">Negociação</option>
+            <option value="contrato-assinado">Contrato Assinado</option>
+            <option value="fechado">Fechado</option>
+        </select>
+    </div>
+
+    <div class="kanban-container">
+        <main class="kanban" id="kanban">
+            <div class="column" id="lista-fria"><h2>LISTA FRIA</h2></div>
+            <div class="column" id="negociacao"><h2>NEGOCIAÇÃO</h2></div>
+            <div class="column" id="contrato-assinado"><h2>CONTRATO ASSINADO</h2></div>
+            <div class="column" id="fechado"><h2>FECHADO</h2></div>
+        </main>
+    </div>
+</div>
+
+<div class="dialer-mode-overlay" id="dialerOverlay">
+    <div class="dialer-card-display" id="currentDialerCard">
+        <h2>Nenhum cliente selecionado</h2>
+        <p>Aguardando o início do discador.</p>
+        <div class="dialer-actions">
+            <button class="call-button" id="dialerCallButton" disabled>Ligar</button>
+            <button class="next-button" id="dialerNextButton" disabled>Próximo</button>
+            <button class="stop-button" id="dialerStopButton">Parar Discador</button>
+        </div>
+        <div class="dialer-status" id="dialerStatusMessage"></div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+    import { getFirestore, collection, getDocs, doc, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-functions.js";
+
+    // Suas configurações do Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyAFJJAqVf3ge0WDHBpmS9E6sXKvnjuFkhw",
+        authDomain: "dapapp-38637.firebaseapp.com",
+        projectId: "dapapp-38637",
+        storageBucket: "dapapp-38637.appspot.com",
+        messagingSenderId: "628852295313",
+        appId: "1:628852295313:web:INSERIR_SEU_APP_ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const functions = getFunctions(app);
+
+    const toastEl = document.getElementById('toast');
+    const dialerOverlay = document.getElementById('dialerOverlay');
+    const currentDialerCard = document.getElementById('currentDialerCard');
+    const startDialerButton = document.getElementById('startDialerButton');
+
+    function showToast(msg){
+        toastEl.innerText = msg;
+        toastEl.style.display = 'block';
+        clearTimeout(toastEl._t);
+        toastEl._t = setTimeout(() => toastEl.style.display = 'none', 3000);
+    }
+
+    let clientes = [], currentUser = null;
+    let dialerQueue = [];
+    let currentClientIndex = -1;
+
+    async function carregarClientes(){
+        if(!currentUser) {
+            console.log("Usuário não autenticado. Não é possível carregar clientes.");
+            return;
+        }
+        const q = query(collection(db,"clientes"), where("userId","==",currentUser.uid));
+        try {
+            const snap = await getDocs(q);
+            clientes = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            renderKanban();
+        } catch (error) {
+            console.error("Erro ao carregar clientes:", error);
+            showToast("Erro ao carregar clientes.");
+        }
+    }
+
+    function renderKanban(){
+        ['lista-fria','negociacao','contrato-assinado','fechado'].forEach(id=>{
+            const col = document.getElementById(id);
+            col.innerHTML = `<h2>${col.querySelector('h2').innerText}</h2>`;
+        });
+
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const filterStatus = document.getElementById('filterStatus').value;
+
+        clientes.filter(cliente => {
+            const matchesSearch = searchTerm === '' ||
+                                   cliente.nome.toLowerCase().includes(searchTerm) ||
+                                   (cliente.cpf && cliente.cpf.includes(searchTerm));
+            const matchesStatus = filterStatus === '' || (cliente.status === filterStatus);
+            return matchesSearch && matchesStatus;
+        }).forEach(cliente => {
+            const status = cliente.status || 'lista-fria';
+            const col = document.getElementById(status);
+            if (!col) {
+                console.warn(`Coluna com status '${status}' não encontrada para o cliente ${cliente.id}`);
+                return;
+            }
+
+            const card = document.createElement('div');
+            card.className = `card ${status}`;
+            card.draggable = true;
+            card.dataset.id = cliente.id;
+            card.innerHTML = `<div class="color-bar"></div>
+            <div class="card-content">
+                <h3>${cliente.nome}</h3>
+                <p>CPF: ${cliente.cpf || '-'}</p>
+                <p>Classe: ${cliente.classe || '-'}</p>
+                <p>Valor: R$ ${cliente.valor || 0}</p>
+            </div>
+            <div class="card-actions">
+                <button onclick="window.ligarManual('${cliente.numeros || ''}')"><img src="https://img.icons8.com/ios-glyphs/30/000000/phone.png"/></button>
+                <button onclick="window.whatsapp('${cliente.numeros || ''}')"><img src="https://img.icons8.com/ios-glyphs/30/000000/whatsapp.png"/></button>
+            </div>`;
+            col.appendChild(card);
+        });
+
+        addDragAndDrop();
+    }
+
+    function addDragAndDrop(){
+        const cards = document.querySelectorAll('.card');
+        const columns = document.querySelectorAll('.column');
+
+        cards.forEach(card=>{
+            card.addEventListener('dragstart', e=>{
+                e.dataTransfer.setData('text/plain', card.dataset.id);
+                card.classList.add('dragging');
+            });
+
+            card.addEventListener('dragend', e=>{
+                card.classList.remove('dragging');
+            });
+        });
+
+        columns.forEach(col=>{
+            col.addEventListener('dragover', e=> {
+                e.preventDefault();
+                col.classList.add('drag-over');
+            });
+
+            col.addEventListener('dragleave', e=> {
+                col.classList.remove('drag-over');
+            });
+
+            col.addEventListener('drop', async e=>{
+                e.preventDefault();
+                col.classList.remove('drag-over');
+                const id = e.dataTransfer.getData('text/plain');
+                const card = document.querySelector(`.card[data-id='${id}']`);
+                if (!card) return;
+
+                const oldStatus = card.parentElement.id;
+                const newStatus = col.id;
+
+                if (oldStatus !== newStatus) {
+                    card.classList.remove(oldStatus);
+                    card.classList.add(newStatus);
+                    col.appendChild(card);
+
+                    const clienteRef = doc(db,'clientes',id);
+                    try {
+                        await updateDoc(clienteRef, { status: newStatus });
+                        clientes = clientes.map(c => c.id===id ? {...c, status: newStatus} : c);
+                        showToast(`Cliente movido para ${newStatus.toUpperCase().replace('-', ' ')}!`);
+                    } catch (error) {
+                        console.error("Erro ao atualizar status do cliente:", error);
+                        showToast("Erro ao atualizar status.");
+                        document.getElementById(oldStatus).appendChild(card);
+                        card.classList.remove(newStatus);
+                        card.classList.add(oldStatus);
+                    }
+                }
+            });
+        });
+    }
+
+    const callTwilioFunction = httpsCallable(functions, 'dialer');
+
+    window.ligarManual = async function(numerosString){
+        if(!numerosString){
+            showToast("Número(s) não informado(s)");
+            return;
+        }
+        const numeros = numerosString.split(',').map(n => n.trim()).filter(n => n);
+        if (numeros.length === 0) {
+            showToast("Número(s) inválido(s)");
+            return;
+        }
+
+        showToast("Iniciando chamada manual...");
+        try {
+            const formattedNumber = "+55" + numeros[0].replace(/\D/g, '');
+            const result = await callTwilioFunction({ to: formattedNumber });
+            console.log("SID da chamada Twilio:", result.data.sid);
+            showToast("Chamada manual iniciada com sucesso!");
+        } catch (error) {
+            console.error("Erro ao fazer chamada manual:", error.code, error.message);
+            showToast(`Erro ao fazer chamada manual: ${error.message}`);
+        }
+    }
+
+    window.whatsapp = function(numerosString){
+        if(!numerosString){
+            showToast("Número(s) não informado(s)");
+            return;
+        }
+        const numeros = numerosString.split(',').map(n => n.trim()).filter(n => n);
+        if (numeros.length === 0) {
+            showToast("Número(s) inválido(s)");
+            return;
+        }
+        const formattedNumber = numeros[0].replace(/\D/g, '');
+        window.open(`https://api.whatsapp.com/send?phone=${formattedNumber}`, '_blank');
+        showToast("Redirecionando para o WhatsApp...");
+    }
+
+    let isDialerActive = false;
+
+    startDialerButton.addEventListener('click', () => {
+        if (isDialerActive) {
+            stopDialer();
+        } else {
+            startDialer();
+        }
+    });
+
+    function startDialer() {
+        dialerQueue = clientes.filter(c => c.status === 'lista-fria');
+        if (dialerQueue.length === 0) {
+            showToast("Nenhum cliente na 'Lista Fria' para discar.");
+            return;
+        }
+        isDialerActive = true;
+        startDialerButton.innerText = "Parar Discador";
+        currentClientIndex = -1;
+        dialerOverlay.classList.add('active');
+        loadNextClient();
+    }
+
+    function stopDialer() {
+        isDialerActive = false;
+        startDialerButton.innerText = "Iniciar Discador";
+        dialerOverlay.classList.remove('active');
+        dialerQueue = [];
+        currentClientIndex = -1;
+        currentDialerCard.innerHTML = `
+            <h2>Nenhum cliente selecionado</h2>
+            <p>Aguardando o início do discador.</p>
+            <div class="dialer-actions">
+                <button class="call-button" id="dialerCallButton" disabled>Ligar</button>
+                <button class="next-button" id="dialerNextButton" disabled>Próximo</button>
+                <button class="stop-button" id="dialerStopButton">Parar Discador</button>
+            </div>
+            <div class="dialer-status" id="dialerStatusMessage"></div>
+        `;
+        setupDialerListeners();
+    }
+
+    function setupDialerListeners() {
+        const dialerCallButton = document.getElementById('dialerCallButton');
+        const dialerNextButton = document.getElementById('dialerNextButton');
+        const dialerStopButton = document.getElementById('dialerStopButton');
+
+        if (dialerCallButton) {
+            dialerCallButton.addEventListener('click', async () => {
+                if (currentClientIndex === -1 || !dialerQueue[currentClientIndex]) return;
+
+                const cliente = dialerQueue[currentClientIndex];
+                const numerosString = cliente.numeros || '';
+                const numeros = numerosString.split(',').map(n => n.trim()).filter(n => n);
+
+                if (numeros.length === 0) {
+                    showToast("Cliente sem números para ligar.");
+                    document.getElementById('dialerStatusMessage').innerText = "Cliente sem números. Avance.";
+                    return;
+                }
+
+                dialerCallButton.disabled = true;
+                document.getElementById('dialerStatusMessage').innerText = "Iniciando chamada, aguarde...";
+
+                try {
+                    const formattedNumber = "+55" + numeros[0].replace(/\D/g, '');
+                    const result = await callTwilioFunction({ to: formattedNumber });
+                    console.log("SID da chamada Twilio:", result.data.sid);
+                    showToast("Discagem iniciada! A Twilio tentará conectar você.");
+                    document.getElementById('dialerStatusMessage').innerText = "Discagem ativa. Aguardando conexão...";
+                } catch (error) {
+                    console.error("Erro ao fazer chamada no discador:", error.code, error.message);
+                    showToast(`Erro ao ligar: ${error.message}`);
+                    document.getElementById('dialerStatusMessage').innerText = `Erro: ${error.message}`;
+                } finally {
+                    dialerCallButton.disabled = false;
+                }
+            });
+        }
+        
+        if (dialerNextButton) {
+            dialerNextButton.addEventListener('click', loadNextClient);
+        }
+        
+        if (dialerStopButton) {
+            dialerStopButton.addEventListener('click', stopDialer);
+        }
+    }
+
+    function loadNextClient() {
+        currentClientIndex++;
+        if (currentClientIndex < dialerQueue.length) {
+            const cliente = dialerQueue[currentClientIndex];
+            currentDialerCard.innerHTML = `
+                <h2>${cliente.nome}</h2>
+                <p>CPF: ${cliente.cpf || '-'}</p>
+                <p>Classe: ${cliente.classe || '-'}</p>
+                <p>Valor: R$ ${cliente.valor || 0}</p>
+                <p>Números: ${cliente.numeros || '-'}</p>
+                <div class="dialer-actions">
+                    <button class="call-button" id="dialerCallButton">Ligar</button>
+                    <button class="next-button" id="dialerNextButton">Próximo</button>
+                    <button class="stop-button" id="dialerStopButton">Parar Discador</button>
+                </div>
+                <div class="dialer-status" id="dialerStatusMessage">Cliente ${currentClientIndex + 1} de ${dialerQueue.length}</div>
+            `;
+            setupDialerListeners();
+            
+            if (currentClientIndex === dialerQueue.length - 1) {
+                document.getElementById('dialerNextButton').innerText = "Fim da Lista";
+                document.getElementById('dialerNextButton').disabled = true;
+            }
+        } else {
+            currentDialerCard.innerHTML = `
+                <h2>Fim da Lista!</h2>
+                <p>Todos os clientes da 'Lista Fria' foram processados.</p>
+                <div class="dialer-actions">
+                    <button class="stop-button" id="dialerStopButton">Fechar Discador</button>
+                </div>
+                <div class="dialer-status" id="dialerStatusMessage"></div>
+            `;
+            setupDialerListeners();
+        }
+    }
+
+    document.getElementById('searchInput').addEventListener('input', renderKanban);
+    document.getElementById('filterStatus').addEventListener('change', renderKanban);
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            currentUser = user;
+            console.log("Usuário logado:", user.uid);
+            carregarClientes();
+        } else {
+            console.log("Nenhum usuário logado. Redirecionando para login.html");
+            window.location.href = 'login.html';
+        }
+    });
+
+    setupDialerListeners();
+</script>
+
+</body>
+</html>
