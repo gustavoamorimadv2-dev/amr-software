@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -299,6 +298,8 @@ select option {
     margin-bottom:12px;
     color:#fff;
     font-weight: 700;
+    padding-right: 80px; /* Garante que o nome não cubra os botões de ação */
+    word-break: break-word; /* Quebra nomes muito longos */
 }
 
 .card p{
@@ -437,6 +438,18 @@ select option {
     background:rgba(255,255,255,0.2);
 }
 
+/* Novo botão Verde */
+.btn-green {
+    background: #10b981;
+    color: #fff;
+}
+
+.btn-green:hover {
+    background: #059669;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+}
+
 /* ================= DINÂMICOS ================= */
 
 .processo-row{
@@ -510,6 +523,34 @@ select option {
 }
 .doc-item button:hover {
     background: rgba(239, 68, 68, 0.1);
+}
+
+/* Botão de Robô nas Colunas */
+.col-header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.btn-robot {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 8px;
+    cursor: pointer;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+}
+.btn-robot:hover {
+    background: rgba(255,255,255,0.2);
+}
+.btn-robot img {
+    width: 20px;
+    height: 20px;
+    filter: invert(1);
+    opacity: 0.9;
 }
 
 </style>
@@ -694,7 +735,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderDocsList() {
         docsList.innerHTML = '';
         if (currentDocs.length === 0) {
-            // Ajustado para tema escuro
             docsList.innerHTML = '<span style="color:rgba(255,255,255,0.5); font-size:12px;">Nenhum documento anexado.</span>';
             return;
         }
@@ -1056,11 +1096,21 @@ document.addEventListener('DOMContentLoaded', () => {
     async function render(){
 
         STATUS.forEach(status => {
-
             const col = document.getElementById(status);
-
-            col.innerHTML =
-                `<h2>${status.replace('-',' ').toUpperCase()}</h2>`;
+            
+            // Injeção do botão de robô apenas na coluna Lista Fria
+            if (status === 'lista-fria') {
+                col.innerHTML = `
+                    <div class="col-header-actions">
+                        <h2 style="margin-bottom:0;">LISTA FRIA</h2>
+                        <button class="btn-robot" title="Ativar Robô">
+                            <img src="https://img.icons8.com/ios-glyphs/30/000000/bot.png" alt="Robô"/>
+                        </button>
+                    </div>
+                `;
+            } else {
+                col.innerHTML = `<h2>${status.replace('-',' ').toUpperCase()}</h2>`;
+            }
         });
 
         for(const k in cardsMap){
@@ -1309,9 +1359,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     <h1>CRM</h1>
 
-    <button id="btnAdd" class="btn primary">
-        + Adicionar Cliente
-    </button>
+    <div style="display: flex; gap: 12px; align-items: center;">
+        <button id="btnAgente" class="btn btn-green">
+            Agente de Whatsapp
+        </button>
+        
+        <button id="btnAdd" class="btn primary">
+            + Adicionar Cliente
+        </button>
+    </div>
 
 </header>
 
@@ -1553,5 +1609,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
-
-```
