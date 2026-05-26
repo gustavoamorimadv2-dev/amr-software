@@ -1,0 +1,571 @@
+```html
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Mockup App Cliente</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins',sans-serif;
+}
+
+body{
+    background:#f2f4f8;
+    min-height:100vh;
+    display:flex;
+    overflow:hidden;
+}
+
+/* ================= SIDEBAR ================= */
+
+.sidebar{
+    width:320px;
+    background:#fff;
+    border-right:1px solid #ddd;
+    padding:25px;
+    overflow-y:auto;
+}
+
+.sidebar h1{
+    font-size:24px;
+    margin-bottom:5px;
+    color:#1e1e2f;
+}
+
+.sidebar p{
+    font-size:14px;
+    color:#666;
+    margin-bottom:25px;
+}
+
+.section{
+    margin-bottom:30px;
+}
+
+.section h2{
+    font-size:16px;
+    margin-bottom:12px;
+    color:#1e1e2f;
+}
+
+.color-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:10px;
+}
+
+.color-btn{
+    width:55px;
+    height:55px;
+    border-radius:14px;
+    cursor:pointer;
+    border:3px solid transparent;
+    transition:0.2s;
+}
+
+.color-btn.active{
+    border-color:#000;
+    transform:scale(1.05);
+}
+
+.modules{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+
+.module-item{
+    background:#f8f9fc;
+    border:1px solid #ddd;
+    padding:14px;
+    border-radius:14px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+}
+
+.module-item span{
+    font-size:14px;
+    font-weight:500;
+    color:#333;
+}
+
+.switch{
+    position:relative;
+    width:50px;
+    height:26px;
+}
+
+.switch input{
+    display:none;
+}
+
+.slider{
+    position:absolute;
+    inset:0;
+    background:#ccc;
+    border-radius:30px;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.slider::before{
+    content:'';
+    position:absolute;
+    width:20px;
+    height:20px;
+    border-radius:50%;
+    background:#fff;
+    top:3px;
+    left:3px;
+    transition:0.3s;
+}
+
+.switch input:checked + .slider{
+    background:#1e1e2f;
+}
+
+.switch input:checked + .slider::before{
+    transform:translateX(24px);
+}
+
+/* ================= PREVIEW ================= */
+
+.preview{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:40px;
+    overflow:auto;
+}
+
+.iphone{
+    width:350px;
+    height:720px;
+    background:#111;
+    border-radius:50px;
+    padding:14px;
+    position:relative;
+    box-shadow:0 30px 60px rgba(0,0,0,0.25);
+}
+
+.notch{
+    width:180px;
+    height:34px;
+    background:#000;
+    position:absolute;
+    top:12px;
+    left:50%;
+    transform:translateX(-50%);
+    border-radius:0 0 20px 20px;
+    z-index:10;
+}
+
+.screen{
+    width:100%;
+    height:100%;
+    border-radius:38px;
+    overflow:hidden;
+    position:relative;
+    transition:background 0.3s;
+    display:flex;
+    flex-direction:column;
+}
+
+.app-header{
+    padding:65px 25px 25px;
+    color:#fff;
+}
+
+.app-header h2{
+    font-size:28px;
+    font-weight:700;
+}
+
+.app-header p{
+    font-size:14px;
+    opacity:0.8;
+    margin-top:4px;
+}
+
+.modules-grid{
+    padding:20px;
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:18px;
+}
+
+.app-module{
+    background:rgba(255,255,255,0.18);
+    backdrop-filter:blur(10px);
+    border-radius:24px;
+    min-height:130px;
+    padding:18px;
+    color:#fff;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    transition:0.2s;
+    border:1px solid rgba(255,255,255,0.15);
+}
+
+.app-module:hover{
+    transform:translateY(-3px);
+}
+
+.app-module .icon{
+    font-size:34px;
+}
+
+.app-module h3{
+    font-size:16px;
+    font-weight:600;
+}
+
+.app-module p{
+    font-size:12px;
+    opacity:0.8;
+}
+
+/* ================= RESPONSIVO ================= */
+
+@media(max-width:900px){
+
+    body{
+        flex-direction:column;
+        overflow:auto;
+    }
+
+    .sidebar{
+        width:100%;
+        border-right:none;
+        border-bottom:1px solid #ddd;
+    }
+
+    .preview{
+        padding:20px;
+    }
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<!-- ================= CONFIG ================= -->
+
+<div class="sidebar">
+
+    <h1>APP Mockup</h1>
+
+    <p>
+        Personalize o aplicativo do cliente em tempo real.
+    </p>
+
+    <!-- CORES -->
+
+    <div class="section">
+
+        <h2>Cor de Fundo</h2>
+
+        <div class="color-grid">
+
+            <div class="color-btn active"
+                 data-color="#111827"
+                 style="background:#111827;">
+            </div>
+
+            <div class="color-btn"
+                 data-color="#1e3a8a"
+                 style="background:#1e3a8a;">
+            </div>
+
+            <div class="color-btn"
+                 data-color="#065f46"
+                 style="background:#065f46;">
+            </div>
+
+            <div class="color-btn"
+                 data-color="#7c2d12"
+                 style="background:#7c2d12;">
+            </div>
+
+            <div class="color-btn"
+                 data-color="#4c1d95"
+                 style="background:#4c1d95;">
+            </div>
+
+            <div class="color-btn"
+                 data-color="#831843"
+                 style="background:#831843;">
+            </div>
+
+            <div class="color-btn"
+                 data-color="#0f766e"
+                 style="background:#0f766e;">
+            </div>
+
+            <div class="color-btn"
+                 data-color="#374151"
+                 style="background:#374151;">
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- MODULOS -->
+
+    <div class="section">
+
+        <h2>Módulos do Aplicativo</h2>
+
+        <div class="modules">
+
+            <div class="module-item">
+
+                <span>Boletos</span>
+
+                <label class="switch">
+                    <input type="checkbox" class="module-toggle" data-module="boletos" checked>
+                    <span class="slider"></span>
+                </label>
+
+            </div>
+
+            <div class="module-item">
+
+                <span>Negociação</span>
+
+                <label class="switch">
+                    <input type="checkbox" class="module-toggle" data-module="negociacao" checked>
+                    <span class="slider"></span>
+                </label>
+
+            </div>
+
+            <div class="module-item">
+
+                <span>Andamento</span>
+
+                <label class="switch">
+                    <input type="checkbox" class="module-toggle" data-module="andamento" checked>
+                    <span class="slider"></span>
+                </label>
+
+            </div>
+
+            <div class="module-item">
+
+                <span>Documentos</span>
+
+                <label class="switch">
+                    <input type="checkbox" class="module-toggle" data-module="documentos" checked>
+                    <span class="slider"></span>
+                </label>
+
+            </div>
+
+            <div class="module-item">
+
+                <span>Alertas</span>
+
+                <label class="switch">
+                    <input type="checkbox" class="module-toggle" data-module="alertas" checked>
+                    <span class="slider"></span>
+                </label>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- ================= PREVIEW ================= -->
+
+<div class="preview">
+
+    <div class="iphone">
+
+        <div class="notch"></div>
+
+        <div class="screen" id="screen">
+
+            <div class="app-header">
+
+                <h2>AMR ADV</h2>
+
+                <p>Área do Cliente</p>
+
+            </div>
+
+            <div class="modules-grid" id="modulesGrid">
+
+                <!-- MODULOS GERADOS -->
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+const screen = document.getElementById('screen');
+
+const modulesGrid = document.getElementById('modulesGrid');
+
+const colorButtons = document.querySelectorAll('.color-btn');
+
+const toggles = document.querySelectorAll('.module-toggle');
+
+const modulesData = {
+
+    boletos:{
+        icon:'💳',
+        title:'Boletos',
+        desc:'Visualize pagamentos'
+    },
+
+    negociacao:{
+        icon:'🤝',
+        title:'Negociação',
+        desc:'Acompanhe acordos'
+    },
+
+    andamento:{
+        icon:'📈',
+        title:'Andamento',
+        desc:'Status do processo'
+    },
+
+    documentos:{
+        icon:'📄',
+        title:'Documentos',
+        desc:'Arquivos do cliente'
+    },
+
+    alertas:{
+        icon:'🔔',
+        title:'Alertas',
+        desc:'Notificações importantes'
+    }
+
+};
+
+/* ================= RENDER ================= */
+
+function renderModules(){
+
+    modulesGrid.innerHTML = '';
+
+    toggles.forEach(toggle => {
+
+        if(toggle.checked){
+
+            const key = toggle.dataset.module;
+
+            const module = modulesData[key];
+
+            const card = document.createElement('div');
+
+            card.className = 'app-module';
+
+            card.innerHTML = `
+
+                <div class="icon">
+                    ${module.icon}
+                </div>
+
+                <div>
+
+                    <h3>
+                        ${module.title}
+                    </h3>
+
+                    <p>
+                        ${module.desc}
+                    </p>
+
+                </div>
+
+            `;
+
+            modulesGrid.appendChild(card);
+        }
+
+    });
+
+}
+
+/* ================= CORES ================= */
+
+colorButtons.forEach(btn => {
+
+    btn.addEventListener('click', () => {
+
+        colorButtons.forEach(b => {
+            b.classList.remove('active');
+        });
+
+        btn.classList.add('active');
+
+        const color = btn.dataset.color;
+
+        screen.style.background = `
+            linear-gradient(
+                180deg,
+                ${color},
+                #000000
+            )
+        `;
+    });
+
+});
+
+/* ================= TOGGLES ================= */
+
+toggles.forEach(toggle => {
+
+    toggle.addEventListener('change', () => {
+
+        renderModules();
+
+    });
+
+});
+
+/* ================= INIT ================= */
+
+screen.style.background = `
+    linear-gradient(
+        180deg,
+        #111827,
+        #000000
+    )
+`;
+
+renderModules();
+
+</script>
+
+</body>
+</html>
+```
