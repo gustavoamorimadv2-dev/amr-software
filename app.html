@@ -32,7 +32,7 @@ body{
 /* ================= SIDEBAR ================= */
 
 .sidebar{
-    width:340px;
+    width:350px;
     height:100vh;
     overflow-y:auto;
     padding:28px;
@@ -40,7 +40,13 @@ body{
     background:rgba(255,255,255,0.06);
     border-right:1px solid rgba(255,255,255,0.08);
     box-shadow:0 0 40px rgba(0,0,0,0.25);
+    display: flex;
+    flex-direction: column;
 }
+
+/* Esconder scrollbar da sidebar */
+.sidebar::-webkit-scrollbar { display: none; }
+.sidebar { -ms-overflow-style: none; scrollbar-width: none; }
 
 .logo-title{
     display:flex;
@@ -184,10 +190,9 @@ body{
     align-items:center;
     justify-content:center;
     color:#fff;
-    font-size:18px; /* Controla o tamanho do ícone Uicons aqui */
+    font-size:18px;
 }
 
-/* O Uicons centraliza melhor removendo margens padrão */
 .module-icon i {
     display: flex;
     align-items: center;
@@ -242,6 +247,71 @@ body{
     background:#111827;
 }
 
+/* ================= CONFIGURAÇÕES EXTRAS ================= */
+
+.segmented-control {
+    display: flex;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 6px;
+}
+
+.segmented-control label {
+    flex: 1;
+    text-align: center;
+    padding: 12px 10px;
+    color: rgba(255,255,255,0.5);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 12px;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.segmented-control input {
+    display: none;
+}
+
+.segmented-control input:checked + label {
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.generate-btn {
+    width: 100%;
+    height: 64px;
+    border: none;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-top: auto; /* Empurra o botão para o final da sidebar se houver espaço */
+    box-shadow: 0 10px 25px rgba(34, 197, 94, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.generate-btn i {
+    font-size: 20px;
+    display: flex;
+}
+
+.generate-btn:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 15px 35px rgba(34, 197, 94, 0.4);
+}
+
 /* ================= PREVIEW ================= */
 
 .preview{
@@ -277,18 +347,17 @@ body{
 .iphone-case{
     width:370px;
     height:780px;
-    background:#151515; /* Cor do titanium/alumínio */
+    background:#151515; 
     border-radius:56px;
     position:relative;
     box-shadow:
         inset 0 0 6px 2px #444,
-        inset 0 0 0 6px #050505, /* Borda preta da tela */
-        0 40px 80px rgba(0,0,0,0.6); /* Sombra 3D */
+        inset 0 0 0 6px #050505, 
+        0 40px 80px rgba(0,0,0,0.6); 
     padding:12px; 
     z-index:10;
 }
 
-/* Botões Físicos Laterais */
 .btn-hw {
     position:absolute;
     background: linear-gradient(to right, #555, #222);
@@ -306,11 +375,10 @@ body{
     background: linear-gradient(to left, #555, #222);
 }
 
-/* Tela */
 .screen{
     width:100%;
     height:100%;
-    border-radius:44px; /* Arredondamento perfeito da tela interna */
+    border-radius:44px; 
     overflow:hidden;
     position:relative;
     display:flex;
@@ -318,7 +386,6 @@ body{
     background: linear-gradient(180deg,#111827,#000);
 }
 
-/* Ilha Dinâmica */
 .dynamic-island {
     position: absolute;
     top: 12px;
@@ -333,10 +400,9 @@ body{
     align-items: center;
     justify-content: flex-end;
     padding: 0 12px;
-    box-shadow: inset 0 0 2px rgba(255,255,255,0.1); /* Brilho sutil do vidro */
+    box-shadow: inset 0 0 2px rgba(255,255,255,0.1); 
 }
 
-/* Lente da câmera dentro da ilha */
 .dynamic-island .camera {
     width: 14px;
     height: 14px;
@@ -493,7 +559,7 @@ body{
 }
 
 .app-module .icon{
-    font-size:36px; /* Tamanho do ícone no módulo interno */
+    font-size:36px; 
 }
 
 .app-module h3{
@@ -620,7 +686,7 @@ body{
         <div class="logo-circle">A</div>
         <div>
             <h1>APP FACTORY</h1>
-            <p></p>
+            <p>Construa seu app</p>
         </div>
     </div>
 
@@ -677,7 +743,7 @@ body{
                     <span>Andamento</span>
                 </div>
                 <label class="switch">
-                    <input type="checkbox" class="module-toggle" data-module="andamento" checked>
+                    <input type="checkbox" id="toggle-andamento" class="module-toggle" data-module="andamento" checked>
                     <span class="slider"></span>
                 </label>
             </div>
@@ -703,6 +769,21 @@ body{
             </div>
         </div>
     </div>
+
+    <div class="section" id="config-andamento">
+        <h2>Origem do Andamento</h2>
+        <div class="segmented-control">
+            <input type="radio" id="and-auto" name="andamento-tipo" value="automatizado" checked>
+            <label for="and-auto"><i class="fi fi-tr-microchip"></i> Automatizado</label>
+            
+            <input type="radio" id="and-plan" name="andamento-tipo" value="planilha">
+            <label for="and-plan"><i class="fi fi-tr-table-layout"></i> Por Planilha</label>
+        </div>
+    </div>
+
+    <button class="generate-btn" id="generateBtn">
+        <i class="fi fi-tr-rocket-lunch"></i> Gerar Aplicativo
+    </button>
 </div>
 
 <div class="preview">
@@ -829,8 +910,10 @@ const logoPreview = document.getElementById('logoPreview');
 const phoneLogo = document.getElementById('phoneLogo');
 const headerLogo = document.getElementById('headerLogo');
 const defaultLogoText = document.getElementById('defaultLogoText');
+const toggleAndamento = document.getElementById('toggle-andamento');
+const configAndamento = document.getElementById('config-andamento');
+const generateBtn = document.getElementById('generateBtn');
 
-// === AQUI FICA A CONFIGURAÇÃO DOS ÍCONES PARA INJETAR NO JAVASCRIPT ===
 const modulesData = {
     boletos:{ icon:'<i class="fi fi-tr-file-invoice"></i>', title:'Boletos', desc:'Visualize pagamentos' },
     negociacao:{ icon:'<i class="fi fi-tr-handshake"></i>', title:'Negociação', desc:'Acompanhe acordos' },
@@ -838,6 +921,20 @@ const modulesData = {
     documentos:{ icon:'<i class="fi fi-tr-folder-open"></i>', title:'Documentos', desc:'Arquivos disponíveis' },
     alertas:{ icon:'<i class="fi fi-tr-bell"></i>', title:'Alertas', desc:'Notificações importantes' }
 };
+
+/* ================= GERAR APLICATIVO ================= */
+generateBtn.addEventListener('click', () => {
+    alert('Sucesso! Configurações salvas. Iniciando a geração do seu aplicativo...');
+});
+
+/* ================= ESCONDER/MOSTRAR OPÇÕES DO ANDAMENTO ================= */
+toggleAndamento.addEventListener('change', (e) => {
+    if(e.target.checked) {
+        configAndamento.style.display = 'block';
+    } else {
+        configAndamento.style.display = 'none';
+    }
+});
 
 /* ================= LOGIN ================= */
 loginBtn.addEventListener('click', () => {
