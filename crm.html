@@ -1,0 +1,377 @@
+CRM html funcional 
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM AMR ADV</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
+<style>
+/* ======= CSS Mantido ======= */
+* { margin:0; padding:0; box-sizing:border-box; font-family: 'Segoe UI', sans-serif; }
+body { display:flex; background:#f0f2f5; height:100vh; overflow:hidden; }
+.sidebar { width:80px; background:#1e1e2f; display:flex; flex-direction:column; align-items:center; padding:20px 0; flex-shrink:0; transition:width 0.4s ease; position:relative; z-index:10; }
+.sidebar.expanded { width:220px; }
+.sidebar h2 { font-size:22px; font-family:'Poppins', sans-serif; font-weight:600; color:#fff; letter-spacing:1px; margin-bottom:30px; text-align:center; cursor:pointer; width:100%; white-space:nowrap; overflow:hidden; transition:opacity 0.3s; opacity:0; }
+.sidebar.expanded h2 { opacity:1; }
+.sidebar button { width:100%; background:transparent; border:none; color:#fff; display:flex; align-items:center; gap:15px; padding:12px 20px; margin:5px 0; cursor:pointer; border-radius:10px; transition:background 0.3s, color 0.3s; font-size:14px; white-space:nowrap; overflow:hidden; }
+.sidebar button img { width:28px; height:28px; filter: invert(1); flex-shrink:0; transition:transform 0.3s; }
+.sidebar button span { display:inline-block; opacity:0; transition:opacity 0.3s; font-weight:500; }
+.sidebar.expanded button span { opacity:1; }
+.sidebar button:hover img { transform:scale(1.1); }
+.sidebar button:hover { background:#2a2a40; color:#fff; }
+.main { flex:1; display:flex; flex-direction:column; overflow:hidden; transition:filter 0.3s; }
+.main.blur { filter:blur(4px) brightness(0.85); }
+header { height:60px; background:#fff; border-bottom:1px solid #ddd; display:flex; justify-content:space-between; align-items:center; padding:0 20px; flex-shrink:0; }
+header h1 { font-size:22px; color:#1e1e2f; font-family:'Poppins', sans-serif; }
+header button { padding:8px 16px; background:#1e1e2f; color:#fff; border:none; border-radius:6px; cursor:pointer; }
+.search-bar { padding:10px 20px; background:#fff; border-bottom:1px solid #ddd; display:flex; gap:10px; align-items:center; flex-shrink:0; }
+.search-bar input, .search-bar select { padding:8px; border:1px solid #ccc; border-radius:6px; }
+.search-bar input { flex:1; }
+.kanban-container { flex:1; overflow-x:auto; padding:20px; }
+.kanban { display:flex; gap:20px; min-width:max-content; height:100%; }
+.column { background:#fff; border-radius:15px; padding:15px; min-width:320px; max-height:calc(100%); display:flex; flex-direction:column; gap:12px; box-shadow:0 4px 12px rgba(0,0,0,0.08); overflow-y:auto; }
+.column h2 { margin-bottom:10px; font-size:18px; color:#1e1e2f; text-transform:uppercase; }
+.card { display:flex; background:#fff; border-radius:15px; box-shadow:0 12px 30px rgba(0,0,0,0.12); cursor:pointer; overflow:hidden; transition:0.3s; min-height:160px; flex-direction:row; position:relative; }
+.card:hover { transform:scale(1.03); }
+.card .color-bar { width:8px; height:100%; border-radius:15px 0 0 15px; }
+.card-content { padding:20px; flex:1; display:flex; flex-direction:column; justify-content:center; }
+.card h3 { font-size:20px; margin-bottom:6px; color:#333; }
+.card p { font-size:14px; color:#555; margin:3px 0; }
+.lista-fria .color-bar { background:#3498db; }
+.negociacao .color-bar { background:#f1c40f; }
+.contrato-assinado .color-bar { background:#9b59b6; }
+.fechado .color-bar { background:#2ecc71; }
+.card-actions { position:absolute; top:10px; right:10px; display:flex; gap:10px; }
+.card-actions button { background:none; border:none; cursor:pointer; padding:4px; }
+.card-actions img { width:20px; height:20px; opacity:0.7; transition:opacity 0.2s; }
+.card-actions img:hover { opacity:1; }
+.modal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); justify-content:center; align-items:center; z-index:50; }
+.modal { background:#fff; padding:18px; border-radius:15px; min-width:320px; max-width:420px; box-shadow:0 8px 30px rgba(0,0,0,.25); }
+.modal h3 { margin-bottom:12px; }
+.modal .row { margin-bottom:10px; }
+.modal input, .modal textarea, .modal select { width:100%; padding:8px; border-radius:6px; border:1px solid #ccc; }
+.modal textarea { min-height:80px; resize:vertical; }
+.modal .actions { display:flex; gap:8px; justify-content:flex-end; margin-top:10px; }
+.btn { padding:8px 12px; border-radius:6px; border:0; cursor:pointer; }
+.btn.primary { background:#1e1e2f; color:#fff; }
+.btn.ghost { background:#f1f3f5; }
+.processo-row { display:flex; gap:5px; margin-bottom:5px; }
+.processo-row input { flex:1; }
+.toast { position:fixed; right:20px; bottom:20px; background:#222; color:#fff; padding:8px 12px; border-radius:8px; box-shadow:0 6px 24px rgba(0,0,0,.3); display:none; z-index:60; }
+</style>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, doc, setDoc, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAFJJAqVf3ge0WDHBpmS9E6sXKvnjuFkhw",
+    authDomain: "dapapp-38637.firebaseapp.com",
+    projectId: "dapapp-38637",
+    storageBucket: "dapapp-38637.appspot.com",
+    messagingSenderId: "628852295313",
+    appId: "1:628852295313:web:1234567890abcdef123456"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+window.firebaseDB = db;
+
+document.addEventListener('DOMContentLoaded', () => {
+    const sidebar = document.querySelector(".sidebar");
+    const mainContent = document.querySelector(".main");
+    if (sidebar && mainContent) {
+        sidebar.addEventListener('mouseenter', () => { sidebar.classList.add('expanded'); mainContent.classList.add('blur'); });
+        sidebar.addEventListener('mouseleave', () => { sidebar.classList.remove('expanded'); mainContent.classList.remove('blur'); });
+    }
+
+    const STATUS=['lista-fria','negociacao','contrato-assinado','fechado'];
+    const cardsMap={};
+    const modalBackdrop=document.getElementById('modalBackdrop');
+    const clientForm=document.getElementById('clientForm');
+    const inputNome=document.getElementById('inputNome');
+    const inputCPF=document.getElementById('inputCPF');
+    const inputObs=document.getElementById('inputObs');
+    const inputStatus=document.getElementById('inputStatus');
+    const inputNumeros=document.getElementById('inputNumeros');
+    const inputClasse=document.getElementById('inputClasse');
+    const inputValor=document.getElementById('inputValor');
+    const btnAdd=document.getElementById('btnAdd');
+    const btnCancel=document.getElementById('btnCancel');
+    const searchInput=document.getElementById('searchInput');
+    const filterStatus=document.getElementById('filterStatus');
+    const toastEl=document.getElementById('toast');
+    const coinSound=document.getElementById('coinSound');
+    const processosContainer=document.getElementById('processosContainer');
+
+    let currentUser=null;
+
+    function showToast(msg){ toastEl.innerText=msg; toastEl.style.display='block'; clearTimeout(toastEl._t); toastEl._t=setTimeout(()=>toastEl.style.display='none',3000); }
+
+    async function getClientes(){
+        if(!currentUser) return [];
+        const q = query(collection(db,"clientes"), where("userId","==",currentUser.uid));
+        const snapshot = await getDocs(q);
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    }
+
+    async function saveCliente(cliente){
+        if(!currentUser) return;
+        cliente.userId = currentUser.uid; // garante que pertence ao usuário logado
+        if(cliente.id){
+            const docRef = doc(db, "clientes", cliente.id);
+            await setDoc(docRef, cliente);
+        } else {
+            const docRef = await addDoc(collection(db,"clientes"), cliente);
+            cliente.id = docRef.id;
+        }
+    }
+
+    function openModal(edit=false,data=null){
+        modalBackdrop.style.display='flex';
+        document.getElementById('modalTitle').innerText=edit?"Editar Cliente":"Novo Cliente";
+        processosContainer.innerHTML='';
+        if(edit && data){
+            inputNome.value=data.nome;
+            inputCPF.value=data.cpf||"";
+            inputObs.value=data.obs||"";
+            inputStatus.value=data.status||"lista-fria";
+            inputNumeros.value=data.numeros||"";
+            inputClasse.value=data.classe||"Outros";
+            inputValor.value=data.valor||"";
+            const processos = data.processo ? data.processo.split(',').map(p=>p.trim()) : [''];
+            processos.forEach(p=>addProcessoField(p));
+            clientForm.dataset.editId=data.id;
+        } else {
+            addProcessoField();
+            inputNome.value=""; inputCPF.value=""; inputObs.value=""; inputStatus.value="lista-fria";
+            inputNumeros.value=""; inputClasse.value="Outros"; inputValor.value="";
+            delete clientForm.dataset.editId;
+        }
+    }
+
+    function closeModal(){ modalBackdrop.style.display='none'; }
+
+    function addProcessoField(value=""){
+        const row = document.createElement('div');
+        row.className='processo-row';
+        const input = document.createElement('input');
+        input.className='inputProcesso';
+        input.placeholder='0000000-00.0000.0.00.0000';
+        input.value = value;
+        const btnAdd = document.createElement('button');
+        btnAdd.type='button';
+        btnAdd.className='btn ghost btnAddProcesso';
+        btnAdd.textContent='+';
+        btnAdd.onclick=()=>addProcessoField();
+        const btnRemove = document.createElement('button');
+        btnRemove.type='button';
+        btnRemove.className='btn ghost btnRemoveProcesso';
+        btnRemove.textContent='-';
+        btnRemove.onclick=()=>row.remove();
+        row.appendChild(input);
+        row.appendChild(btnAdd);
+        row.appendChild(btnRemove);
+        processosContainer.appendChild(row);
+    }
+
+    function criarCard(cliente){
+        const status = cliente.status || 'lista-fria';
+        const col=document.getElementById(status);
+        if(!col) return;
+        const card=document.createElement('div');
+        card.className=`card ${status}`;
+        card.dataset.id=cliente.id;
+        card.dataset.status=status;
+        card.dataset.nome=cliente.nome.toLowerCase();
+        card.draggable=true;
+
+        const colorBar=document.createElement('div'); colorBar.className='color-bar'; card.appendChild(colorBar);
+
+        const actionsDiv=document.createElement('div'); actionsDiv.className='card-actions';
+        const btnCall=document.createElement('button');
+        btnCall.onclick=(e)=>{ e.stopPropagation(); ligar(cliente.numeros||''); };
+        btnCall.innerHTML='<img src="https://img.icons8.com/ios-glyphs/30/000000/phone.png"/>';
+        const btnWa=document.createElement('button');
+        btnWa.onclick=(e)=>{ e.stopPropagation(); whatsapp(cliente.numeros||''); };
+        btnWa.innerHTML='<img src="https://img.icons8.com/ios-glyphs/30/000000/whatsapp.png"/>';
+        actionsDiv.appendChild(btnCall); actionsDiv.appendChild(btnWa); card.appendChild(actionsDiv);
+
+        const contentDiv=document.createElement('div'); contentDiv.className='card-content';
+        const processosArray = cliente.processo ? cliente.processo.split(',').map(p=>p.trim()) : [];
+        const primeiroProcesso = processosArray.length > 0 ? processosArray[0] : '-';
+        contentDiv.innerHTML=`<h3>${cliente.nome}</h3>
+            <p>CPF: ${cliente.cpf||'-'}</p>
+            <p>Classe: ${cliente.classe||'-'}</p>
+            <p>Processo: ${primeiroProcesso}</p>
+            <p>Valor: R$ ${cliente.valor||0}</p>`;
+        card.appendChild(contentDiv);
+
+        card.onclick=()=>openModal(true,cliente);
+        addDragEvents(card);
+        col.appendChild(card);
+        cardsMap[cliente.id]=card;
+    }
+
+    function ligar(numero){ if(!numero){ showToast("Número não informado"); return; } window.open(`tel:${numero.replace(/\D/g,'')}`); }
+    function whatsapp(numero){ if(!numero){ showToast("Número não informado"); return; } const num=numero.replace(/\D/g,''); window.open(`https://wa.me/55${num}`,'_blank'); }
+
+    async function render(){
+        STATUS.forEach(s=>{
+            const col=document.getElementById(s);
+            col.innerHTML=`<h2>${s.replace('-',' ').toUpperCase()}</h2>`;
+        });
+        for(const k in cardsMap) delete cardsMap[k];
+        const clientes = await getClientes();
+        for(const c of clientes) criarCard(c);
+        filtragemAplicada();
+    }
+
+    clientForm.onsubmit = async function(e){
+        e.preventDefault();
+        const nome = inputNome.value.trim();
+        if(!nome){ showToast("Nome obrigatório"); return; }
+
+        const processos = Array.from(document.querySelectorAll('.inputProcesso'))
+                        .map(i=>i.value.trim())
+                        .filter(v=>v);
+
+        const novo = {
+            nome, cpf: inputCPF.value.trim(),
+            obs: inputObs.value.trim().substring(0,300),
+            status: inputStatus.value,
+            numeros: inputNumeros.value,
+            processo: processos.join(', '),
+            classe: inputClasse.value,
+            valor: inputValor.value
+        };
+
+        if(clientForm.dataset.editId){
+            novo.id = clientForm.dataset.editId;
+            await saveCliente(novo);
+            showToast("Cliente atualizado!");
+        } else {
+            await saveCliente(novo);
+            showToast("Cliente adicionado!");
+        }
+
+        closeModal();
+        render();
+    };
+
+    btnAdd.onclick=()=>openModal();
+    btnCancel.onclick=()=>closeModal();
+
+    let draggedCard=null;
+    function addDragEvents(card){
+        card.addEventListener('dragstart',()=>{ draggedCard=card; card.style.opacity='.5'; });
+        card.addEventListener('dragend',()=>{ draggedCard=null; card.style.opacity='1'; });
+    }
+    document.querySelectorAll('.column').forEach(col=>{
+        col.addEventListener('dragover', e=>e.preventDefault());
+        col.addEventListener('drop', async ()=>{
+            if(!draggedCard) return;
+            const id = draggedCard.dataset.id;
+            const status = col.id;
+            const docRef = doc(db,"clientes",id);
+            await updateDoc(docRef,{status});
+            if(status === "fechado"){ 
+                coinSound.currentTime = 0;
+                coinSound.play();
+            }
+            render(); 
+            showToast("Status atualizado");
+        });
+    });
+
+    function filtragemAplicada(){
+        const q = searchInput.value.toLowerCase();
+        const filterS = filterStatus.value;
+        Object.values(cardsMap).forEach(card=>{
+            const matchSearch = card.dataset.nome.includes(q);
+            const matchStatus = !filterS || card.dataset.status===filterS;
+            card.style.display=(matchSearch && matchStatus)?'flex':'none';
+        });
+    }
+    searchInput.oninput=filtragemAplicada;
+    filterStatus.onchange=filtragemAplicada;
+
+    // ======= Controle de login =======
+    onAuthStateChanged(auth, user=>{
+        if(user){
+            currentUser = user;
+            render();
+        } else {
+            window.location.href = "login.html"; // redireciona se não estiver logado
+        }
+    });
+});
+</script>
+</head>
+<body>
+<div class="sidebar">
+    <h2 onclick="window.location.href='dashboard.html'">AMR ADV</h2>
+    <button onclick="window.location.href='crm.html'"><img src="https://img.icons8.com/ios-filled/50/ffffff/dashboard.png"/><span>CRM</span></button>
+    <button onclick="window.location.href='relatorios.html'"><img src="https://img.icons8.com/ios-filled/50/ffffff/combo-chart.png"/><span>Relatórios</span></button>
+    <button onclick="window.location.href='agenda.html'"><img src="https://img.icons8.com/ios-filled/50/ffffff/calendar.png"/><span>Agenda</span></button>
+    <button onclick="window.location.href='discador.html'"><img src="https://img.icons8.com/ios-filled/50/ffffff/contacts.png"/><span>Contatos</span></button>
+    <button onclick="window.location.href='clientes.html'"><img src="https://img.icons8.com/ios-filled/50/ffffff/user-group-man-man.png"/><span>Clientes</span></button>
+    <button onclick="window.location.href='processos.html'"><img src="https://img.icons8.com/ios-filled/50/ffffff/file.png"/><span>Processos</span></button>
+    <button><img src="https://img.icons8.com/ios-filled/50/ffffff/settings.png"/><span>Configurações</span></button>
+</div>
+
+<div class="main">
+<header>
+<h1>CRM</h1>
+<button id="btnAdd" class="btn primary">Adicionar Cliente</button>
+</header>
+
+<div class="search-bar">
+<input id="searchInput" placeholder="Buscar cliente..." />
+<select id="filterStatus">
+<option value="">Todos os status</option>
+<option value="lista-fria">Lista Fria</option>
+<option value="negociacao">Negociação</option>
+<option value="contrato-assinado">Contrato Assinado</option>
+<option value="fechado">Fechado</option>
+</select>
+</div>
+
+<div class="kanban-container">
+<main class="kanban" id="kanban">
+<div class="column" id="lista-fria"><h2>LISTA FRIA</h2></div>
+<div class="column" id="negociacao"><h2>NEGOCIAÇÃO</h2></div>
+<div class="column" id="contrato-assinado"><h2>CONTRATO ASSINADO</h2></div>
+<div class="column" id="fechado"><h2>FECHADO</h2></div>
+</main>
+</div>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+<div class="modal">
+<h3 id="modalTitle">Novo Cliente</h3>
+<form id="clientForm">
+<div class="row"><input id="inputNome" placeholder="Nome do cliente" required /></div>
+<div class="row"><input id="inputCPF" placeholder="CPF/CNPJ" /></div>
+<div class="row"><input id="inputNumeros" placeholder="Telefone/WhatsApp" /></div>
+<div class="row"><select id="inputClasse"><option value="Outros">Outros</option><option value="Busca e Apreensão">Busca e Apreensão</option><option value="Execução">Execução</option><option value="Renegociação">Renegociação</option></select></div>
+<div class="row"><input id="inputValor" type="number" placeholder="Valor (R$)" /></div>
+<div id="processosContainer"></div>
+<div class="row"><textarea id="inputObs" maxlength="300" placeholder="Observações (máx. 300 caracteres)"></textarea></div>
+<div class="row"><select id="inputStatus"><option value="lista-fria">Lista Fria</option><option value="negociacao">Negociação</option><option value="contrato-assinado">Contrato Assinado</option><option value="fechado">Fechado</option></select></div>
+<div class="actions">
+<button type="submit" class="btn primary">Salvar</button>
+<button type="button" class="btn ghost" id="btnCancel">Cancelar</button>
+</div>
+</form>
+</div>
+</div>
+
+<div class="toast" id="toast"></div>
+<audio id="coinSound" src="https://assets.mixkit.co/sfx/preview/mixkit-winning-notification-2018.mp3" preload="auto"></audio>
+</body>
+</html>
