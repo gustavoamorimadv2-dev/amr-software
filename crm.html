@@ -1,3 +1,5 @@
+Cam ok 
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -220,6 +222,7 @@ header button{
 
     width:100%;
     min-height:230px;
+    max-height:230px;
 }
 
 .card:hover{
@@ -393,42 +396,6 @@ header button{
     z-index:60;
 }
 
-/* ================= DOCUMENTOS UPLOAD ================= */
-.docs-section {
-    border: 1px dashed #ccc;
-    padding: 10px;
-    border-radius: 6px;
-    margin-bottom: 10px;
-}
-.docs-section h4 {
-    font-size: 14px;
-    margin-bottom: 8px;
-    color: #333;
-}
-.doc-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: #f8f9fa;
-    padding: 6px;
-    border-radius: 4px;
-    margin-bottom: 5px;
-    font-size: 13px;
-}
-.doc-item a {
-    color: #3498db;
-    text-decoration: none;
-    word-break: break-all;
-}
-.doc-item button {
-    background: transparent;
-    border: none;
-    color: #e74c3c;
-    cursor: pointer;
-    font-weight: bold;
-    padding: 0 5px;
-}
-
 </style>
 
 <script type="module">
@@ -452,13 +419,6 @@ import {
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
 
-import {
-    getStorage,
-    ref,
-    uploadBytes,
-    getDownloadURL
-} from "https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js";
-
 /* ================= FIREBASE ================= */
 
 const firebaseConfig = {
@@ -473,13 +433,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-let storage;
-
-try {
-    storage = getStorage(app);
-} catch (error) {
-    console.error("Storage indisponível:", error);
-}
 
 window.firebaseDB = db;
 
@@ -537,13 +490,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const telefonesContainer = document.getElementById('telefonesContainer');
     const btnAddTelefone = document.getElementById('btnAddTelefone');
 
-    /* ================= VARIÁVEIS DOCUMENTOS ================= */
-    const inputFile = document.getElementById('inputFile');
-    const btnTriggerFile = document.getElementById('btnTriggerFile');
-    const docsList = document.getElementById('docsList');
-    const uploadProgress = document.getElementById('uploadProgress');
-    let currentDocs = [];
-
     let currentUser = null;
 
     /* ================= TOAST ================= */
@@ -575,9 +521,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const snapshot = await getDocs(q);
 
-        return snapshot.docs.map(docData => ({
-            id: docData.id,
-            ...docData.data()
+        return snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
         }));
     }
 
@@ -605,68 +551,6 @@ document.addEventListener('DOMContentLoaded', () => {
             cliente.id = docRef.id;
         }
     }
-
-    /* ================= UPLOAD DE DOCUMENTOS ================= */
-
-    function renderDocsList() {
-        docsList.innerHTML = '';
-        if (currentDocs.length === 0) {
-            docsList.innerHTML = '<span style="color:#888; font-size:12px;">Nenhum documento anexado.</span>';
-            return;
-        }
-
-        currentDocs.forEach((arquivo, index) => {
-            const div = document.createElement('div');
-            div.className = 'doc-item';
-            div.innerHTML = `<a href="${arquivo.url}" target="_blank">📄 ${arquivo.name}</a>`;
-            
-            const btnRemove = document.createElement('button');
-            btnRemove.type = 'button';
-            btnRemove.innerText = 'X';
-            btnRemove.onclick = () => {
-                currentDocs.splice(index, 1);
-                renderDocsList();
-            };
-
-            div.appendChild(btnRemove);
-            docsList.appendChild(div);
-        });
-    }
-
-    btnTriggerFile.onclick = () => {
-        inputFile.click();
-    };
-
-    inputFile.onchange = async (e) => {
-        if (!storage) {
-            showToast("Serviço de arquivos não configurado");
-            return;
-        }
-
-        const files = Array.from(e.target.files);
-        if (!files.length || !currentUser) return;
-        
-        uploadProgress.style.display = 'block';
-        uploadProgress.innerText = `Enviando ${files.length} arquivo(s)...`;
-        
-        for (let file of files) {
-            try {
-                const uniqueName = Date.now() + "_" + file.name;
-                const storageRef = ref(storage, `documentos/${currentUser.uid}/${uniqueName}`);
-                await uploadBytes(storageRef, file);
-                const url = await getDownloadURL(storageRef);
-                currentDocs.push({ name: file.name, url: url });
-            } catch (error) {
-                console.error("Erro no upload:", error);
-                showToast("Erro ao enviar " + file.name);
-            }
-        }
-        
-        uploadProgress.style.display = 'none';
-        inputFile.value = ''; 
-        renderDocsList();
-        showToast("Upload concluído!");
-    };
 
     /* ================= MODAL ================= */
 
@@ -702,8 +586,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             telefones.forEach(t => addTelefoneField(t));
 
-            currentDocs = Array.isArray(data.documentos) ? [...data.documentos] : [];
-
             clientForm.dataset.editId = data.id;
 
         }else{
@@ -719,12 +601,8 @@ document.addEventListener('DOMContentLoaded', () => {
             inputValor.value = "";
             inputEstado.value = "São Paulo";
 
-            currentDocs = [];
-
             delete clientForm.dataset.editId;
         }
-
-        renderDocsList();
     }
 
     function closeModal(){
@@ -905,30 +783,6 @@ document.addEventListener('DOMContentLoaded', () => {
             <p><strong>Valor:</strong> R$ ${cliente.valor || 0}</p>
         `;
 
-        // Renderiza os links de documentos no card
-        if (Array.isArray(cliente.documentos) && cliente.documentos.length > 0) {
-            const docsDiv = document.createElement('div');
-            docsDiv.style.marginTop = "12px";
-            docsDiv.innerHTML = `<p style="font-weight: 600; color: #333; margin-bottom: 5px;">Documentos Anexos:</p>`;
-            
-            cliente.documentos.forEach(arquivo => {
-                const link = document.createElement('a');
-                link.href = arquivo.url;
-                link.target = "_blank";
-                link.style.display = "block";
-                link.style.fontSize = "13px";
-                link.style.color = "#3498db";
-                link.style.textDecoration = "none";
-                link.style.margin = "3px 0";
-                link.innerHTML = `📄 ${arquivo.name}`;
-                
-                link.onclick = (e) => e.stopPropagation();
-                
-                docsDiv.appendChild(link);
-            });
-            contentDiv.appendChild(docsDiv);
-        }
-
         card.appendChild(contentDiv);
 
         card.onclick = () => {
@@ -1036,9 +890,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             valor: inputValor.value,
 
-            estado: inputEstado.value,
-
-            documentos: currentDocs
+            estado: inputEstado.value
         };
 
         if(clientForm.dataset.editId){
@@ -1175,6 +1027,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <body>
 
+<!-- ================= SIDEBAR ================= -->
+
 <div class="sidebar">
 
     <h2 onclick="window.location.href='dashboard.html'">
@@ -1218,6 +1072,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </div>
 
+<!-- ================= MAIN ================= -->
+
 <div class="main">
 
 <header>
@@ -1229,6 +1085,8 @@ document.addEventListener('DOMContentLoaded', () => {
     </button>
 
 </header>
+
+<!-- ================= SEARCH ================= -->
 
 <div class="search-bar">
 
@@ -1263,6 +1121,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </div>
 
+<!-- ================= KANBAN ================= -->
+
 <div class="kanban-container">
 
 <main class="kanban" id="kanban">
@@ -1289,6 +1149,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </div>
 
+<!-- ================= MODAL ================= -->
+
 <div class="modal-backdrop" id="modalBackdrop">
 
 <div class="modal">
@@ -1314,6 +1176,8 @@ document.addEventListener('DOMContentLoaded', () => {
         />
     </div>
 
+    <!-- ================= TELEFONES ================= -->
+
     <div id="telefonesContainer"></div>
 
     <div class="row">
@@ -1327,6 +1191,8 @@ document.addEventListener('DOMContentLoaded', () => {
         </button>
 
     </div>
+
+    <!-- ================= CLASSE ================= -->
 
     <div class="row">
 
@@ -1352,6 +1218,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     </div>
 
+    <!-- ================= VALOR ================= -->
+
     <div class="row">
 
         <input
@@ -1362,7 +1230,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     </div>
 
-    <div class="row">
+    <!-- ================= ESTADO ================= -->
+<!-- ================= ESTADO ================= -->
+
+<div class="row">
 
     <select id="inputEstado">
 
@@ -1477,18 +1348,11 @@ document.addEventListener('DOMContentLoaded', () => {
     </select>
 
 </div>
+    <!-- ================= PROCESSOS ================= -->
+
     <div id="processosContainer"></div>
 
-    <div class="docs-section">
-        <h4>Documentos do Cliente</h4>
-        <div id="docsList"></div>
-        <input type="file" id="inputFile" style="display: none;" multiple />
-        
-        <button type="button" class="btn ghost" id="btnTriggerFile" style="margin-top: 8px;">
-            📁 Anexar Arquivos
-        </button>
-        <div id="uploadProgress" style="font-size: 12px; color: #2ecc71; margin-top: 5px; display: none;"></div>
-    </div>
+    <!-- ================= OBS ================= -->
 
     <div class="row">
 
@@ -1499,6 +1363,8 @@ document.addEventListener('DOMContentLoaded', () => {
         ></textarea>
 
     </div>
+
+    <!-- ================= STATUS ================= -->
 
     <div class="row">
 
@@ -1523,6 +1389,8 @@ document.addEventListener('DOMContentLoaded', () => {
         </select>
 
     </div>
+
+    <!-- ================= ACTIONS ================= -->
 
     <div class="actions">
 
@@ -1549,7 +1417,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </div>
 
+<!-- ================= TOAST ================= -->
+
 <div class="toast" id="toast"></div>
+
+<!-- ================= AUDIO ================= -->
 
 <audio
     id="coinSound"
@@ -1559,5 +1431,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
-
-```
