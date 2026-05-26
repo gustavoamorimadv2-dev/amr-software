@@ -2,12 +2,9 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Mockup App Cliente</title>
-
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
@@ -269,36 +266,35 @@ body{
 }
 
 .iphone{
-    width:370px;
-    height:760px;
-    background:linear-gradient(180deg,#1f2937,#000);
-    border-radius:58px;
-    padding:14px;
+    width:380px; /* Largura levemente ajustada */
+    height:770px; /* Altura levemente ajustada */
     position:relative;
-    border:1px solid rgba(255,255,255,0.08);
-    box-shadow:
-        0 50px 100px rgba(0,0,0,0.6),
-        inset 0 1px 0 rgba(255,255,255,0.12);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    /* O padding dita o espaço interno onde a tela vai ficar em relação à borda da imagem */
+    padding:16px; 
 }
 
-.notch{
-    width:190px;
-    height:34px;
-    background:#000;
-    position:absolute;
-    top:12px;
-    left:50%;
-    transform:translateX(-50%);
-    border-radius:0 0 22px 22px;
-    z-index:20;
+.phone-frame {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: fill; 
+    pointer-events: none; /* ESSENCIAL: Deixa os cliques passarem pela moldura para a tela do app */
+    z-index: 50; /* Garante que o recorte do iPhone fique por cima da tela */
+    filter: drop-shadow(0 40px 80px rgba(0,0,0,0.6)); /* Sombra para o aparelho */
 }
 
 .screen{
     width:100%;
     height:100%;
-    border-radius:44px;
+    border-radius:46px; /* Ajuste fino do canto arredondado interno da tela */
     overflow:hidden;
     position:relative;
+    z-index: 10;
     transition:0.4s;
     display:flex;
     flex-direction:column;
@@ -398,6 +394,15 @@ body{
     flex:1;
     overflow-y:auto;
     display:none;
+}
+
+/* Esconde a barra de rolagem nativa para ficar mais realista dentro da tela */
+.home-screen::-webkit-scrollbar, .module-screen::-webkit-scrollbar {
+    display: none;
+}
+.home-screen, .module-screen {
+    -ms-overflow-style: none;  
+    scrollbar-width: none;  
 }
 
 .app-header{
@@ -582,732 +587,354 @@ body{
 }
 
 </style>
-
 </head>
-
 <body>
 
-<!-- ================= SIDEBAR ================= -->
-
 <div class="sidebar">
-
     <div class="logo-title">
-
         <div class="logo-circle">
             A
         </div>
-
         <div>
-
             <h1>APP FACTORY</h1>
-
-            <p>
-                
-            </p>
-
+            <p></p>
         </div>
-
     </div>
 
-    <!-- LOGO -->
-
     <div class="section">
-
         <h2>Logo do Escritório</h2>
-
         <div class="logo-upload">
-
             <input
                 type="file"
                 id="logoInput"
                 accept="image/png,image/jpeg,image/webp"
             >
-
         </div>
-
         <div class="logo-preview">
-
             <img
                 id="logoPreview"
                 src=""
                 style="display:none;"
             >
-
         </div>
-
     </div>
 
-    <!-- CORES -->
-
     <div class="section">
-
         <h2>Cor do Aplicativo</h2>
-
         <div class="color-grid">
-
-            <div class="color-btn active"
-                 data-color="#111827"
-                 style="background:#111827;"></div>
-
-            <div class="color-btn"
-                 data-color="#1e3a8a"
-                 style="background:#1e3a8a;"></div>
-
-            <div class="color-btn"
-                 data-color="#065f46"
-                 style="background:#065f46;"></div>
-
-            <div class="color-btn"
-                 data-color="#7c2d12"
-                 style="background:#7c2d12;"></div>
-
-            <div class="color-btn"
-                 data-color="#4c1d95"
-                 style="background:#4c1d95;"></div>
-
-            <div class="color-btn"
-                 data-color="#831843"
-                 style="background:#831843;"></div>
-
-            <div class="color-btn"
-                 data-color="#0f766e"
-                 style="background:#0f766e;"></div>
-
-            <div class="color-btn"
-                 data-color="#374151"
-                 style="background:#374151;"></div>
-
+            <div class="color-btn active" data-color="#111827" style="background:#111827;"></div>
+            <div class="color-btn" data-color="#1e3a8a" style="background:#1e3a8a;"></div>
+            <div class="color-btn" data-color="#065f46" style="background:#065f46;"></div>
+            <div class="color-btn" data-color="#7c2d12" style="background:#7c2d12;"></div>
+            <div class="color-btn" data-color="#4c1d95" style="background:#4c1d95;"></div>
+            <div class="color-btn" data-color="#831843" style="background:#831843;"></div>
+            <div class="color-btn" data-color="#0f766e" style="background:#0f766e;"></div>
+            <div class="color-btn" data-color="#374151" style="background:#374151;"></div>
         </div>
-
     </div>
-
-    <!-- MODULOS -->
 
     <div class="section">
-
         <h2>Módulos</h2>
-
         <div class="modules">
-
             <div class="module-item">
-
                 <div class="module-left">
-
                     <div class="module-icon">◫</div>
-
                     <span>Boletos</span>
-
                 </div>
-
                 <label class="switch">
-
                     <input type="checkbox" class="module-toggle" data-module="boletos" checked>
-
                     <span class="slider"></span>
-
                 </label>
-
             </div>
-
             <div class="module-item">
-
                 <div class="module-left">
-
                     <div class="module-icon">⬢</div>
-
                     <span>Negociação</span>
-
                 </div>
-
                 <label class="switch">
-
                     <input type="checkbox" class="module-toggle" data-module="negociacao" checked>
-
                     <span class="slider"></span>
-
                 </label>
-
             </div>
-
             <div class="module-item">
-
                 <div class="module-left">
-
                     <div class="module-icon">▲</div>
-
                     <span>Andamento</span>
-
                 </div>
-
                 <label class="switch">
-
                     <input type="checkbox" class="module-toggle" data-module="andamento" checked>
-
                     <span class="slider"></span>
-
                 </label>
-
             </div>
-
             <div class="module-item">
-
                 <div class="module-left">
-
                     <div class="module-icon">▣</div>
-
                     <span>Documentos</span>
-
                 </div>
-
                 <label class="switch">
-
                     <input type="checkbox" class="module-toggle" data-module="documentos" checked>
-
                     <span class="slider"></span>
-
                 </label>
-
             </div>
-
             <div class="module-item">
-
                 <div class="module-left">
-
                     <div class="module-icon">◆</div>
-
                     <span>Alertas</span>
-
                 </div>
-
                 <label class="switch">
-
                     <input type="checkbox" class="module-toggle" data-module="alertas" checked>
-
                     <span class="slider"></span>
-
                 </label>
-
             </div>
-
         </div>
-
     </div>
-
 </div>
 
-<!-- ================= PREVIEW ================= -->
-
 <div class="preview">
-
     <div class="phone-glow"></div>
-
     <div class="iphone">
-
-        <div class="notch"></div>
+        
+        <img src="iphone16.avif" alt="iPhone Frame" class="phone-frame">
 
         <div class="screen" id="screen">
 
-            <!-- LOGIN -->
-
             <div class="login-screen" id="loginScreen">
-
                 <div class="login-logo">
-
                     <span id="defaultLogoText">
                         Sua Logo
                     </span>
-
                     <img
                         id="phoneLogo"
                         src=""
                         style="display:none;"
                     >
-
                 </div>
-
                 <h2>Área do Cliente</h2>
-
-                <p>
-                    Faça login com seu CPF
-                </p>
-
+                <p>Faça login com seu CPF</p>
                 <input
                     type="text"
                     class="login-input"
                     placeholder="Digite seu CPF"
                     id="cpfInput"
                 >
-
                 <button class="login-btn" id="loginBtn">
                     Entrar
                 </button>
-
             </div>
 
-            <!-- HOME -->
-
             <div class="home-screen" id="homeScreen">
-
                 <div class="app-header">
-
                     <div class="app-top">
-
                         <img
                             id="headerLogo"
                             src=""
                             style="display:none;"
                         >
-
                         <div>
-
                             <h2>AMR ADV</h2>
-
                             <p>Área do Cliente</p>
-
                         </div>
-
                     </div>
-
                 </div>
-
                 <div class="modules-grid" id="modulesGrid"></div>
-
             </div>
-
-            <!-- BOLETOS -->
 
             <div class="module-screen" id="screen-boletos">
-
-                <button class="back-btn">
-                    ← Voltar
-                </button>
-
+                <button class="back-btn">← Voltar</button>
                 <div class="screen-card">
-
                     <h3>Mensalidade Março</h3>
-
-                    <p>
-                        Vencimento em 12/03/2026
-                    </p>
-
-                    <span class="tag pending">
-                        Pendente
-                    </span>
-
+                    <p>Vencimento em 12/03/2026</p>
+                    <span class="tag pending">Pendente</span>
                 </div>
-
                 <div class="screen-card">
-
                     <h3>Mensalidade Fevereiro</h3>
-
-                    <p>
-                        Pagamento confirmado
-                    </p>
-
-                    <span class="tag">
-                        Pago
-                    </span>
-
+                    <p>Pagamento confirmado</p>
+                    <span class="tag">Pago</span>
                 </div>
-
             </div>
-
-            <!-- NEGOCIACAO -->
 
             <div class="module-screen" id="screen-negociacao">
-
-                <button class="back-btn">
-                    ← Voltar
-                </button>
-
+                <button class="back-btn">← Voltar</button>
                 <div class="screen-card">
-
                     <h3>Acordo Bancário</h3>
-
-                    <p>
-                        Redução aprovada de 42% nos juros contratuais.
-                    </p>
-
+                    <p>Redução aprovada de 42% nos juros contratuais.</p>
                 </div>
-
                 <div class="screen-card">
-
                     <h3>Status</h3>
-
-                    <p>
-                        Contraproposta recebida e em análise jurídica.
-                    </p>
-
+                    <p>Contraproposta recebida e em análise jurídica.</p>
                 </div>
-
             </div>
-
-            <!-- ANDAMENTO -->
 
             <div class="module-screen" id="screen-andamento">
-
-                <button class="back-btn">
-                    ← Voltar
-                </button>
-
+                <button class="back-btn">← Voltar</button>
                 <div class="screen-card">
-
                     <h3>Processo nº 0002451-89</h3>
-
-                    <p>
-                        Petição protocolada no Tribunal de Justiça.
-                    </p>
-
-                    <span class="tag">
-                        Atualizado Hoje
-                    </span>
-
+                    <p>Petição protocolada no Tribunal de Justiça.</p>
+                    <span class="tag">Atualizado Hoje</span>
                 </div>
-
                 <div class="screen-card">
-
                     <h3>Movimentação</h3>
-
-                    <p>
-                        Processo encaminhado para execução.
-                    </p>
-
+                    <p>Processo encaminhado para execução.</p>
                 </div>
-
             </div>
-
-            <!-- DOCUMENTOS -->
 
             <div class="module-screen" id="screen-documentos">
-
-                <button class="back-btn">
-                    ← Voltar
-                </button>
-
+                <button class="back-btn">← Voltar</button>
                 <div class="screen-card">
-
                     <h3>Arquivos Disponíveis</h3>
-
                     <div class="file-row">
-
                         <span>Contrato.pdf</span>
-
-                        <button class="file-btn">
-                            Abrir
-                        </button>
-
+                        <button class="file-btn">Abrir</button>
                     </div>
-
                     <div class="file-row">
-
                         <span>Petição.pdf</span>
-
-                        <button class="file-btn">
-                            Abrir
-                        </button>
-
+                        <button class="file-btn">Abrir</button>
                     </div>
-
                 </div>
-
             </div>
 
-            <!-- ALERTAS -->
-
             <div class="module-screen" id="screen-alertas">
-
-                <button class="back-btn">
-                    ← Voltar
-                </button>
-
+                <button class="back-btn">← Voltar</button>
                 <div class="screen-card">
-
                     <h3>Audiência Marcada</h3>
-
-                    <p>
-                        15/04/2026 às 14h00
-                    </p>
-
-                    <span class="tag alert">
-                        Importante
-                    </span>
-
+                    <p>15/04/2026 às 14h00</p>
+                    <span class="tag alert">Importante</span>
                 </div>
-
                 <div class="screen-card">
-
                     <h3>Prazo Processual</h3>
-
-                    <p>
-                        Restam 3 dias úteis para manifestação.
-                    </p>
-
+                    <p>Restam 3 dias úteis para manifestação.</p>
                 </div>
-
             </div>
 
         </div>
-
     </div>
-
 </div>
 
 <script>
 
 const screen = document.getElementById('screen');
-
 const modulesGrid = document.getElementById('modulesGrid');
-
 const colorButtons = document.querySelectorAll('.color-btn');
-
 const toggles = document.querySelectorAll('.module-toggle');
-
 const homeScreen = document.getElementById('homeScreen');
-
 const loginScreen = document.getElementById('loginScreen');
-
 const screens = document.querySelectorAll('.module-screen');
-
 const loginBtn = document.getElementById('loginBtn');
-
 const logoInput = document.getElementById('logoInput');
-
 const logoPreview = document.getElementById('logoPreview');
-
 const phoneLogo = document.getElementById('phoneLogo');
-
 const headerLogo = document.getElementById('headerLogo');
-
 const defaultLogoText = document.getElementById('defaultLogoText');
 
 const modulesData = {
-
-    boletos:{
-        icon:'◫',
-        title:'Boletos',
-        desc:'Visualize pagamentos'
-    },
-
-    negociacao:{
-        icon:'⬢',
-        title:'Negociação',
-        desc:'Acompanhe acordos'
-    },
-
-    andamento:{
-        icon:'▲',
-        title:'Andamento',
-        desc:'Status processual'
-    },
-
-    documentos:{
-        icon:'▣',
-        title:'Documentos',
-        desc:'Arquivos disponíveis'
-    },
-
-    alertas:{
-        icon:'◆',
-        title:'Alertas',
-        desc:'Notificações importantes'
-    }
-
+    boletos:{ icon:'◫', title:'Boletos', desc:'Visualize pagamentos' },
+    negociacao:{ icon:'⬢', title:'Negociação', desc:'Acompanhe acordos' },
+    andamento:{ icon:'▲', title:'Andamento', desc:'Status processual' },
+    documentos:{ icon:'▣', title:'Documentos', desc:'Arquivos disponíveis' },
+    alertas:{ icon:'◆', title:'Alertas', desc:'Notificações importantes' }
 };
 
 /* ================= LOGIN ================= */
-
 loginBtn.addEventListener('click', () => {
-
     const cpf = document.getElementById('cpfInput').value.trim();
-
     if(!cpf){
-
         alert('Digite um CPF');
-
         return;
-
     }
-
     loginScreen.style.display = 'none';
-
     homeScreen.style.display = 'block';
-
 });
 
 /* ================= LOGO ================= */
-
 logoInput.addEventListener('change', (e) => {
-
     const file = e.target.files[0];
-
-    if(!file){
-        return;
-    }
+    if(!file) return;
 
     const reader = new FileReader();
-
     reader.onload = function(event){
-
         const url = event.target.result;
-
         logoPreview.src = url;
         logoPreview.style.display = 'block';
-
         phoneLogo.src = url;
         phoneLogo.style.display = 'block';
-
         headerLogo.src = url;
         headerLogo.style.display = 'block';
-
         defaultLogoText.style.display = 'none';
-
     };
-
     reader.readAsDataURL(file);
-
 });
 
 /* ================= HOME ================= */
-
 function openModule(module){
-
     homeScreen.style.display = 'none';
-
     screens.forEach(screen => {
         screen.classList.remove('active');
     });
-
-    document
-        .getElementById(`screen-${module}`)
-        .classList
-        .add('active');
-
+    document.getElementById(`screen-${module}`).classList.add('active');
 }
 
 function goHome(){
-
     homeScreen.style.display = 'block';
-
     screens.forEach(screen => {
         screen.classList.remove('active');
     });
-
 }
 
 /* ================= RENDER ================= */
-
 function renderModules(){
-
     modulesGrid.innerHTML = '';
-
     toggles.forEach(toggle => {
-
         if(toggle.checked){
-
             const key = toggle.dataset.module;
-
             const module = modulesData[key];
-
             const card = document.createElement('div');
-
             card.className = 'app-module';
-
             card.innerHTML = `
-
-                <div class="icon">
-                    ${module.icon}
-                </div>
-
+                <div class="icon">${module.icon}</div>
                 <div>
-
-                    <h3>
-                        ${module.title}
-                    </h3>
-
-                    <p>
-                        ${module.desc}
-                    </p>
-
+                    <h3>${module.title}</h3>
+                    <p>${module.desc}</p>
                 </div>
-
             `;
-
             card.addEventListener('click', () => {
                 openModule(key);
             });
-
             modulesGrid.appendChild(card);
-
         }
-
     });
-
 }
 
 /* ================= CORES ================= */
-
 colorButtons.forEach(btn => {
-
     btn.addEventListener('click', () => {
-
-        colorButtons.forEach(b => {
-            b.classList.remove('active');
-        });
-
+        colorButtons.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-
         const color = btn.dataset.color;
-
-        screen.style.background = `
-            linear-gradient(
-                180deg,
-                ${color},
-                #000000
-            )
-        `;
-
+        screen.style.background = `linear-gradient(180deg, ${color}, #000000)`;
     });
-
 });
 
 /* ================= TOGGLES ================= */
-
 toggles.forEach(toggle => {
-
     toggle.addEventListener('change', () => {
-
         renderModules();
-
     });
-
 });
 
 /* ================= VOLTAR ================= */
-
 document.querySelectorAll('.back-btn').forEach(btn => {
-
     btn.addEventListener('click', () => {
-
         goHome();
-
     });
-
 });
 
 /* ================= INIT ================= */
-
-screen.style.background = `
-    linear-gradient(
-        180deg,
-        #111827,
-        #000000
-    )
-`;
-
+screen.style.background = `linear-gradient(180deg, #111827, #000000)`;
 renderModules();
 
 </script>
 
 </body>
 </html>
+
 ```
