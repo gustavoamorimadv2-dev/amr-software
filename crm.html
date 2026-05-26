@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -5,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CRM AMR ADV</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
 
@@ -13,21 +14,41 @@
     margin:0;
     padding:0;
     box-sizing:border-box;
-    font-family:'Segoe UI',sans-serif;
+    font-family:'Inter',sans-serif;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02); 
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1); 
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2); 
 }
 
 body{
     display:flex;
-    background:#f0f2f5;
     height:100vh;
     overflow:hidden;
+    /* Fundo Escuro com Gradientes */
+    background:
+        radial-gradient(circle at top left,#2f3f73 0%,transparent 30%),
+        radial-gradient(circle at bottom right,#0f766e 0%,transparent 25%),
+        linear-gradient(135deg,#0f172a,#111827,#020617);
+    color: #fff;
 }
 
 /* ================= SIDEBAR ================= */
 
 .sidebar{
     width:80px;
-    background:#1e1e2f;
     display:flex;
     flex-direction:column;
     align-items:center;
@@ -36,16 +57,20 @@ body{
     transition:width 0.4s ease;
     position:relative;
     z-index:10;
+    /* Efeito Glassmorphism */
+    backdrop-filter:blur(30px);
+    background:rgba(255,255,255,0.06);
+    border-right:1px solid rgba(255,255,255,0.08);
+    box-shadow:0 0 40px rgba(0,0,0,0.25);
 }
 
 .sidebar.expanded{
-    width:220px;
+    width:240px;
 }
 
 .sidebar h2{
     font-size:22px;
-    font-family:'Poppins',sans-serif;
-    font-weight:600;
+    font-weight:800;
     color:#fff;
     letter-spacing:1px;
     margin-bottom:30px;
@@ -63,36 +88,36 @@ body{
 }
 
 .sidebar button{
-    width:100%;
+    width:calc(100% - 20px);
     background:transparent;
     border:none;
-    color:#fff;
+    color:rgba(255,255,255,0.7);
     display:flex;
     align-items:center;
     gap:15px;
-    padding:12px 20px;
-    margin:5px 0;
+    padding:12px 15px;
+    margin:5px 10px;
     cursor:pointer;
-    border-radius:10px;
-    transition:background 0.3s,color 0.3s;
+    border-radius:14px;
+    transition:all 0.3s;
     font-size:14px;
     white-space:nowrap;
     overflow:hidden;
 }
 
 .sidebar button img{
-    width:28px;
-    height:28px;
-    filter:invert(1);
+    width:24px;
+    height:24px;
+    filter:invert(1) opacity(0.7);
     flex-shrink:0;
-    transition:transform 0.3s;
+    transition:transform 0.3s, filter 0.3s;
 }
 
 .sidebar button span{
     display:inline-block;
     opacity:0;
     transition:opacity 0.3s;
-    font-weight:500;
+    font-weight:600;
 }
 
 .sidebar.expanded button span{
@@ -101,10 +126,12 @@ body{
 
 .sidebar button:hover img{
     transform:scale(1.1);
+    filter:invert(1) opacity(1);
 }
 
 .sidebar button:hover{
-    background:#2a2a40;
+    background:rgba(255,255,255,0.1);
+    color:#fff;
 }
 
 /* ================= MAIN ================= */
@@ -118,56 +145,77 @@ body{
 }
 
 .main.blur{
-    filter:blur(4px) brightness(0.85);
+    filter:blur(5px) brightness(0.7);
 }
 
 header{
-    height:60px;
-    background:#fff;
-    border-bottom:1px solid #ddd;
+    height:70px;
+    background:transparent;
+    border-bottom:1px solid rgba(255,255,255,0.08);
     display:flex;
     justify-content:space-between;
     align-items:center;
-    padding:0 20px;
+    padding:0 30px;
     flex-shrink:0;
 }
 
 header h1{
-    font-size:22px;
-    color:#1e1e2f;
-    font-family:'Poppins',sans-serif;
-}
-
-header button{
-    padding:8px 16px;
-    background:#1e1e2f;
+    font-size:24px;
     color:#fff;
-    border:none;
-    border-radius:6px;
-    cursor:pointer;
+    font-weight:800;
 }
 
 /* ================= SEARCH ================= */
 
 .search-bar{
-    padding:10px 20px;
-    background:#fff;
-    border-bottom:1px solid #ddd;
+    padding:15px 30px;
+    background:transparent;
+    border-bottom:1px solid rgba(255,255,255,0.08);
     display:flex;
-    gap:10px;
+    gap:15px;
     align-items:center;
     flex-shrink:0;
 }
 
 .search-bar input,
-.search-bar select{
-    padding:8px;
-    border:1px solid #ccc;
-    border-radius:6px;
+.search-bar select,
+.modal input,
+.modal textarea,
+.modal select {
+    padding:12px 16px;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:12px;
+    color:#fff;
+    font-size: 14px;
+    outline: none;
+    transition: 0.3s;
+    backdrop-filter: blur(10px);
+}
+
+.search-bar input:focus,
+.search-bar select:focus,
+.modal input:focus,
+.modal textarea:focus,
+.modal select:focus {
+    background:rgba(255,255,255,0.15);
+    border-color: rgba(255,255,255,0.3);
+}
+
+.search-bar input::placeholder,
+.modal input::placeholder,
+.modal textarea::placeholder {
+    color: rgba(255,255,255,0.5);
 }
 
 .search-bar input{
     flex:1;
+}
+
+/* Estilizando as opções do select para ficarem legíveis no dark mode */
+select option {
+    background: #111827;
+    color: #fff;
 }
 
 /* ================= KANBAN ================= */
@@ -175,7 +223,7 @@ header button{
 .kanban-container{
     flex:1;
     overflow-x:auto;
-    padding:20px;
+    padding:20px 30px;
 }
 
 .kanban{
@@ -186,50 +234,55 @@ header button{
 }
 
 .column{
-    background:#fff;
-    border-radius:15px;
+    background:rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px);
+    border-radius:20px;
     padding:15px;
     min-width:320px;
     max-height:100%;
     display:flex;
     flex-direction:column;
-    gap:12px;
-    box-shadow:0 4px 12px rgba(0,0,0,0.08);
+    gap:15px;
     overflow-y:auto;
 }
 
 .column h2{
     margin-bottom:10px;
-    font-size:18px;
-    color:#1e1e2f;
-    text-transform:uppercase;
+    font-size:14px;
+    color:#fff;
+    font-weight: 700;
+    letter-spacing: 1px;
+    opacity: 0.8;
 }
 
 /* ================= CARDS ================= */
 
 .card{
     display:flex;
-    background:#fff;
-    border-radius:15px;
-    box-shadow:0 12px 30px rgba(0,0,0,0.12);
+    background:rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(15px);
+    border-radius:16px;
+    box-shadow:0 8px 30px rgba(0,0,0,0.2);
     cursor:pointer;
     overflow:hidden;
-    transition:0.3s;
+    transition:transform 0.3s, background 0.3s;
     position:relative;
     flex-direction:row;
-
     width:100%;
-    min-height:230px;
+    min-height:200px;
 }
 
 .card:hover{
-    transform:scale(1.02);
+    transform:translateY(-4px);
+    background:rgba(255,255,255,0.1);
 }
 
 .card .color-bar{
-    width:8px;
+    width:6px;
     height:100%;
-    border-radius:15px 0 0 15px;
+    border-radius:16px 0 0 16px;
 }
 
 .card-content{
@@ -242,56 +295,60 @@ header button{
 }
 
 .card h3{
-    font-size:20px;
-    margin-bottom:8px;
-    color:#333;
+    font-size:18px;
+    margin-bottom:12px;
+    color:#fff;
+    font-weight: 700;
 }
 
 .card p{
-    font-size:14px;
-    color:#555;
-    margin:4px 0;
+    font-size:13px;
+    color:rgba(255,255,255,0.7);
+    margin:5px 0;
 }
 
-.lista-fria .color-bar{
-    background:#3498db;
+.card p strong {
+    color: #fff;
+    font-weight: 600;
 }
 
-.negociacao .color-bar{
-    background:#f1c40f;
-}
-
-.contrato-assinado .color-bar{
-    background:#9b59b6;
-}
-
-.fechado .color-bar{
-    background:#2ecc71;
-}
+.lista-fria .color-bar{ background:#3b82f6; }
+.negociacao .color-bar{ background:#f59e0b; }
+.contrato-assinado .color-bar{ background:#8b5cf6; }
+.fechado .color-bar{ background:#10b981; }
 
 .card-actions{
     position:absolute;
-    top:10px;
-    right:10px;
+    top:15px;
+    right:15px;
     display:flex;
     gap:10px;
 }
 
 .card-actions button{
-    background:none;
-    border:none;
+    background:rgba(255,255,255,0.1);
+    border:1px solid rgba(255,255,255,0.05);
+    border-radius: 8px;
     cursor:pointer;
-    padding:4px;
+    padding:6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
 }
 
 .card-actions img{
-    width:20px;
-    height:20px;
-    opacity:0.7;
+    width:16px;
+    height:16px;
+    filter:invert(1); /* Inverte para branco */
+    opacity:0.8;
     transition:opacity 0.2s;
 }
 
-.card-actions img:hover{
+.card-actions button:hover{
+    background:rgba(255,255,255,0.2);
+}
+.card-actions button:hover img{
     opacity:1;
 }
 
@@ -301,77 +358,91 @@ header button{
     display:none;
     position:fixed;
     inset:0;
-    background:rgba(0,0,0,0.35);
+    background:rgba(0,0,0,0.6);
+    backdrop-filter: blur(8px);
     justify-content:center;
     align-items:center;
     z-index:50;
 }
 
 .modal{
-    background:#fff;
-    padding:18px;
-    border-radius:15px;
+    background:#0f172a;
+    border: 1px solid rgba(255,255,255,0.1);
+    padding:24px;
+    border-radius:24px;
     min-width:320px;
     max-width:500px;
     width:100%;
-    box-shadow:0 8px 30px rgba(0,0,0,.25);
+    box-shadow:0 20px 50px rgba(0,0,0,0.5);
     max-height:90vh;
     overflow-y:auto;
 }
 
 .modal h3{
-    margin-bottom:12px;
+    margin-bottom:20px;
+    font-size: 20px;
+    font-weight: 700;
 }
 
 .modal .row{
-    margin-bottom:10px;
+    margin-bottom:14px;
 }
 
 .modal input,
 .modal textarea,
 .modal select{
     width:100%;
-    padding:10px;
-    border-radius:6px;
-    border:1px solid #ccc;
 }
 
 .modal textarea{
-    min-height:80px;
+    min-height:100px;
     resize:vertical;
 }
 
 .modal .actions{
     display:flex;
-    gap:8px;
+    gap:10px;
     justify-content:flex-end;
-    margin-top:10px;
+    margin-top:20px;
 }
 
 /* ================= BUTTONS ================= */
 
 .btn{
-    padding:8px 12px;
-    border-radius:6px;
+    padding:10px 18px;
+    border-radius:12px;
     border:0;
     cursor:pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: 0.3s;
 }
 
 .btn.primary{
-    background:#1e1e2f;
-    color:#fff;
+    background:#fff;
+    color:#111827;
+}
+
+.btn.primary:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255,255,255,0.2);
 }
 
 .btn.ghost{
-    background:#f1f3f5;
+    background:rgba(255,255,255,0.12);
+    color:#fff;
+}
+
+.btn.ghost:hover{
+    background:rgba(255,255,255,0.2);
 }
 
 /* ================= DINÂMICOS ================= */
 
 .processo-row{
     display:flex;
-    gap:5px;
-    margin-bottom:8px;
+    gap:8px;
+    margin-bottom:10px;
 }
 
 .processo-row input{
@@ -382,51 +453,63 @@ header button{
 
 .toast{
     position:fixed;
-    right:20px;
-    bottom:20px;
-    background:#222;
+    right:30px;
+    bottom:30px;
+    background:rgba(255,255,255,0.1);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.1);
     color:#fff;
-    padding:8px 12px;
-    border-radius:8px;
-    box-shadow:0 6px 24px rgba(0,0,0,.3);
+    padding:12px 20px;
+    border-radius:12px;
+    box-shadow:0 10px 30px rgba(0,0,0,.4);
     display:none;
     z-index:60;
+    font-weight: 500;
 }
 
 /* ================= DOCUMENTOS UPLOAD ================= */
 .docs-section {
-    border: 1px dashed #ccc;
-    padding: 10px;
-    border-radius: 6px;
-    margin-bottom: 10px;
+    border: 1px dashed rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.03);
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 14px;
 }
 .docs-section h4 {
     font-size: 14px;
-    margin-bottom: 8px;
-    color: #333;
+    margin-bottom: 12px;
+    color: #fff;
 }
 .doc-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #f8f9fa;
-    padding: 6px;
-    border-radius: 4px;
-    margin-bottom: 5px;
+    background: rgba(255,255,255,0.08);
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 8px;
     font-size: 13px;
 }
 .doc-item a {
-    color: #3498db;
+    color: #60a5fa;
     text-decoration: none;
     word-break: break-all;
+}
+.doc-item a:hover {
+    text-decoration: underline;
 }
 .doc-item button {
     background: transparent;
     border: none;
-    color: #e74c3c;
+    color: #ef4444;
     cursor: pointer;
     font-weight: bold;
-    padding: 0 5px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: 0.2s;
+}
+.doc-item button:hover {
+    background: rgba(239, 68, 68, 0.1);
 }
 
 </style>
@@ -611,7 +694,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderDocsList() {
         docsList.innerHTML = '';
         if (currentDocs.length === 0) {
-            docsList.innerHTML = '<span style="color:#888; font-size:12px;">Nenhum documento anexado.</span>';
+            // Ajustado para tema escuro
+            docsList.innerHTML = '<span style="color:rgba(255,255,255,0.5); font-size:12px;">Nenhum documento anexado.</span>';
             return;
         }
 
@@ -909,7 +993,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (Array.isArray(cliente.documentos) && cliente.documentos.length > 0) {
             const docsDiv = document.createElement('div');
             docsDiv.style.marginTop = "12px";
-            docsDiv.innerHTML = `<p style="font-weight: 600; color: #333; margin-bottom: 5px;">Documentos Anexos:</p>`;
+            // Ajustado para tema escuro
+            docsDiv.innerHTML = `<p style="font-weight: 600; color: #fff; margin-bottom: 5px;">Documentos Anexos:</p>`;
             
             cliente.documentos.forEach(arquivo => {
                 const link = document.createElement('a');
@@ -917,7 +1002,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 link.target = "_blank";
                 link.style.display = "block";
                 link.style.fontSize = "13px";
-                link.style.color = "#3498db";
+                link.style.color = "#60a5fa"; // Azul mais claro para dark mode
                 link.style.textDecoration = "none";
                 link.style.margin = "3px 0";
                 link.innerHTML = `📄 ${arquivo.name}`;
@@ -1225,7 +1310,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <h1>CRM</h1>
 
     <button id="btnAdd" class="btn primary">
-        Adicionar Cliente
+        + Adicionar Cliente
     </button>
 
 </header>
@@ -1366,113 +1451,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     <select id="inputEstado">
 
-        <option value="Acre">
-            Acre
-        </option>
-
-        <option value="Alagoas">
-            Alagoas
-        </option>
-
-        <option value="Amapá">
-            Amapá
-        </option>
-
-        <option value="Amazonas">
-            Amazonas
-        </option>
-
-        <option value="Bahia">
-            Bahia
-        </option>
-
-        <option value="Ceará">
-            Ceará
-        </option>
-
-        <option value="Distrito Federal">
-            Distrito Federal
-        </option>
-
-        <option value="Espírito Santo">
-            Espírito Santo
-        </option>
-
-        <option value="Goiás">
-            Goiás
-        </option>
-
-        <option value="Maranhão">
-            Maranhão
-        </option>
-
-        <option value="Mato Grosso">
-            Mato Grosso
-        </option>
-
-        <option value="Mato Grosso do Sul">
-            Mato Grosso do Sul
-        </option>
-
-        <option value="Minas Gerais">
-            Minas Gerais
-        </option>
-
-        <option value="Pará">
-            Pará
-        </option>
-
-        <option value="Paraíba">
-            Paraíba
-        </option>
-
-        <option value="Paraná">
-            Paraná
-        </option>
-
-        <option value="Pernambuco">
-            Pernambuco
-        </option>
-
-        <option value="Piauí">
-            Piauí
-        </option>
-
-        <option value="Rio de Janeiro" selected>
-            Rio de Janeiro
-        </option>
-
-        <option value="Rio Grande do Norte">
-            Rio Grande do Norte
-        </option>
-
-        <option value="Rio Grande do Sul">
-            Rio Grande do Sul
-        </option>
-
-        <option value="Rondônia">
-            Rondônia
-        </option>
-
-        <option value="Roraima">
-            Roraima
-        </option>
-
-        <option value="Santa Catarina">
-            Santa Catarina
-        </option>
-
-        <option value="São Paulo">
-            São Paulo
-        </option>
-
-        <option value="Sergipe">
-            Sergipe
-        </option>
-
-        <option value="Tocantins">
-            Tocantins
-        </option>
+        <option value="Acre">Acre</option>
+        <option value="Alagoas">Alagoas</option>
+        <option value="Amapá">Amapá</option>
+        <option value="Amazonas">Amazonas</option>
+        <option value="Bahia">Bahia</option>
+        <option value="Ceará">Ceará</option>
+        <option value="Distrito Federal">Distrito Federal</option>
+        <option value="Espírito Santo">Espírito Santo</option>
+        <option value="Goiás">Goiás</option>
+        <option value="Maranhão">Maranhão</option>
+        <option value="Mato Grosso">Mato Grosso</option>
+        <option value="Mato Grosso do Sul">Mato Grosso do Sul</option>
+        <option value="Minas Gerais">Minas Gerais</option>
+        <option value="Pará">Pará</option>
+        <option value="Paraíba">Paraíba</option>
+        <option value="Paraná">Paraná</option>
+        <option value="Pernambuco">Pernambuco</option>
+        <option value="Piauí">Piauí</option>
+        <option value="Rio de Janeiro" selected>Rio de Janeiro</option>
+        <option value="Rio Grande do Norte">Rio Grande do Norte</option>
+        <option value="Rio Grande do Sul">Rio Grande do Sul</option>
+        <option value="Rondônia">Rondônia</option>
+        <option value="Roraima">Roraima</option>
+        <option value="Santa Catarina">Santa Catarina</option>
+        <option value="São Paulo">São Paulo</option>
+        <option value="Sergipe">Sergipe</option>
+        <option value="Tocantins">Tocantins</option>
 
     </select>
 
@@ -1487,7 +1492,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <button type="button" class="btn ghost" id="btnTriggerFile" style="margin-top: 8px;">
             📁 Anexar Arquivos
         </button>
-        <div id="uploadProgress" style="font-size: 12px; color: #2ecc71; margin-top: 5px; display: none;"></div>
+        <div id="uploadProgress" style="font-size: 12px; color: #10b981; margin-top: 5px; display: none;"></div>
     </div>
 
     <div class="row">
@@ -1504,21 +1509,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <select id="inputStatus">
 
-            <option value="lista-fria">
-                Lista Fria
-            </option>
-
-            <option value="negociacao">
-                Negociação
-            </option>
-
-            <option value="contrato-assinado">
-                Contrato Assinado
-            </option>
-
-            <option value="fechado">
-                Fechado
-            </option>
+            <option value="lista-fria">Lista Fria</option>
+            <option value="negociacao">Negociação</option>
+            <option value="contrato-assinado">Contrato Assinado</option>
+            <option value="fechado">Fechado</option>
 
         </select>
 
