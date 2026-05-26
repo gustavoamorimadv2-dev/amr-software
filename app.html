@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -140,6 +141,34 @@ body{
     transform:translateX(24px);
 }
 
+/* ================= LOGO ================= */
+
+.logo-upload{
+    width:100%;
+    padding:12px;
+    border:2px dashed #cbd5e1;
+    border-radius:14px;
+    background:#f8fafc;
+    cursor:pointer;
+}
+
+.logo-upload input{
+    width:100%;
+}
+
+.logo-preview{
+    width:100%;
+    display:flex;
+    justify-content:center;
+    margin-top:15px;
+}
+
+.logo-preview img{
+    max-width:120px;
+    max-height:60px;
+    object-fit:contain;
+}
+
 /* ================= PREVIEW ================= */
 
 .preview{
@@ -184,11 +213,103 @@ body{
     flex-direction:column;
 }
 
+/* ================= LOGIN SCREEN ================= */
+
+.login-screen{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    padding:40px 30px;
+    color:#fff;
+    text-align:center;
+}
+
+.login-logo{
+    width:140px;
+    height:140px;
+    border-radius:32px;
+    background:rgba(255,255,255,0.15);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-bottom:30px;
+    overflow:hidden;
+    backdrop-filter:blur(12px);
+}
+
+.login-logo img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+}
+
+.login-logo span{
+    font-size:42px;
+    font-weight:700;
+}
+
+.login-screen h2{
+    font-size:28px;
+    margin-bottom:8px;
+}
+
+.login-screen p{
+    font-size:14px;
+    opacity:0.8;
+    margin-bottom:30px;
+}
+
+.login-input{
+    width:100%;
+    background:rgba(255,255,255,0.15);
+    border:none;
+    padding:16px;
+    border-radius:18px;
+    color:#fff;
+    font-size:15px;
+    margin-bottom:16px;
+    backdrop-filter:blur(10px);
+}
+
+.login-input::placeholder{
+    color:rgba(255,255,255,0.7);
+}
+
+.login-btn{
+    width:100%;
+    border:none;
+    padding:16px;
+    border-radius:18px;
+    background:#fff;
+    color:#111827;
+    font-weight:700;
+    cursor:pointer;
+    font-size:15px;
+}
+
 /* ================= HEADER ================= */
 
 .app-header{
     padding:65px 25px 25px;
     color:#fff;
+}
+
+.app-top{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:15px;
+}
+
+.app-top img{
+    width:52px;
+    height:52px;
+    border-radius:16px;
+    object-fit:contain;
+    background:rgba(255,255,255,0.12);
+    padding:6px;
 }
 
 .app-header h2{
@@ -207,6 +328,7 @@ body{
 .home-screen{
     flex:1;
     overflow-y:auto;
+    display:none;
 }
 
 .modules-grid{
@@ -371,6 +493,34 @@ body{
         Personalize o aplicativo do cliente em tempo real.
     </p>
 
+    <!-- LOGO -->
+
+    <div class="section">
+
+        <h2>Logo do Cliente</h2>
+
+        <div class="logo-upload">
+
+            <input
+                type="file"
+                id="logoInput"
+                accept="image/png,image/jpeg,image/webp"
+            >
+
+        </div>
+
+        <div class="logo-preview">
+
+            <img
+                id="logoPreview"
+                src=""
+                style="display:none;"
+            >
+
+        </div>
+
+    </div>
+
     <!-- CORES -->
 
     <div class="section">
@@ -432,58 +582,48 @@ body{
         <div class="modules">
 
             <div class="module-item">
-
                 <span>Boletos</span>
 
                 <label class="switch">
                     <input type="checkbox" class="module-toggle" data-module="boletos" checked>
                     <span class="slider"></span>
                 </label>
-
             </div>
 
             <div class="module-item">
-
                 <span>Negociação</span>
 
                 <label class="switch">
                     <input type="checkbox" class="module-toggle" data-module="negociacao" checked>
                     <span class="slider"></span>
                 </label>
-
             </div>
 
             <div class="module-item">
-
                 <span>Andamento</span>
 
                 <label class="switch">
                     <input type="checkbox" class="module-toggle" data-module="andamento" checked>
                     <span class="slider"></span>
                 </label>
-
             </div>
 
             <div class="module-item">
-
                 <span>Documentos</span>
 
                 <label class="switch">
                     <input type="checkbox" class="module-toggle" data-module="documentos" checked>
                     <span class="slider"></span>
                 </label>
-
             </div>
 
             <div class="module-item">
-
                 <span>Alertas</span>
 
                 <label class="switch">
                     <input type="checkbox" class="module-toggle" data-module="alertas" checked>
                     <span class="slider"></span>
                 </label>
-
             </div>
 
         </div>
@@ -502,15 +642,68 @@ body{
 
         <div class="screen" id="screen">
 
+            <!-- LOGIN -->
+
+            <div class="login-screen" id="loginScreen">
+
+                <div class="login-logo" id="loginLogo">
+
+                    <span id="defaultLogoText">
+                        AMR
+                    </span>
+
+                    <img
+                        id="phoneLogo"
+                        src=""
+                        style="display:none;"
+                    >
+
+                </div>
+
+                <h2>
+                    Área do Cliente
+                </h2>
+
+                <p>
+                    Acesse com seu CPF
+                </p>
+
+                <input
+                    type="text"
+                    class="login-input"
+                    placeholder="Digite seu CPF"
+                    id="cpfInput"
+                >
+
+                <button class="login-btn" id="loginBtn">
+                    Entrar
+                </button>
+
+            </div>
+
             <!-- HOME -->
 
             <div class="home-screen" id="homeScreen">
 
                 <div class="app-header">
 
-                    <h2>AMR ADV</h2>
+                    <div class="app-top">
 
-                    <p>Área do Cliente</p>
+                        <img
+                            id="headerLogo"
+                            src=""
+                            style="display:none;"
+                        >
+
+                        <div>
+
+                            <h2>AMR ADV</h2>
+
+                            <p>Área do Cliente</p>
+
+                        </div>
+
+                    </div>
 
                 </div>
 
@@ -522,17 +715,13 @@ body{
 
             <div class="module-screen" id="screen-boletos">
 
-                <button class="back-btn">
-                    ← Voltar
-                </button>
+                <button class="back-btn">← Voltar</button>
 
                 <div class="screen-card">
 
                     <h3>Mensalidade Março</h3>
 
-                    <p>
-                        Vencimento: 12/03/2026
-                    </p>
+                    <p>Vencimento: 12/03/2026</p>
 
                     <span class="tag pending">
                         Pendente
@@ -544,9 +733,7 @@ body{
 
                     <h3>Mensalidade Fevereiro</h3>
 
-                    <p>
-                        Pago em 05/02/2026
-                    </p>
+                    <p>Pago em 05/02/2026</p>
 
                     <span class="tag">
                         Pago
@@ -560,9 +747,7 @@ body{
 
             <div class="module-screen" id="screen-negociacao">
 
-                <button class="back-btn">
-                    ← Voltar
-                </button>
+                <button class="back-btn">← Voltar</button>
 
                 <div class="screen-card">
 
@@ -590,9 +775,7 @@ body{
 
             <div class="module-screen" id="screen-andamento">
 
-                <button class="back-btn">
-                    ← Voltar
-                </button>
+                <button class="back-btn">← Voltar</button>
 
                 <div class="screen-card">
 
@@ -618,25 +801,13 @@ body{
 
                 </div>
 
-                <div class="screen-card">
-
-                    <h3>Próxima Etapa</h3>
-
-                    <p>
-                        Aguardar despacho judicial.
-                    </p>
-
-                </div>
-
             </div>
 
             <!-- DOCUMENTOS -->
 
             <div class="module-screen" id="screen-documentos">
 
-                <button class="back-btn">
-                    ← Voltar
-                </button>
+                <button class="back-btn">← Voltar</button>
 
                 <div class="screen-card">
 
@@ -662,16 +833,6 @@ body{
 
                     </div>
 
-                    <div class="file-row">
-
-                        <span>Procuração.pdf</span>
-
-                        <button class="file-btn">
-                            Abrir
-                        </button>
-
-                    </div>
-
                 </div>
 
             </div>
@@ -680,17 +841,13 @@ body{
 
             <div class="module-screen" id="screen-alertas">
 
-                <button class="back-btn">
-                    ← Voltar
-                </button>
+                <button class="back-btn">← Voltar</button>
 
                 <div class="screen-card">
 
                     <h3>Audiência Marcada</h3>
 
-                    <p>
-                        15/04/2026 às 14:00
-                    </p>
+                    <p>15/04/2026 às 14:00</p>
 
                     <span class="tag alert">
                         Importante
@@ -728,7 +885,21 @@ const toggles = document.querySelectorAll('.module-toggle');
 
 const homeScreen = document.getElementById('homeScreen');
 
+const loginScreen = document.getElementById('loginScreen');
+
 const screens = document.querySelectorAll('.module-screen');
+
+const loginBtn = document.getElementById('loginBtn');
+
+const logoInput = document.getElementById('logoInput');
+
+const logoPreview = document.getElementById('logoPreview');
+
+const phoneLogo = document.getElementById('phoneLogo');
+
+const headerLogo = document.getElementById('headerLogo');
+
+const defaultLogoText = document.getElementById('defaultLogoText');
 
 const modulesData = {
 
@@ -739,7 +910,7 @@ const modulesData = {
     },
 
     negociacao:{
-        icon:'<coins.png>',
+        icon:'⬢',
         title:'Negociação',
         desc:'Acompanhe acordos'
     },
@@ -763,6 +934,57 @@ const modulesData = {
     }
 
 };
+
+/* ================= LOGIN ================= */
+
+loginBtn.addEventListener('click', () => {
+
+    const cpf = document.getElementById('cpfInput').value.trim();
+
+    if(!cpf){
+
+        alert('Digite um CPF');
+
+        return;
+    }
+
+    loginScreen.style.display = 'none';
+
+    homeScreen.style.display = 'block';
+
+});
+
+/* ================= LOGO ================= */
+
+logoInput.addEventListener('change', (e) => {
+
+    const file = e.target.files[0];
+
+    if(!file){
+        return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = function(event){
+
+        const url = event.target.result;
+
+        logoPreview.src = url;
+        logoPreview.style.display = 'block';
+
+        phoneLogo.src = url;
+        phoneLogo.style.display = 'block';
+
+        headerLogo.src = url;
+        headerLogo.style.display = 'block';
+
+        defaultLogoText.style.display = 'none';
+    };
+
+    reader.readAsDataURL(file);
+
+});
 
 /* ================= HOME ================= */
 
@@ -879,7 +1101,7 @@ toggles.forEach(toggle => {
 
 });
 
-/* ================= BOTAO VOLTAR ================= */
+/* ================= VOLTAR ================= */
 
 document.querySelectorAll('.back-btn').forEach(btn => {
 
