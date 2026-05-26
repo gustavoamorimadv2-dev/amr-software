@@ -194,3 +194,433 @@ header button {
     display:flex;
     flex-direction:column;
     gap:12px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.08);
+    overflow-y:auto;
+}
+
+.column h2 {
+    margin-bottom:10px;
+    font-size:18px;
+    color:#1e1e2f;
+    text-transform:uppercase;
+}
+
+/* ================= CARDS ================= */
+
+.card {
+    display:flex;
+    background:#fff;
+    border-radius:15px;
+    box-shadow:0 12px 30px rgba(0,0,0,0.12);
+    cursor:pointer;
+    overflow:hidden;
+    transition:0.3s;
+    position:relative;
+    flex-direction:row;
+
+    width:100%;
+    min-height:230px;
+}
+
+.card:hover {
+    transform:scale(1.02);
+}
+
+.card .color-bar {
+    width:8px;
+    height:100%;
+    border-radius:15px 0 0 15px;
+}
+
+.card-content {
+    padding:20px;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-start;
+    overflow:hidden;
+}
+
+.card h3 {
+    font-size:20px;
+    margin-bottom:8px;
+    color:#333;
+}
+
+.card p {
+    font-size:14px;
+    color:#555;
+    margin:4px 0;
+}
+
+.lista-fria .color-bar {
+    background:#3498db;
+}
+
+.negociacao .color-bar {
+    background:#f1c40f;
+}
+
+.contrato-assinado .color-bar {
+    background:#9b59b6;
+}
+
+.fechado .color-bar {
+    background:#2ecc71;
+}
+
+.card-actions {
+    position:absolute;
+    top:10px;
+    right:10px;
+    display:flex;
+    gap:10px;
+}
+
+.card-actions button {
+    background:none;
+    border:none;
+    cursor:pointer;
+    padding:4px;
+}
+
+.card-actions img {
+    width:20px;
+    height:20px;
+    opacity:0.7;
+    transition:opacity 0.2s;
+}
+
+.card-actions img:hover {
+    opacity:1;
+}
+
+/* ================= MODAL ================= */
+
+.modal-backdrop {
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.35);
+    justify-content:center;
+    align-items:center;
+    z-index:50;
+}
+
+.modal {
+    background:#fff;
+    padding:18px;
+    border-radius:15px;
+    min-width:320px;
+    max-width:500px;
+    width:100%;
+    box-shadow:0 8px 30px rgba(0,0,0,.25);
+    max-height:90vh;
+    overflow-y:auto;
+}
+
+.modal h3 {
+    margin-bottom:12px;
+}
+
+.modal .row {
+    margin-bottom:10px;
+}
+
+.modal input,
+.modal textarea,
+.modal select {
+    width:100%;
+    padding:10px;
+    border-radius:6px;
+    border:1px solid #ccc;
+}
+
+.modal textarea {
+    min-height:80px;
+    resize:vertical;
+}
+
+.modal .actions {
+    display:flex;
+    gap:8px;
+    justify-content:flex-end;
+    margin-top:10px;
+}
+
+/* ================= BUTTONS ================= */
+
+.btn {
+    padding:8px 12px;
+    border-radius:6px;
+    border:0;
+    cursor:pointer;
+}
+
+.btn.primary {
+    background:#1e1e2f;
+    color:#fff;
+}
+
+.btn.ghost {
+    background:#f1f3f5;
+}
+
+/* ================= DINÂMICOS ================= */
+
+.processo-row {
+    display:flex;
+    gap:5px;
+    margin-bottom:8px;
+}
+
+.processo-row input {
+    flex:1;
+}
+
+/* ================= TOAST ================= */
+
+.toast {
+    position:fixed;
+    right:20px;
+    bottom:20px;
+    background:#222;
+    color:#fff;
+    padding:8px 12px;
+    border-radius:8px;
+    box-shadow:0 6px 24px rgba(0,0,0,.3);
+    display:none;
+    z-index:60;
+}
+
+/* ================= DOCUMENTOS UPLOAD ================= */
+
+.docs-section {
+    border: 1px dashed #ccc;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+}
+
+.docs-section h4 {
+    font-size: 14px;
+    margin-bottom: 8px;
+    color: #333;
+}
+
+.doc-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #f8f9fa;
+    padding: 6px;
+    border-radius: 4px;
+    margin-bottom: 5px;
+    font-size: 13px;
+}
+
+.doc-item a {
+    color: #3498db;
+    text-decoration: none;
+    word-break: break-all;
+}
+
+.doc-item button {
+    background: transparent;
+    border: none;
+    color: #e74c3c;
+    cursor: pointer;
+    font-weight: bold;
+    padding: 0 5px;
+}
+
+</style>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+
+import {
+    getFirestore,
+    collection,
+    addDoc,
+    getDocs,
+    doc,
+    setDoc,
+    updateDoc,
+    query,
+    where
+} from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+import {
+    getAuth,
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+
+import {
+    getStorage,
+    ref,
+    uploadBytes,
+    getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js";
+
+/* ================= FIREBASE ================= */
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAFJJAqVf3ge0WDHBpmS9E6sXKvnjuFkhw",
+    authDomain: "dapapp-38637.firebaseapp.com",
+    projectId: "dapapp-38637",
+    storageBucket: "dapapp-38637.appspot.com",
+    messagingSenderId: "628852295313",
+    appId: "1:628852295313:web:1234567890abcdef123456"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+let storage;
+
+try {
+    storage = getStorage(app); // Prevenindo falhas caso o Storage não esteja 100% no painel
+} catch (error) {
+    console.error("Storage indisponível:", error);
+}
+
+window.firebaseDB = db;
+
+/* ================= APP ================= */
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    const sidebar = document.querySelector(".sidebar");
+    const mainContent = document.querySelector(".main");
+
+    if(sidebar && mainContent){
+
+        sidebar.addEventListener('mouseenter', () => {
+            sidebar.classList.add('expanded');
+            mainContent.classList.add('blur');
+        });
+
+        sidebar.addEventListener('mouseleave', () => {
+            sidebar.classList.remove('expanded');
+            mainContent.classList.remove('blur');
+        });
+    }
+
+    const STATUS = [
+        'lista-fria',
+        'negociacao',
+        'contrato-assinado',
+        'fechado'
+    ];
+
+    const cardsMap = {};
+
+    const modalBackdrop = document.getElementById('modalBackdrop');
+    const clientForm = document.getElementById('clientForm');
+
+    const inputNome = document.getElementById('inputNome');
+    const inputCPF = document.getElementById('inputCPF');
+    const inputObs = document.getElementById('inputObs');
+    const inputStatus = document.getElementById('inputStatus');
+    const inputClasse = document.getElementById('inputClasse');
+    const inputValor = document.getElementById('inputValor');
+    const inputEstado = document.getElementById('inputEstado');
+
+    const btnAdd = document.getElementById('btnAdd');
+    const btnCancel = document.getElementById('btnCancel');
+
+    const searchInput = document.getElementById('searchInput');
+    const filterStatus = document.getElementById('filterStatus');
+
+    const toastEl = document.getElementById('toast');
+    const coinSound = document.getElementById('coinSound');
+
+    const processosContainer = document.getElementById('processosContainer');
+
+    const telefonesContainer = document.getElementById('telefonesContainer');
+    const btnAddTelefone = document.getElementById('btnAddTelefone');
+
+    /* Variáveis e Elementos para Documentos */
+    const inputFile = document.getElementById('inputFile');
+    const btnTriggerFile = document.getElementById('btnTriggerFile');
+    const docsList = document.getElementById('docsList');
+    const uploadProgress = document.getElementById('uploadProgress');
+    let currentDocs = [];
+
+    let currentUser = null;
+
+    /* ================= TOAST ================= */
+
+    function showToast(msg){
+
+        toastEl.innerText = msg;
+        toastEl.style.display = 'block';
+
+        clearTimeout(toastEl._t);
+
+        toastEl._t = setTimeout(() => {
+            toastEl.style.display = 'none';
+        },3000);
+    }
+
+    /* ================= FIRESTORE ================= */
+
+    async function getClientes(){
+
+        if(!currentUser){
+            return [];
+        }
+
+        const q = query(
+            collection(db,"clientes"),
+            where("userId","==",currentUser.uid)
+        );
+
+        const snapshot = await getDocs(q);
+
+        return snapshot.docs.map(docData => ({
+            id: docData.id,
+            ...docData.data()
+        }));
+    }
+
+    async function saveCliente(cliente){
+
+        if(!currentUser){
+            return;
+        }
+
+        cliente.userId = currentUser.uid;
+
+        if(cliente.id){
+
+            const docRef = doc(db,"clientes",cliente.id);
+
+            await setDoc(docRef,cliente);
+
+        }else{
+
+            const docRef = await addDoc(
+                collection(db,"clientes"),
+                cliente
+            );
+
+            cliente.id = docRef.id;
+        }
+    }
+
+    /* ================= UPLOAD DE DOCUMENTOS ================= */
+
+    function renderDocsList() {
+        docsList.innerHTML = '';
+        if (currentDocs.length === 0) {
+            docsList.innerHTML = '<span style="color:#888; font-size:12px;">Nenhum documento anexado.</span>';
+            return;
+        }
+
+        currentDocs.forEach((arquivo, index) => {
+            const div = document.createElement('div');
+            div.className = 'doc-item';
+            div.innerHTML = `<a href="${arquivo.url}" target="_blank">📄 ${arquivo.name}</a>`;
