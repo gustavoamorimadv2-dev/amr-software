@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agenda - AMR ADV</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:Segoe UI,Roboto,Arial,sans-serif;}
+body{display:flex;height:100vh;background:#f0f2f5;overflow:hidden;}
+
+/* Sidebar com efeito expandir */
+.sidebar{
+  width:80px;
+  background:#1e1e2f;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:20px 0;
+  flex-shrink:0;
+  transition:width 0.4s ease;
+  position:relative;
+  z-index:10;
+}
+.sidebar.expanded{ width:220px; }
+.sidebar h2{
+  font-size:22px;
+  font-family:'Poppins',sans-serif;
+  font-weight:600;
+  color:#fff;
+  letter-spacing:1px;
+  margin-bottom:30px;
+  text-align:center;
+  cursor:pointer;
+  width:100%;
+  white-space:nowrap;
+  overflow:hidden;
+  transition:opacity 0.3s;
+  opacity:0;
+}
+.sidebar.expanded h2{ opacity:1; }
+.sidebar button{
+  width:100%;
+  background:transparent;
+  border:none;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  gap:15px;
+  padding:12px 20px;
+  margin:5px 0;
+  cursor:pointer;
+  border-radius:10px;
+  font-size:14px;
+  white-space:nowrap;
+  overflow:hidden;
+  transition:background 0.3s, color 0.3s;
+}
+.sidebar button img{ width:28px;height:28px;filter:invert(1);flex-shrink:0;transition:transform 0.3s; }
+.sidebar button span{ display:inline-block;opacity:0;transition:opacity 0.3s;font-weight:500; }
+.sidebar.expanded button span{ opacity:1; }
+.sidebar button:hover img{ transform:scale(1.1); }
+.sidebar button:hover{ background:#2a2a40;color:#fff; }
+
+/* Main com transição para blur */
+.main{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  transition:filter 0.3s;
+}
+.main.blur{ filter:blur(4px) brightness(0.85); }
+
+/* Header */
+header{
+  height:72px;
+  background:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 20px;
+  border-bottom:1px solid #ddd;
+  border-radius:12px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.05);
+}
+header h1{font-size:22px;color:#1e1e2f;font-family:'Poppins',sans-serif;}
+header button{padding:8px 16px;background:#1e1e2f;color:#fff;border:none;border-radius:6px;cursor:pointer;}
+
+/* Calendar */
+.calendar{padding:20px;display:flex;flex-direction:column;gap:10px;overflow:auto;}
+.calendar-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+.day{background:#fff;padding:10px;border-radius:8px;min-height:80px;display:flex;flex-direction:column;cursor:pointer;transition:0.2s;}
+.day:hover{background:#eaeaea;}
+.day-header{font-weight:bold;margin-bottom:5px;font-size:14px;}
+.event{background:#3498db;color:#fff;padding:2px 4px;margin:2px 0;border-radius:4px;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer;}
+
+/* Modal */
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,0.35);display:none;align-items:center;justify-content:center;z-index:50;}
+.modal{background:#fff;padding:18px;border-radius:10px;min-width:320px;max-width:420px;box-shadow:0 8px 30px rgba(0,0,0,.25);}
+.modal h3{margin-bottom:12px;}
+.modal .row{margin-bottom:10px;}
+.modal input,.modal textarea,.modal select{width:100%;padding:8px;border-radius:6px;border:1px solid #ccc;}
+.modal textarea{min-height:60px;resize:vertical;}
+.modal .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px;}
+.btn{padding:8px 12px;border-radius:6px;border:0;cursor:pointer;}
+.btn.primary{background:#1e1e2f;color:#fff;}
+.btn.ghost{background:#f1f3f5;}
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+    <h2 onclick="window.location.href='dashboard.html'">AMR ADV</h2>
+    <button onclick="location.href='crm.html'"><img src="https://img.icons8.com/ios-filled/50/ffffff/dashboard.png"/><span>CRM</span></button>
+    <button onclick="window.location.href='relatorios.html'"><img src="https://img.icons8.com/ios-filled/50/ffffff/combo-chart.png"/><span>Relatórios</span></button>
+    <button onclick="window.location.href='agenda.html'"><img src="https://img.icons8.com/ios-filled/50/ffffff/calendar.png"/><span>Agenda</span></button>
+    <button onclick="window.location.href='contatos.html'"><img src="https://img.icons8.com/ios-filled/50/ffffff/contacts.png"/><span>Contatos</span></button>
+    <button onclick="window.location.href='clientes.html'"><img src="https://img.icons8.com/ios-filled/50/ffffff/user-group-man-man.png"/><span>Clientes</span></button>
+    <button onclick="window.location.href='processos.html'"><img src="https://img.icons8.com/ios-filled/50/ffffff/file.png"/><span>Processos</span></button>
+    <button><img src="https://img.icons8.com/ios-filled/50/ffffff/settings.png"/><span>Configurações</span></button>
+</div>
+
+<div class="main">
+  <header>
+    <h1>Agenda</h1>
+    <button onclick="openModal()">Novo Evento</button>
+  </header>
+
+  <div class="calendar">
+    <div class="calendar-header">
+      <button onclick="prevMonth()">&lt; Mês Anterior</button>
+      <h2 id="monthYear"></h2>
+      <button onclick="nextMonth()">Próximo Mês &gt;</button>
+    </div>
+    <div class="calendar-grid" id="calendarGrid"></div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <h3 id="modalTitle">Novo Evento</h3>
+    <form id="eventForm">
+      <div class="row"><label>Data</label><input type="date" id="inputDate" required></div>
+      <div class="row"><label>Hora</label><input type="time" id="inputTime"></div>
+      <div class="row"><label>Título</label><input type="text" id="inputTitle" required></div>
+      <div class="row"><label>Descrição</label><textarea id="inputDesc"></textarea></div>
+      <div class="actions">
+        <button type="button" class="btn ghost" onclick="closeModal()">Cancelar</button>
+        <button type="submit" class="btn primary">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+let currentDate = new Date();
+let events = JSON.parse(localStorage.getItem('agendaEvents') || '[]');
+let editId = null;
+
+const modalBackdrop = document.getElementById('modalBackdrop');
+const eventForm = document.getElementById('eventForm');
+const inputDate = document.getElementById('inputDate');
+const inputTime = document.getElementById('inputTime');
+const inputTitle = document.getElementById('inputTitle');
+const inputDesc = document.getElementById('inputDesc');
+const monthYear = document.getElementById('monthYear');
+const calendarGrid = document.getElementById('calendarGrid');
+
+function saveEvents(){ localStorage.setItem('agendaEvents', JSON.stringify(events)); }
+
+function openModal(data=null){
+  modalBackdrop.style.display='flex';
+  if(data){
+    editId = data.id;
+    inputDate.value = data.date;
+    inputTime.value = data.time || '';
+    inputTitle.value = data.title;
+    inputDesc.value = data.desc || '';
+    document.getElementById('modalTitle').innerText='Editar Evento';
+  }else{
+    editId=null;
+    inputDate.value=''; inputTime.value=''; inputTitle.value=''; inputDesc.value='';
+    document.getElementById('modalTitle').innerText='Novo Evento';
+  }
+}
+
+function closeModal(){ modalBackdrop.style.display='none'; }
+
+eventForm.onsubmit = function(e){
+  e.preventDefault();
+  const ev = {
+    id: editId || Date.now(),
+    date: inputDate.value,
+    time: inputTime.value,
+    title: inputTitle.value,
+    desc: inputDesc.value
+  };
+  if(editId){
+    events = events.map(e=>e.id===editId ? ev : e);
+  }else{
+    events.push(ev);
+  }
+  saveEvents();
+  closeModal();
+  renderCalendar();
+};
+
+function renderCalendar(){
+  const year = currentDate.getFullYear();
+  const month = currentDate.getMonth();
+  const firstDay = new Date(year,month,1).getDay();
+  const lastDate = new Date(year,month+1,0).getDate();
+  monthYear.innerText = currentDate.toLocaleString('pt-BR',{month:'long',year:'numeric'});
+  calendarGrid.innerHTML = '';
+  const weekDays = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+  weekDays.forEach(d=>{ const wd = document.createElement('div'); wd.innerText=d; wd.style.fontWeight='bold'; calendarGrid.appendChild(wd); });
+  for(let i=0;i<firstDay;i++){ const empty=document.createElement('div'); calendarGrid.appendChild(empty);}
+  for(let d=1; d<=lastDate; d++){
+    const dayDiv=document.createElement('div');
+    dayDiv.className='day';
+    const fullDate = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    dayDiv.innerHTML=`<div class="day-header">${d}</div>`;
+    const dayEvents = events.filter(ev=>ev.date===fullDate);
+    dayEvents.forEach(ev=>{
+      const evDiv=document.createElement('div');
+      evDiv.className='event';
+      evDiv.innerText=ev.time ? `${ev.time} - ${ev.title}` : ev.title;
+      evDiv.onclick=(e)=>{e.stopPropagation(); openModal(ev);};
+      dayDiv.appendChild(evDiv);
+    });
+    dayDiv.onclick=()=>{ inputDate.value=fullDate; openModal(); };
+    calendarGrid.appendChild(dayDiv);
+  }
+}
+
+function prevMonth(){ currentDate.setMonth(currentDate.getMonth()-1); renderCalendar(); }
+function nextMonth(){ currentDate.setMonth(currentDate.getMonth()+1); renderCalendar(); }
+
+modalBackdrop.onclick = e=>{ if(e.target===modalBackdrop) closeModal(); }
+
+// Sidebar hover + blur
+const sidebar = document.querySelector(".sidebar");
+const mainContent = document.querySelector(".main");
+sidebar.addEventListener('mouseenter', () => { sidebar.classList.add('expanded'); mainContent.classList.add('blur'); });
+sidebar.addEventListener('mouseleave', () => { sidebar.classList.remove('expanded'); mainContent.classList.remove('blur'); });
+
+renderCalendar();
+</script>
+</body>
+</html>
