@@ -1,10 +1,20 @@
+Adicionar uma biblioteca de ícones real dá um toque muito mais profissional ao seu projeto! Para isso, integrei a biblioteca oficial do **Flaticon (Uicons - Thin Rounded)** diretamente no seu código através de um link CDN no cabeçalho (a tag `<link>`).
+
+Substituí os caracteres de texto por tags `<i>` com as classes correspondentes a cada módulo (fatura para boletos, aperto de mão para negociação, gráfico para andamento, pasta para documentos e sino para alertas).
+
+Aqui está o código completo, já com os ícones atualizados na barra lateral e na tela inicial do app gerado via JavaScript:
+
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mockup App Cliente</title>
+
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.1.0/uicons-thin-rounded/css/uicons-thin-rounded.css'>
 
 <style>
 
@@ -180,7 +190,14 @@ body{
     align-items:center;
     justify-content:center;
     color:#fff;
-    font-size:18px;
+    font-size:18px; /* Controla o tamanho do ícone Uicons aqui */
+}
+
+/* O Uicons centraliza melhor removendo margens padrão */
+.module-icon i {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .module-item span{
@@ -482,7 +499,7 @@ body{
 }
 
 .app-module .icon{
-    font-size:40px;
+    font-size:36px; /* Tamanho do ícone no módulo interno */
 }
 
 .app-module h3{
@@ -642,7 +659,7 @@ body{
         <div class="modules">
             <div class="module-item">
                 <div class="module-left">
-                    <div class="module-icon">◫</div>
+                    <div class="module-icon"><i class="fi fi-tr-file-invoice"></i></div>
                     <span>Boletos</span>
                 </div>
                 <label class="switch">
@@ -652,7 +669,7 @@ body{
             </div>
             <div class="module-item">
                 <div class="module-left">
-                    <div class="module-icon">⬢</div>
+                    <div class="module-icon"><i class="fi fi-tr-handshake"></i></div>
                     <span>Negociação</span>
                 </div>
                 <label class="switch">
@@ -662,7 +679,7 @@ body{
             </div>
             <div class="module-item">
                 <div class="module-left">
-                    <div class="module-icon">▲</div>
+                    <div class="module-icon"><i class="fi fi-tr-chart-line-up"></i></div>
                     <span>Andamento</span>
                 </div>
                 <label class="switch">
@@ -672,7 +689,7 @@ body{
             </div>
             <div class="module-item">
                 <div class="module-left">
-                    <div class="module-icon">▣</div>
+                    <div class="module-icon"><i class="fi fi-tr-folder-open"></i></div>
                     <span>Documentos</span>
                 </div>
                 <label class="switch">
@@ -682,7 +699,7 @@ body{
             </div>
             <div class="module-item">
                 <div class="module-left">
-                    <div class="module-icon">◆</div>
+                    <div class="module-icon"><i class="fi fi-tr-bell"></i></div>
                     <span>Alertas</span>
                 </div>
                 <label class="switch">
@@ -819,12 +836,13 @@ const phoneLogo = document.getElementById('phoneLogo');
 const headerLogo = document.getElementById('headerLogo');
 const defaultLogoText = document.getElementById('defaultLogoText');
 
+// === AQUI FICA A CONFIGURAÇÃO DOS ÍCONES PARA INJETAR NO JAVASCRIPT ===
 const modulesData = {
-    boletos:{ icon:'◫', title:'Boletos', desc:'Visualize pagamentos' },
-    negociacao:{ icon:'⬢', title:'Negociação', desc:'Acompanhe acordos' },
-    andamento:{ icon:'▲', title:'Andamento', desc:'Status processual' },
-    documentos:{ icon:'▣', title:'Documentos', desc:'Arquivos disponíveis' },
-    alertas:{ icon:'◆', title:'Alertas', desc:'Notificações importantes' }
+    boletos:{ icon:'<i class="fi fi-tr-file-invoice"></i>', title:'Boletos', desc:'Visualize pagamentos' },
+    negociacao:{ icon:'<i class="fi fi-tr-handshake"></i>', title:'Negociação', desc:'Acompanhe acordos' },
+    andamento:{ icon:'<i class="fi fi-tr-chart-line-up"></i>', title:'Andamento', desc:'Status processual' },
+    documentos:{ icon:'<i class="fi fi-tr-folder-open"></i>', title:'Documentos', desc:'Arquivos disponíveis' },
+    alertas:{ icon:'<i class="fi fi-tr-bell"></i>', title:'Alertas', desc:'Notificações importantes' }
 };
 
 /* ================= LOGIN ================= */
@@ -929,3 +947,5 @@ renderModules();
 
 </body>
 </html>
+
+```
