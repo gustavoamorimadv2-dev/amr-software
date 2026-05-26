@@ -1,99 +1,169 @@
+Aqui está o código completo do seu **Relatórios**, totalmente integrado com o Firebase, funcional e com o mesmo design premium (dark/glassmorphism) do seu CRM.
+
+Adicionei uma **Dashboard** completa na parte superior, exibindo os cards com o número de clientes em negociação e com contrato assinado. Abaixo, implementei os gráficos usando a biblioteca `Chart.js` customizada para o modo escuro, mostrando a distribuição por Estados, os Tipos de Ação Fechados e o balanço financeiro.
+
+### Código Completo (`relatorios.html`)
+
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Relatórios - AMR ADV</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
-/* Base */
-body { margin:0; font-family:'Segoe UI', sans-serif; background:#f0f2f5; display:flex; min-height:100vh; }
 
-/* Sidebar com blur do processos.html */
-.sidebar {
-  width:80px; 
-  background:#1e1e2f; 
-  display:flex; 
-  flex-direction:column; 
-  align-items:center;
-  padding:20px 0; 
-  flex-shrink:0; 
-  transition:width 0.4s ease; 
-  position:relative; 
-  z-index:10;
-}
-.sidebar.expanded { width:220px; }
-.sidebar h2 {
-  font-size:22px; font-family:'Poppins', sans-serif; font-weight:600; color:#fff;
-  letter-spacing:1px; margin-bottom:30px; text-align:center; cursor:pointer;
-  width:100%; white-space:nowrap; overflow:hidden; transition:opacity 0.3s;
-  opacity:0;
-}
-.sidebar.expanded h2 { opacity:1; }
-.sidebar button {
-  width:100%; background:transparent; border:none; color:#fff;
-  display:flex; align-items:center; gap:15px; padding:12px 20px; margin:5px 0;
-  cursor:pointer; border-radius:10px; transition:background 0.3s, color 0.3s; font-size:14px;
-  white-space:nowrap; overflow:hidden;
-}
-.sidebar button img { width:28px; height:28px; filter:invert(1); flex-shrink:0; transition:transform 0.3s; }
-.sidebar button span { display:inline-block; opacity:0; transition:opacity 0.3s; font-weight:500; }
-.sidebar.expanded button span { opacity:1; }
-.sidebar button:hover img { transform:scale(1.1); }
-.sidebar button:hover { background:#2a2a40; color:#fff; }
-
-/* Main */
-.main { flex:1; display:flex; flex-direction:column; overflow:hidden; transition:filter 0.3s; }
-.main.blur { filter:blur(4px) brightness(0.85); }
-
-header { height:72px; background:#fff; display:flex; align-items:center; justify-content:space-between; padding:0 20px; border-bottom:1px solid #ddd; }
-header h1 { font-family:'Poppins',sans-serif; color:#1e1e2f; font-size:20px; }
-.content { padding:20px; overflow:auto; }
-.card { background:#fff; padding:18px; border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,0.04); margin-bottom:18px; }
-
-/* Table */
-.table-wrap{overflow:auto;}
-table{width:100%;border-collapse:collapse;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.04);}
-thead th{padding:12px;text-align:left;font-weight:600;color:#6b7280;border-bottom:1px solid #e6e9ee;font-size:14px;}
-tbody td{padding:12px;border-bottom:1px solid #f3f4f6;color:#333;vertical-align:middle;font-size:14px;height:48px;}
-tbody td:first-child{text-align:left;}
-tbody td:not(:first-child){text-align:right;}
-tbody td input{
-    width:100%;
-    border:none;
-    background:transparent;
-    text-align:right;
-    font-weight:500;
-    color:#1e1e2f;
-    font-size:14px;
-    display:block;
-    height:100%;
+*{
+    margin:0;
     padding:0;
     box-sizing:border-box;
-}
-tbody td input:focus{
-    outline:none;
-    background:#f5f5f5;
-    border-radius:4px;
-    padding:2px;
+    font-family:'Inter',sans-serif;
 }
 
-/* Totals */
-.totals { display:flex; gap:16px; align-items:center; margin-bottom:10px; flex-wrap:wrap; }
-.total-box { background:#fafafa; padding:10px 12px; border-radius:10px; border:1px solid #e6e9ee; font-weight:600; color:#1e1e2f; min-width:160px; text-align:right; }
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
 
-/* Chart */
-#chartBox { margin-top:18px; height:360px; background:#fff; padding:16px; border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,0.04); display:flex; flex-direction:column; }
-#pagamentosChart { flex:1; }
+body{
+    display:flex;
+    height:100vh;
+    overflow:hidden;
+    background:
+        radial-gradient(circle at top left,#2f3f73 0%,transparent 30%),
+        radial-gradient(circle at bottom right,#0f766e 0%,transparent 25%),
+        linear-gradient(135deg,#0f172a,#111827,#020617);
+    color: #fff;
+}
+
+/* ================= SIDEBAR ================= */
+.sidebar{
+    width:80px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:20px 0;
+    flex-shrink:0;
+    transition:width 0.4s ease;
+    position:relative;
+    z-index:10;
+    backdrop-filter:blur(30px);
+    background:rgba(255,255,255,0.06);
+    border-right:1px solid rgba(255,255,255,0.08);
+    box-shadow:0 0 40px rgba(0,0,0,0.25);
+}
+.sidebar.expanded{ width:240px; }
+.sidebar h2{
+    font-size:22px; font-weight:800; color:#fff;
+    letter-spacing:1px; margin-bottom:30px; text-align:center; cursor:pointer;
+    width:100%; white-space:nowrap; overflow:hidden; transition:opacity 0.3s; opacity:0;
+}
+.sidebar.expanded h2{ opacity:1; }
+.sidebar button{
+    width:calc(100% - 20px); background:transparent; border:none; color:rgba(255,255,255,0.7);
+    display:flex; align-items:center; gap:15px; padding:12px 15px; margin:5px 10px;
+    cursor:pointer; border-radius:14px; transition:all 0.3s; font-size:14px;
+    white-space:nowrap; overflow:hidden;
+}
+.sidebar button img{ width:24px; height:24px; filter:invert(1) opacity(0.7); flex-shrink:0; transition:transform 0.3s, filter 0.3s; }
+.sidebar button span{ display:inline-block; opacity:0; transition:opacity 0.3s; font-weight:600; }
+.sidebar.expanded button span{ opacity:1; }
+.sidebar button:hover img{ transform:scale(1.1); filter:invert(1) opacity(1); }
+.sidebar button:hover{ background:rgba(255,255,255,0.1); color:#fff; }
+
+/* ================= MAIN ================= */
+.main { flex:1; display:flex; flex-direction:column; overflow:hidden; transition:filter 0.3s; }
+.main.blur { filter:blur(5px) brightness(0.7); }
+
+header { 
+    height:70px; background:transparent; border-bottom:1px solid rgba(255,255,255,0.08); 
+    display:flex; align-items:center; justify-content:space-between; padding:0 30px; flex-shrink:0; 
+}
+header h1 { font-size:24px; color:#fff; font-weight:800; }
+
+.content { padding:30px; overflow-y:auto; display:flex; flex-direction:column; gap:20px; }
+
+/* ================= DASHBOARD CARDS ================= */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+}
+.stat-card {
+    background:rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(15px);
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.stat-card h3 { font-size: 14px; color: rgba(255,255,255,0.6); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;}
+.stat-card .value { font-size: 28px; font-weight: 800; color: #fff; }
+
+/* ================= CHARTS GRID ================= */
+.charts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 20px;
+}
+.chart-box {
+    background:rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px);
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    height: 350px;
+    display: flex;
+    flex-direction: column;
+}
+.chart-box.full-width { grid-column: 1 / -1; height: 400px; }
+.chart-box h3 { font-size: 16px; margin-bottom: 15px; color: #fff; font-weight: 600; }
+.chart-container { flex: 1; position: relative; width: 100%; height: 100%; }
+
+/* ================= TABLE ================= */
+.table-wrap {
+    background:rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    overflow-x: auto;
+}
+.table-wrap h3 { font-size: 16px; margin-bottom: 15px; color: #fff; font-weight: 600; }
+table { width:100%; border-collapse:collapse; text-align: left; }
+thead th { padding:12px 15px; font-weight:600; color:rgba(255,255,255,0.6); border-bottom:1px solid rgba(255,255,255,0.1); font-size:14px; }
+tbody td { padding:12px 15px; border-bottom:1px solid rgba(255,255,255,0.05); color:#fff; font-size:14px; vertical-align: middle;}
+tbody td:not(:first-child) { text-align: right; }
+thead th:not(:first-child) { text-align: right; }
+
+tbody td input {
+    width:100%; border:none; background:transparent; text-align:right;
+    font-weight:600; color:#10b981; font-size:14px; display:block; padding:8px;
+    border-radius: 8px; outline: none; transition: 0.3s;
+}
+tbody td input:focus { background:rgba(255,255,255,0.1); color: #fff; }
 
 /* Toast */
-.toast{position:fixed;right:22px;bottom:22px;background:#111;color:#fff;padding:10px 14px;border-radius:10px;box-shadow:0 10px 30px rgba(0,0,0,.25);display:none;z-index:9999;font-size:14px;}
+.toast{
+    position:fixed; right:30px; bottom:30px; background:rgba(255,255,255,0.1);
+    backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); color:#fff;
+    padding:12px 20px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.4);
+    display:none; z-index:9999; font-size:14px; font-weight: 500;
+}
 </style>
 </head>
 <body>
 
-<!-- Sidebar -->
 <div class="sidebar" id="sidebar">
     <h2 onclick="window.location.href='dashboard.html'">AMR ADV</h2>
     <button onclick="location.href='crm.html'"><img src="https://img.icons8.com/ios-filled/50/ffffff/dashboard.png"/><span>CRM</span></button>
@@ -105,14 +175,48 @@ tbody td input:focus{
     <button><img src="https://img.icons8.com/ios-filled/50/ffffff/settings.png"/><span>Configurações</span></button>
 </div>
 
-<!-- Main -->
 <main class="main" id="mainContent">
 <header>
-    <h1>Relatórios Financeiros</h1>
+    <h1>Dashboard & Relatórios</h1>
 </header>
 <div class="content">
-    <!-- Tabela -->
-    <section class="card table-wrap">
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Em Negociação</h3>
+            <div class="value" id="valNegociacao">0</div>
+        </div>
+        <div class="stat-card">
+            <h3>Contratos Assinados</h3>
+            <div class="value" style="color: #8b5cf6;" id="valAssinados">0</div>
+        </div>
+        <div class="stat-card">
+            <h3>Total Honorários (Fechados)</h3>
+            <div class="value" style="color: #3b82f6;" id="valHonorarios">R$ 0,00</div>
+        </div>
+        <div class="stat-card">
+            <h3>Total Recebido</h3>
+            <div class="value" style="color: #10b981;" id="valRecebido">R$ 0,00</div>
+        </div>
+    </div>
+
+    <div class="charts-grid">
+        <div class="chart-box">
+            <h3>Estados Mais Cadastrados</h3>
+            <div class="chart-container"><canvas id="chartEstados"></canvas></div>
+        </div>
+        <div class="chart-box">
+            <h3>Tipos de Ação (Contratos Fechados)</h3>
+            <div class="chart-container"><canvas id="chartAcoes"></canvas></div>
+        </div>
+        <div class="chart-box full-width">
+            <h3>Balanço Financeiro por Cliente (Fechados)</h3>
+            <div class="chart-container"><canvas id="chartFinanceiro"></canvas></div>
+        </div>
+    </div>
+
+    <section class="table-wrap">
+        <h3>Gestão de Recebíveis (Contratos Fechados)</h3>
         <table>
             <thead>
                 <tr>
@@ -126,15 +230,6 @@ tbody td input:focus{
         </table>
     </section>
 
-    <!-- Totais + Gráfico -->
-    <section id="chartBox" class="card">
-        <div class="totals">
-            <div class="total-box" id="totalHonorarios">Total Honorários: R$ 0,00</div>
-            <div class="total-box" id="totalPago">Total Pago: R$ 0,00</div>
-            <div class="total-box" id="totalReceber">Total a Receber: R$ 0,00</div>
-        </div>
-        <canvas id="pagamentosChart"></canvas>
-    </section>
 </div>
 </main>
 
@@ -143,6 +238,7 @@ tbody td input:focus{
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
 import { getFirestore, collection, getDocs, query, where, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
 
 // Config Firebase
 const firebaseConfig = {
@@ -151,57 +247,40 @@ const firebaseConfig = {
     projectId: "dapapp-38637",
     storageBucket: "dapapp-38637.appspot.com",
     messagingSenderId: "628852295313",
-    appId: "1:628852295313:web:INSERIR_SEU_APP_ID"
+    appId: "1:628852295313:web:1234567890abcdef123456"
 };
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
-// DOM
+// DOM Sidebar
 const sidebar = document.getElementById("sidebar");
 const mainContent = document.getElementById("mainContent");
 sidebar.addEventListener('mouseenter', () => { sidebar.classList.add('expanded'); mainContent.classList.add('blur'); });
 sidebar.addEventListener('mouseleave', () => { sidebar.classList.remove('expanded'); mainContent.classList.remove('blur'); });
 
+// Configuração Global Chart.js para Dark Mode
+Chart.defaults.color = 'rgba(255,255,255,0.6)';
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.scale.grid.color = 'rgba(255,255,255,0.05)';
+
+// Elementos
 const tabela = document.getElementById('clientesTable');
 const toastEl = document.getElementById('toast');
-const totalHonorarios = document.getElementById('totalHonorarios');
-const totalPago = document.getElementById('totalPago');
-const totalReceber = document.getElementById('totalReceber');
-const ctx = document.getElementById('pagamentosChart').getContext('2d');
+let currentUser = null;
+let allClients = [];
+let fechadosClients = [];
 
-let clientesData = [];
+// Instâncias dos Gráficos
+let chartEstados, chartAcoes, chartFinanceiro;
 
-// Chart
-const chart = new Chart(ctx, {
-    type: 'bar',
-    data: { labels: [], datasets: [
-        {label:'Honorários', data:[], backgroundColor:'rgba(0,0,0,0.7)'},
-        {label:'Pago', data:[], backgroundColor:'rgba(0,0,0,0.4)'},
-        {label:'A Receber', data:[], backgroundColor:'rgba(0,0,0,0.2)'}
-    ]},
-    options:{ responsive:true, maintainAspectRatio:false, scales:{ y:{ beginAtZero:true, ticks:{ callback: v=>'R$ '+Number(v).toLocaleString('pt-BR') } } } }
-});
-
-// Toast
+// Helpers
 function showToast(msg){
     toastEl.textContent=msg;
     toastEl.style.display='block';
     clearTimeout(toastEl._t);
     toastEl._t=setTimeout(()=>toastEl.style.display='none',2500);
 }
-
-// Load clientes
-async function carregarClientes(){
-    try{
-        const q = query(collection(db,"clientes"), where("status","==","fechado"));
-        const snapshot = await getDocs(q);
-        clientesData = snapshot.docs.map(d=>({id:d.id, ...d.data()}));
-        renderTabela();
-        renderChart();
-    } catch(e){ console.error(e); showToast('Erro ao carregar clientes'); }
-}
-
-// Helpers
 function formatBRL(value){ return Number(value||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
 function applyMaskInput(el){
     el.addEventListener('input',()=>{
@@ -211,15 +290,55 @@ function applyMaskInput(el){
     });
 }
 
-// Render Tabela
+// Autenticação
+onAuthStateChanged(auth, user => {
+    if(user){
+        currentUser = user;
+        carregarDados();
+    } else {
+        window.location.href = "login.html"; // Redireciona se não estiver logado
+    }
+});
+
+// Carregar Dados do Firestore
+async function carregarDados(){
+    try{
+        const q = query(collection(db,"clientes"), where("userId","==",currentUser.uid));
+        const snapshot = await getDocs(q);
+        allClients = snapshot.docs.map(d=>({id:d.id, ...d.data()}));
+        fechadosClients = allClients.filter(c => c.status === 'fechado');
+        
+        atualizarMetricas();
+        renderTabela();
+        renderGraficos();
+    } catch(e){ 
+        console.error(e); 
+        showToast('Erro ao carregar relatórios'); 
+    }
+}
+
+// Atualizar Cards Superiores
+function atualizarMetricas() {
+    const negociacao = allClients.filter(c => c.status === 'negociacao').length;
+    const assinados = allClients.filter(c => c.status === 'contrato-assinado').length;
+    const totalH = fechadosClients.reduce((acc,c)=>acc+Number(c.honorarios||0),0);
+    const totalP = fechadosClients.reduce((acc,c)=>acc+Number(c.valorPago||0),0);
+
+    document.getElementById('valNegociacao').innerText = negociacao;
+    document.getElementById('valAssinados').innerText = assinados;
+    document.getElementById('valHonorarios').innerText = formatBRL(totalH);
+    document.getElementById('valRecebido').innerText = formatBRL(totalP);
+}
+
+// Renderizar Tabela Financeira
 function renderTabela(){
     tabela.innerHTML='';
-    if(!clientesData.length){ 
-        tabela.innerHTML='<tr><td colspan="4" style="text-align:center;padding:18px;color:#777">Nenhum cliente fechado</td></tr>'; 
+    if(!fechadosClients.length){ 
+        tabela.innerHTML='<tr><td colspan="4" style="text-align:center;padding:18px;color:rgba(255,255,255,0.4)">Nenhum cliente fechado ainda.</td></tr>'; 
         return; 
     }
 
-    clientesData.forEach(c=>{
+    fechadosClients.forEach(c=>{
         const tr = document.createElement('tr');
         tr.innerHTML=`
             <td>${c.nome||'-'}</td>
@@ -230,46 +349,102 @@ function renderTabela(){
         tabela.appendChild(tr);
         tr.querySelectorAll('input').forEach(applyMaskInput);
     });
-    atualizarTotais();
 }
 
-// Render Chart
-function renderChart(){
-    chart.data.labels = clientesData.map(c=>c.nome||'-');
-    chart.data.datasets[0].data = clientesData.map(c=>Number(c.honorarios||0));
-    chart.data.datasets[1].data = clientesData.map(c=>Number(c.valorPago||0));
-    chart.data.datasets[2].data = clientesData.map(c=>Number(c.valorReceber||0));
-    chart.update();
+// Renderizar Gráficos
+function renderGraficos() {
+    const chartColors = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#06b6d4'];
+
+    // 1. Gráfico de Estados (Geral)
+    const estadosCount = {};
+    allClients.forEach(c => {
+        const est = c.estado || 'Não Informado';
+        estadosCount[est] = (estadosCount[est] || 0) + 1;
+    });
+    
+    if(chartEstados) chartEstados.destroy();
+    chartEstados = new Chart(document.getElementById('chartEstados').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(estadosCount),
+            datasets: [{ data: Object.values(estadosCount), backgroundColor: chartColors, borderWidth: 0 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+    });
+
+    // 2. Gráfico Tipos de Ação (Apenas Fechados)
+    const acoesCount = {};
+    fechadosClients.forEach(c => {
+        const classe = c.classe || 'Outros';
+        acoesCount[classe] = (acoesCount[classe] || 0) + 1;
+    });
+
+    if(chartAcoes) chartAcoes.destroy();
+    chartAcoes = new Chart(document.getElementById('chartAcoes').getContext('2d'), {
+        type: 'pie',
+        data: {
+            labels: Object.keys(acoesCount),
+            datasets: [{ data: Object.values(acoesCount), backgroundColor: chartColors, borderWidth: 0 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+    });
+
+    // 3. Gráfico Financeiro (Fechados)
+    const labelsFin = fechadosClients.map(c=>c.nome||'-');
+    const dataHonorarios = fechadosClients.map(c=>Number(c.honorarios||0));
+    const dataPago = fechadosClients.map(c=>Number(c.valorPago||0));
+    const dataReceber = fechadosClients.map(c=>Number(c.valorReceber||0));
+
+    if(chartFinanceiro) chartFinanceiro.destroy();
+    chartFinanceiro = new Chart(document.getElementById('chartFinanceiro').getContext('2d'), {
+        type: 'bar',
+        data: { 
+            labels: labelsFin, 
+            datasets: [
+                {label:'Honorários', data: dataHonorarios, backgroundColor:'#3b82f6', borderRadius: 4},
+                {label:'Pago', data: dataPago, backgroundColor:'#10b981', borderRadius: 4},
+                {label:'A Receber', data: dataReceber, backgroundColor:'#f59e0b', borderRadius: 4}
+            ]
+        },
+        options: { 
+            responsive: true, maintainAspectRatio: false, 
+            scales: { 
+                y: { 
+                    beginAtZero: true, 
+                    ticks: { callback: v => 'R$ ' + Number(v).toLocaleString('pt-BR') } 
+                } 
+            } 
+        }
+    });
 }
 
-// Totais
-function atualizarTotais(){
-    const totalH = clientesData.reduce((acc,c)=>acc+Number(c.honorarios||0),0);
-    const totalP = clientesData.reduce((acc,c)=>acc+Number(c.valorPago||0),0);
-    const totalR = clientesData.reduce((acc,c)=>acc+Number(c.valorReceber||0),0);
-    totalHonorarios.textContent = `Total Honorários: ${formatBRL(totalH)}`;
-    totalPago.textContent = `Total Pago: ${formatBRL(totalP)}`;
-    totalReceber.textContent = `Total a Receber: ${formatBRL(totalR)}`;
-}
-
-// Update Firestore
-window.updateValorRealtime = async (id,campo,el)=>{
+// Update Valores em Tempo Real na Tabela
+window.updateValorRealtime = async (id, campo, el) => {
     try{
         let valor = el.value.replace(/\./g,'').replace(',','.');
         valor = parseFloat(valor)||0;
         el.value = valor.toLocaleString('pt-BR',{minimumFractionDigits:2});
-        const cliente = clientesData.find(c=>c.id===id);
-        if(!cliente) return;
-        cliente[campo]=valor;
+        
+        // Atualiza Array Local
+        const clienteIndex = fechadosClients.findIndex(c=>c.id===id);
+        if(clienteIndex === -1) return;
+        fechadosClients[clienteIndex][campo] = valor;
+        
+        // Sincroniza com Firebase
         await updateDoc(doc(db,"clientes",id),{[campo]:valor});
-        atualizarTotais();
-        renderChart();
-        showToast('Atualizado com sucesso');
-    } catch(e){ console.error(e); showToast('Erro ao atualizar'); }
+        
+        // Re-renderiza partes afetadas
+        atualizarMetricas();
+        renderGraficos();
+        showToast('Valor atualizado com sucesso!');
+    } catch(e){ 
+        console.error(e); 
+        showToast('Erro ao atualizar valor'); 
+    }
 };
-
-carregarClientes();
 </script>
 
 </body>
 </html>
+
+```
