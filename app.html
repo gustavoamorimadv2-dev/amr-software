@@ -1,12 +1,13 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CRM AMR ADV</title>
+<title>Mockup App Cliente</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.1.0/uicons-thin-rounded/css/uicons-thin-rounded.css'>
 
 <style>
 
@@ -17,1559 +18,1022 @@
     font-family:'Inter',sans-serif;
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.02); 
-}
-::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1); 
-    border-radius: 10px;
-}
-::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2); 
-}
-
 body{
+    min-height:100vh;
     display:flex;
-    height:100vh;
     overflow:hidden;
-    /* Fundo Escuro com Gradientes */
     background:
         radial-gradient(circle at top left,#2f3f73 0%,transparent 30%),
         radial-gradient(circle at bottom right,#0f766e 0%,transparent 25%),
         linear-gradient(135deg,#0f172a,#111827,#020617);
-    color: #fff;
 }
 
 /* ================= SIDEBAR ================= */
 
 .sidebar{
-    width:80px;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    padding:20px 0;
-    flex-shrink:0;
-    transition:width 0.4s ease;
-    position:relative;
-    z-index:10;
-    /* Efeito Glassmorphism */
+    width:350px;
+    height:100vh;
+    overflow-y:auto;
+    padding:28px;
     backdrop-filter:blur(30px);
     background:rgba(255,255,255,0.06);
     border-right:1px solid rgba(255,255,255,0.08);
     box-shadow:0 0 40px rgba(0,0,0,0.25);
+    display: flex;
+    flex-direction: column;
 }
 
-.sidebar.expanded{
-    width:240px;
-}
+/* Esconder scrollbar da sidebar */
+.sidebar::-webkit-scrollbar { display: none; }
+.sidebar { -ms-overflow-style: none; scrollbar-width: none; }
 
-.sidebar h2{
-    font-size:22px;
-    font-weight:800;
-    color:#fff;
-    letter-spacing:1px;
-    margin-bottom:30px;
-    text-align:center;
-    cursor:pointer;
-    width:100%;
-    white-space:nowrap;
-    overflow:hidden;
-    transition:opacity 0.3s;
-    opacity:0;
-}
-
-.sidebar.expanded h2{
-    opacity:1;
-}
-
-.sidebar button{
-    width:calc(100% - 20px);
-    background:transparent;
-    border:none;
-    color:rgba(255,255,255,0.7);
+.logo-title{
     display:flex;
     align-items:center;
-    gap:15px;
-    padding:12px 15px;
-    margin:5px 10px;
-    cursor:pointer;
-    border-radius:14px;
-    transition:all 0.3s;
+    gap:14px;
+    margin-bottom:30px;
+}
+
+.logo-circle{
+    width:52px;
+    height:52px;
+    border-radius:18px;
+    background:linear-gradient(135deg,#ffffff,#cbd5e1);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#111827;
+    font-size:20px;
+    font-weight:800;
+}
+
+.sidebar h1{
+    color:#fff;
+    font-size:24px;
+    font-weight:800;
+}
+
+.sidebar p{
+    color:rgba(255,255,255,0.65);
     font-size:14px;
-    white-space:nowrap;
+    margin-top:3px;
+}
+
+.section{
+    margin-bottom:32px;
+}
+
+.section h2{
+    color:#fff;
+    font-size:15px;
+    margin-bottom:14px;
+    font-weight:700;
+}
+
+/* ================= LOGO ================= */
+
+.logo-upload{
+    position:relative;
+    background:rgba(255,255,255,0.07);
+    border:1px dashed rgba(255,255,255,0.2);
+    border-radius:24px;
+    padding:24px;
+    text-align:center;
+    cursor:pointer;
     overflow:hidden;
 }
 
-.sidebar button img{
-    width:24px;
-    height:24px;
-    filter:invert(1) opacity(0.7);
-    flex-shrink:0;
-    transition:transform 0.3s, filter 0.3s;
+.logo-upload input{
+    width:100%;
+    color:#fff;
 }
 
-.sidebar button span{
-    display:inline-block;
-    opacity:0;
-    transition:opacity 0.3s;
+.logo-upload::before{
+    content:'PNG • JPG • WEBP';
+    display:block;
+    margin-bottom:12px;
+    color:rgba(255,255,255,0.5);
+    font-size:12px;
+    letter-spacing:1px;
+}
+
+.logo-preview{
+    margin-top:18px;
+    display:flex;
+    justify-content:center;
+}
+
+.logo-preview img{
+    width:140px;
+    height:70px;
+    object-fit:contain;
+}
+
+/* ================= CORES ================= */
+
+.color-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+}
+
+.color-btn{
+    height:58px;
+    border-radius:20px;
+    cursor:pointer;
+    border:2px solid transparent;
+    transition:0.25s;
+}
+
+.color-btn:hover{
+    transform:scale(1.04);
+}
+
+.color-btn.active{
+    border-color:#fff;
+    transform:scale(1.08);
+    box-shadow:0 0 20px rgba(255,255,255,0.35);
+}
+
+/* ================= MODULOS ================= */
+
+.modules{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+}
+
+.module-item{
+    background:rgba(255,255,255,0.07);
+    border:1px solid rgba(255,255,255,0.08);
+    border-radius:22px;
+    padding:16px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    backdrop-filter:blur(10px);
+}
+
+.module-left{
+    display:flex;
+    align-items:center;
+    gap:14px;
+}
+
+.module-icon{
+    width:42px;
+    height:42px;
+    border-radius:14px;
+    background:rgba(255,255,255,0.09);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#fff;
+    font-size:18px;
+}
+
+.module-icon i {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.module-item span{
+    color:#fff;
+    font-size:14px;
     font-weight:600;
 }
 
-.sidebar.expanded button span{
-    opacity:1;
+/* ================= SWITCH ================= */
+
+.switch{
+    position:relative;
+    width:54px;
+    height:28px;
 }
 
-.sidebar button:hover img{
-    transform:scale(1.1);
-    filter:invert(1) opacity(1);
+.switch input{
+    display:none;
 }
 
-.sidebar button:hover{
-    background:rgba(255,255,255,0.1);
-    color:#fff;
+.slider{
+    position:absolute;
+    inset:0;
+    background:rgba(255,255,255,0.18);
+    border-radius:999px;
+    cursor:pointer;
+    transition:0.3s;
 }
 
-/* ================= MAIN ================= */
+.slider::before{
+    content:'';
+    position:absolute;
+    width:22px;
+    height:22px;
+    background:#fff;
+    border-radius:50%;
+    top:3px;
+    left:3px;
+    transition:0.3s;
+}
 
-.main{
+.switch input:checked + .slider{
+    background:#fff;
+}
+
+.switch input:checked + .slider::before{
+    transform:translateX(26px);
+    background:#111827;
+}
+
+/* ================= CONFIGURAÇÕES EXTRAS ================= */
+
+.segmented-control {
+    display: flex;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 6px;
+}
+
+.segmented-control label {
+    flex: 1;
+    text-align: center;
+    padding: 12px 10px;
+    color: rgba(255,255,255,0.5);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 12px;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.segmented-control input {
+    display: none;
+}
+
+.segmented-control input:checked + label {
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.generate-btn {
+    width: 100%;
+    height: 64px;
+    border: none;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-top: auto; /* Empurra o botão para o final da sidebar se houver espaço */
+    box-shadow: 0 10px 25px rgba(34, 197, 94, 0.25);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.generate-btn i {
+    font-size: 20px;
+    display: flex;
+}
+
+.generate-btn:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 15px 35px rgba(34, 197, 94, 0.4);
+}
+
+/* ================= PREVIEW ================= */
+
+.preview{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    position:relative;
+    overflow:hidden;
+}
+
+.preview::before{
+    content:'';
+    position:absolute;
+    width:700px;
+    height:700px;
+    border-radius:50%;
+    background:rgba(255,255,255,0.06);
+    filter:blur(120px);
+}
+
+.phone-glow{
+    position:absolute;
+    width:460px;
+    height:860px;
+    background:rgba(255,255,255,0.08);
+    filter:blur(70px);
+    border-radius:80px;
+}
+
+/* ================= MOCKUP CSS IPHONE ================= */
+
+.iphone-case{
+    width:370px;
+    height:780px;
+    background:#151515; 
+    border-radius:56px;
+    position:relative;
+    box-shadow:
+        inset 0 0 6px 2px #444,
+        inset 0 0 0 6px #050505, 
+        0 40px 80px rgba(0,0,0,0.6); 
+    padding:12px; 
+    z-index:10;
+}
+
+.btn-hw {
+    position:absolute;
+    background: linear-gradient(to right, #555, #222);
+    border-radius:4px 0 0 4px;
+}
+.btn-action { width:4px; height:30px; top:120px; left:-4px; }
+.btn-vol-up { width:4px; height:60px; top:180px; left:-4px; }
+.btn-vol-down { width:4px; height:60px; top:260px; left:-4px; }
+.btn-power { 
+    width:4px; 
+    height:80px; 
+    top:210px; 
+    right:-4px; 
+    border-radius:0 4px 4px 0; 
+    background: linear-gradient(to left, #555, #222);
+}
+
+.screen{
+    width:100%;
+    height:100%;
+    border-radius:44px; 
+    overflow:hidden;
+    position:relative;
+    display:flex;
+    flex-direction:column;
+    background: linear-gradient(180deg,#111827,#000);
+}
+
+.dynamic-island {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 124px;
+    height: 36px;
+    background: #000;
+    border-radius: 24px;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding: 0 12px;
+    box-shadow: inset 0 0 2px rgba(255,255,255,0.1); 
+}
+
+.dynamic-island .camera {
+    width: 14px;
+    height: 14px;
+    background: radial-gradient(circle at 30% 30%, #202040, #000);
+    border-radius: 50%;
+    box-shadow: inset 0 0 2px rgba(255,255,255,0.15);
+}
+
+/* ================= LOGIN ================= */
+
+.login-screen{
     flex:1;
     display:flex;
     flex-direction:column;
-    overflow:hidden;
-    transition:filter 0.3s;
-}
-
-.main.blur{
-    filter:blur(5px) brightness(0.7);
-}
-
-header{
-    height:70px;
-    background:transparent;
-    border-bottom:1px solid rgba(255,255,255,0.08);
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:0 30px;
-    flex-shrink:0;
-}
-
-header h1{
-    font-size:24px;
+    justify-content:center;
+    padding:35px;
     color:#fff;
+}
+
+.login-logo{
+    width:150px;
+    height:150px;
+    margin:0 auto 30px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+}
+
+.login-logo img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+}
+
+.login-logo span{
+    font-size:20px;
+    font-weight:700;
+}
+
+.login-screen h2{
+    text-align:center;
+    font-size:32px;
+    font-weight:800;
+    margin-bottom:8px;
+}
+
+.login-screen p{
+    text-align:center;
+    color:rgba(255,255,255,0.7);
+    margin-bottom:30px;
+    font-size:14px;
+}
+
+.login-input{
+    width:100%;
+    height:58px;
+    border:none;
+    outline:none;
+    border-radius:20px;
+    padding:0 20px;
+    background:rgba(255,255,255,0.12);
+    color:#fff;
+    font-size:15px;
+    margin-bottom:16px;
+    backdrop-filter:blur(20px);
+}
+
+.login-input::placeholder{
+    color:rgba(255,255,255,0.5);
+}
+
+.login-btn{
+    width:100%;
+    height:58px;
+    border:none;
+    border-radius:20px;
+    background:#fff;
+    color:#111827;
+    font-size:15px;
+    font-weight:700;
+    cursor:pointer;
+    transition:0.25s;
+}
+
+.login-btn:hover{
+    transform:translateY(-2px);
+}
+
+/* ================= HOME ================= */
+
+.home-screen{
+    flex:1;
+    overflow-y:auto;
+    display:none;
+}
+
+.home-screen::-webkit-scrollbar, .module-screen::-webkit-scrollbar { display: none; }
+.home-screen, .module-screen { -ms-overflow-style: none; scrollbar-width: none; }
+
+.app-header{
+    padding:70px 24px 18px;
+    color:#fff;
+}
+
+.app-top{
+    display:flex;
+    align-items:center;
+    gap:14px;
+}
+
+.app-top img{
+    width:58px;
+    height:58px;
+    object-fit:contain;
+}
+
+.app-header h2{
+    font-size:28px;
     font-weight:800;
 }
 
-/* ================= SEARCH ================= */
-
-.search-bar{
-    padding:15px 30px;
-    background:transparent;
-    border-bottom:1px solid rgba(255,255,255,0.08);
-    display:flex;
-    gap:15px;
-    align-items:center;
-    flex-shrink:0;
-}
-
-.search-bar input,
-.search-bar select,
-.modal input,
-.modal textarea,
-.modal select {
-    padding:12px 16px;
-    background:rgba(255,255,255,0.08);
-    border:1px solid rgba(255,255,255,0.1);
-    border-radius:12px;
-    color:#fff;
-    font-size: 14px;
-    outline: none;
-    transition: 0.3s;
-    backdrop-filter: blur(10px);
-}
-
-.search-bar input:focus,
-.search-bar select:focus,
-.modal input:focus,
-.modal textarea:focus,
-.modal select:focus {
-    background:rgba(255,255,255,0.15);
-    border-color: rgba(255,255,255,0.3);
-}
-
-.search-bar input::placeholder,
-.modal input::placeholder,
-.modal textarea::placeholder {
-    color: rgba(255,255,255,0.5);
-}
-
-.search-bar input{
-    flex:1;
-}
-
-/* Estilizando as opções do select para ficarem legíveis no dark mode */
-select option {
-    background: #111827;
-    color: #fff;
-}
-
-/* ================= KANBAN ================= */
-
-.kanban-container{
-    flex:1;
-    overflow-x:auto;
-    padding:20px 30px;
-}
-
-.kanban{
-    display:flex;
-    gap:20px;
-    min-width:max-content;
-    height:100%;
-}
-
-.column{
-    background:rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.05);
-    backdrop-filter: blur(10px);
-    border-radius:20px;
-    padding:15px;
-    min-width:320px;
-    max-height:100%;
-    display:flex;
-    flex-direction:column;
-    gap:15px;
-    overflow-y:auto;
-}
-
-.column h2{
-    margin-bottom:10px;
+.app-header p{
     font-size:14px;
-    color:#fff;
-    font-weight: 700;
-    letter-spacing: 1px;
-    opacity: 0.8;
+    opacity:0.7;
+    margin-top:3px;
 }
 
-/* ================= CARDS ================= */
-
-.card{
-    display:flex;
-    background:rgba(255,255,255,0.07);
-    border: 1px solid rgba(255,255,255,0.08);
-    backdrop-filter: blur(15px);
-    border-radius:16px;
-    box-shadow:0 8px 30px rgba(0,0,0,0.2);
-    cursor:pointer;
-    overflow:hidden;
-    transition:transform 0.3s, background 0.3s;
-    position:relative;
-    flex-direction:row;
-    width:100%;
-    min-height:200px;
+.modules-grid{
+    padding:22px;
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:18px;
 }
 
-.card:hover{
-    transform:translateY(-4px);
-    background:rgba(255,255,255,0.1);
-}
-
-.card .color-bar{
-    width:6px;
-    height:100%;
-    border-radius:16px 0 0 16px;
-}
-
-.card-content{
+.app-module{
+    min-height:155px;
     padding:20px;
-    flex:1;
+    border-radius:28px;
+    background:rgba(255,255,255,0.12);
+    border:1px solid rgba(255,255,255,0.08);
+    backdrop-filter:blur(20px);
+    color:#fff;
+    cursor:pointer;
+    transition:0.25s;
     display:flex;
     flex-direction:column;
-    justify-content:flex-start;
-    overflow:hidden;
+    justify-content:space-between;
 }
 
-.card h3{
-    font-size:18px;
-    margin-bottom:12px;
-    color:#fff;
-    font-weight: 700;
-    padding-right: 80px; 
-    word-break: break-word; 
+.app-module:hover{
+    transform:translateY(-5px);
+    background:rgba(255,255,255,0.18);
 }
 
-.card p{
-    font-size:13px;
-    color:rgba(255,255,255,0.7);
-    margin:5px 0;
+.app-module .icon{
+    font-size:36px; 
 }
 
-.card p strong {
-    color: #fff;
-    font-weight: 600;
+.app-module h3{
+    font-size:16px;
+    font-weight:700;
+    margin-bottom:5px;
 }
 
-.lista-fria .color-bar{ background:#3b82f6; }
-.negociacao .color-bar{ background:#f59e0b; }
-.contrato-assinado .color-bar{ background:#8b5cf6; }
-.fechado .color-bar{ background:#10b981; }
-
-.card-actions{
-    position:absolute;
-    top:15px;
-    right:15px;
-    display:flex;
-    gap:10px;
+.app-module p{
+    font-size:12px;
+    opacity:0.75;
+    line-height:1.5;
 }
 
-.card-actions button{
-    background:rgba(255,255,255,0.1);
-    border:1px solid rgba(255,255,255,0.05);
-    border-radius: 8px;
-    cursor:pointer;
-    padding:6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: 0.3s;
-}
+/* ================= MODULE SCREENS ================= */
 
-.card-actions img{
-    width:16px;
-    height:16px;
-    filter:invert(1); 
-    opacity:0.8;
-    transition:opacity 0.2s;
-}
-
-.card-actions button:hover{
-    background:rgba(255,255,255,0.2);
-}
-.card-actions button:hover img{
-    opacity:1;
-}
-
-/* ================= MODAL ================= */
-
-.modal-backdrop{
+.module-screen{
+    flex:1;
     display:none;
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,0.6);
-    backdrop-filter: blur(8px);
-    justify-content:center;
-    align-items:center;
-    z-index:50;
-}
-
-.modal{
-    background:#0f172a;
-    border: 1px solid rgba(255,255,255,0.1);
-    padding:24px;
-    border-radius:24px;
-    min-width:320px;
-    max-width:500px;
-    width:100%;
-    box-shadow:0 20px 50px rgba(0,0,0,0.5);
-    max-height:90vh;
     overflow-y:auto;
+    padding:80px 20px 20px;
+    color:#fff;
 }
 
-.modal h3{
-    margin-bottom:20px;
-    font-size: 20px;
-    font-weight: 700;
+.module-screen.active{
+    display:block;
 }
 
-.modal .row{
-    margin-bottom:14px;
-}
-
-.modal input,
-.modal textarea,
-.modal select{
+.back-btn{
     width:100%;
-}
-
-.modal textarea{
-    min-height:100px;
-    resize:vertical;
-}
-
-.modal .actions{
-    display:flex;
-    gap:10px;
-    justify-content:flex-end;
-    margin-top:20px;
-}
-
-/* ================= BUTTONS ================= */
-
-.btn{
-    padding:10px 18px;
-    border-radius:12px;
-    border:0;
-    cursor:pointer;
-    font-weight: 600;
-    font-size: 14px;
-    transition: 0.3s;
-}
-
-.btn.primary{
-    background:#fff;
-    color:#111827;
-}
-
-.btn.primary:hover{
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255,255,255,0.2);
-}
-
-.btn.ghost{
+    height:54px;
+    border:none;
+    border-radius:18px;
+    margin-bottom:20px;
     background:rgba(255,255,255,0.12);
     color:#fff;
+    font-weight:700;
+    cursor:pointer;
+    backdrop-filter:blur(20px);
 }
 
-.btn.ghost:hover{
-    background:rgba(255,255,255,0.2);
+.screen-card{
+    background:rgba(255,255,255,0.12);
+    border:1px solid rgba(255,255,255,0.08);
+    backdrop-filter:blur(20px);
+    border-radius:24px;
+    padding:20px;
+    margin-bottom:18px;
 }
 
-.btn-green {
-    background: #10b981;
-    color: #fff;
-}
-
-.btn-green:hover {
-    background: #059669;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
-}
-
-/* ================= DINÂMICOS ================= */
-
-.processo-row{
-    display:flex;
-    gap:8px;
+.screen-card h3{
+    font-size:16px;
     margin-bottom:10px;
 }
 
-.processo-row input{
-    flex:1;
+.screen-card p{
+    font-size:13px;
+    line-height:1.7;
+    opacity:0.85;
 }
 
-/* ================= TOAST ================= */
+.tag{
+    display:inline-block;
+    padding:7px 12px;
+    border-radius:999px;
+    font-size:11px;
+    margin-top:12px;
+    font-weight:700;
+    background:#22c55e;
+}
 
-.toast{
-    position:fixed;
-    right:30px;
-    bottom:30px;
-    background:rgba(255,255,255,0.1);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.1);
-    color:#fff;
-    padding:12px 20px;
+.pending{
+    background:#f59e0b;
+}
+
+.alert{
+    background:#ef4444;
+}
+
+.file-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:14px;
+    background:rgba(255,255,255,0.08);
+    padding:12px;
+    border-radius:16px;
+}
+
+.file-btn{
+    border:none;
+    background:#fff;
+    color:#111827;
+    padding:10px 14px;
     border-radius:12px;
-    box-shadow:0 10px 30px rgba(0,0,0,.4);
-    display:none;
-    z-index:60;
-    font-weight: 500;
+    font-weight:700;
+    cursor:pointer;
 }
 
-/* ================= DOCUMENTOS UPLOAD ================= */
-.docs-section {
-    border: 1px dashed rgba(255,255,255,0.2);
-    background: rgba(255,255,255,0.03);
-    padding: 15px;
-    border-radius: 12px;
-    margin-bottom: 14px;
-}
-.docs-section h4 {
-    font-size: 14px;
-    margin-bottom: 12px;
-    color: #fff;
-}
-.doc-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: rgba(255,255,255,0.08);
-    padding: 10px;
-    border-radius: 8px;
-    margin-bottom: 8px;
-    font-size: 13px;
-}
-.doc-item a {
-    color: #60a5fa;
-    text-decoration: none;
-    word-break: break-all;
-    flex: 1;
-}
-.doc-item a:hover {
-    text-decoration: underline;
-}
-.doc-item button {
-    background: transparent;
-    border: none;
-    color: #ef4444;
-    cursor: pointer;
-    font-weight: bold;
-    padding: 4px 8px;
-    border-radius: 4px;
-    transition: 0.2s;
-    margin-left: 10px;
-}
-.doc-item button:hover {
-    background: rgba(239, 68, 68, 0.1);
-}
+/* ================= RESPONSIVO ================= */
 
-.col-header-actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-}
-.btn-robot {
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.05);
-    border-radius: 8px;
-    cursor: pointer;
-    padding: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: 0.3s;
-}
-.btn-robot:hover {
-    background: rgba(255,255,255,0.2);
-}
-.btn-robot img {
-    width: 20px;
-    height: 20px;
-    filter: invert(1);
-    opacity: 0.9;
+@media(max-width:900px){
+    body{
+        flex-direction:column;
+        overflow:auto;
+    }
+    .sidebar{
+        width:100%;
+        height:auto;
+        border-right:none;
+        border-bottom:1px solid rgba(255,255,255,0.08);
+    }
+    .preview{
+        padding:40px 20px;
+    }
 }
 
 </style>
-
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-
-import {
-    getFirestore,
-    collection,
-    addDoc,
-    getDocs,
-    doc,
-    setDoc,
-    updateDoc,
-    query,
-    where
-} from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
-
-import {
-    getAuth,
-    onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
-
-import {
-    getStorage,
-    ref,
-    uploadBytes,
-    getDownloadURL
-} from "https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js";
-
-/* ================= FIREBASE ================= */
-
-const firebaseConfig = {
-    apiKey: "AIzaSyAFJJAqVf3ge0WDHBpmS9E6sXKvnjuFkhw",
-    authDomain: "dapapp-38637.firebaseapp.com",
-    projectId: "dapapp-38637",
-    storageBucket: "dapapp-38637.appspot.com",
-    messagingSenderId: "628852295313",
-    appId: "1:628852295313:web:1234567890abcdef123456"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
-let storage;
-
-try {
-    storage = getStorage(app);
-} catch (error) {
-    console.error("Storage indisponível:", error);
-}
-
-window.firebaseDB = db;
-
-/* ================= APP ================= */
-
-document.addEventListener('DOMContentLoaded', () => {
-
-    const sidebar = document.querySelector(".sidebar");
-    const mainContent = document.querySelector(".main");
-
-    if(sidebar && mainContent){
-
-        sidebar.addEventListener('mouseenter', () => {
-            sidebar.classList.add('expanded');
-            mainContent.classList.add('blur');
-        });
-
-        sidebar.addEventListener('mouseleave', () => {
-            sidebar.classList.remove('expanded');
-            mainContent.classList.remove('blur');
-        });
-    }
-
-    const STATUS = [
-        'lista-fria',
-        'negociacao',
-        'contrato-assinado',
-        'fechado'
-    ];
-
-    const cardsMap = {};
-
-    const modalBackdrop = document.getElementById('modalBackdrop');
-    const clientForm = document.getElementById('clientForm');
-
-    const inputNome = document.getElementById('inputNome');
-    const inputCPF = document.getElementById('inputCPF');
-    const inputObs = document.getElementById('inputObs');
-    const inputStatus = document.getElementById('inputStatus');
-    const inputClasse = document.getElementById('inputClasse');
-    const inputValor = document.getElementById('inputValor');
-    const inputEstado = document.getElementById('inputEstado');
-
-    const btnAdd = document.getElementById('btnAdd');
-    const btnCancel = document.getElementById('btnCancel');
-
-    const searchInput = document.getElementById('searchInput');
-    const filterStatus = document.getElementById('filterStatus');
-
-    const toastEl = document.getElementById('toast');
-    const coinSound = document.getElementById('coinSound');
-
-    const processosContainer = document.getElementById('processosContainer');
-
-    const telefonesContainer = document.getElementById('telefonesContainer');
-    const btnAddTelefone = document.getElementById('btnAddTelefone');
-
-    /* ================= VARIÁVEIS DOCUMENTOS ================= */
-    const inputFile = document.getElementById('inputFile');
-    const btnTriggerFile = document.getElementById('btnTriggerFile');
-    const docsList = document.getElementById('docsList');
-    const uploadProgress = document.getElementById('uploadProgress');
-    let currentDocs = [];
-
-    let currentUser = null;
-
-    /* ================= TOAST ================= */
-
-    function showToast(msg){
-        toastEl.innerText = msg;
-        toastEl.style.display = 'block';
-        clearTimeout(toastEl._t);
-        toastEl._t = setTimeout(() => {
-            toastEl.style.display = 'none';
-        },3000);
-    }
-
-    /* ================= FORÇAR DOWNLOAD DE DOCUMENTO ================= */
-    // Função global para podermos chamar direto do onclick do HTML gerado
-    window.forceDownload = async function(url, filename, event) {
-        if(event) {
-            event.preventDefault();
-            event.stopPropagation();
-        }
-        showToast("Iniciando download...");
-        try {
-            const response = await fetch(url);
-            const blob = await response.blob();
-            const objectUrl = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = objectUrl;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(objectUrl);
-        } catch (error) {
-            console.warn("CORS impediu o download silencioso. Abrindo em nova aba.", error);
-            // Fallback caso não tenha CORS configurado no Firebase: abre na nova guia para baixar manualmente.
-            window.open(url, '_blank');
-        }
-    };
-
-    /* ================= FIRESTORE ================= */
-
-    async function getClientes(){
-
-        if(!currentUser){
-            return [];
-        }
-
-        const q = query(
-            collection(db,"clientes"),
-            where("userId","==",currentUser.uid)
-        );
-
-        const snapshot = await getDocs(q);
-
-        return snapshot.docs.map(docData => ({
-            id: docData.id,
-            ...docData.data()
-        }));
-    }
-
-    async function saveCliente(cliente){
-
-        if(!currentUser){
-            return;
-        }
-
-        cliente.userId = currentUser.uid;
-
-        if(cliente.id){
-            const docRef = doc(db,"clientes",cliente.id);
-            await setDoc(docRef,cliente);
-        }else{
-            const docRef = await addDoc(
-                collection(db,"clientes"),
-                cliente
-            );
-            cliente.id = docRef.id;
-        }
-    }
-
-    /* ================= UPLOAD DE DOCUMENTOS ================= */
-
-    function renderDocsList() {
-        docsList.innerHTML = '';
-        if (currentDocs.length === 0) {
-            docsList.innerHTML = '<span style="color:rgba(255,255,255,0.5); font-size:12px;">Nenhum documento anexado.</span>';
-            return;
-        }
-
-        currentDocs.forEach((arquivo, index) => {
-            const div = document.createElement('div');
-            div.className = 'doc-item';
-            
-            // Link modificado para executar a função forceDownload
-            div.innerHTML = `<a href="javascript:void(0)" onclick="window.forceDownload('${arquivo.url}', '${arquivo.name}', event)" title="Baixar documento">📄 ${arquivo.name} <span style="font-size:10px; color:#9ca3af; margin-left: 5px;">(Baixar)</span></a>`;
-            
-            const btnRemove = document.createElement('button');
-            btnRemove.type = 'button';
-            btnRemove.innerText = 'X';
-            btnRemove.title = "Remover documento";
-            btnRemove.onclick = () => {
-                currentDocs.splice(index, 1);
-                renderDocsList();
-            };
-
-            div.appendChild(btnRemove);
-            docsList.appendChild(div);
-        });
-    }
-
-    btnTriggerFile.onclick = () => {
-        inputFile.click();
-    };
-
-    inputFile.onchange = async (e) => {
-        if (!storage) {
-            showToast("Serviço de arquivos não configurado");
-            return;
-        }
-
-        const files = Array.from(e.target.files);
-        if (!files.length || !currentUser) return;
-        
-        uploadProgress.style.display = 'block';
-        uploadProgress.innerText = `Enviando ${files.length} arquivo(s)...`;
-        
-        for (let file of files) {
-            try {
-                const uniqueName = Date.now() + "_" + file.name;
-                const storageRef = ref(storage, `documentos/${currentUser.uid}/${uniqueName}`);
-                await uploadBytes(storageRef, file);
-                const url = await getDownloadURL(storageRef);
-                currentDocs.push({ name: file.name, url: url });
-            } catch (error) {
-                console.error("Erro no upload:", error);
-                showToast("Erro ao enviar " + file.name);
-            }
-        }
-        
-        uploadProgress.style.display = 'none';
-        inputFile.value = ''; 
-        renderDocsList();
-        showToast("Upload concluído!");
-    };
-
-    /* ================= MODAL ================= */
-
-    function openModal(edit = false, data = null){
-
-        modalBackdrop.style.display = 'flex';
-
-        document.getElementById('modalTitle').innerText =
-            edit ? "Editar Cliente" : "Novo Cliente";
-
-        processosContainer.innerHTML = '';
-        telefonesContainer.innerHTML = '';
-
-        if(edit && data){
-
-            inputNome.value = data.nome || "";
-            inputCPF.value = data.cpf || "";
-            inputObs.value = data.obs || "";
-            inputStatus.value = data.status || "lista-fria";
-            inputClasse.value = data.classe || "Outros";
-            inputValor.value = data.valor || "";
-            inputEstado.value = data.estado || "São Paulo";
-
-            const processos = data.processo
-                ? data.processo.split(',').map(p => p.trim())
-                : [''];
-
-            processos.forEach(p => addProcessoField(p));
-
-            const telefones = data.numeros
-                ? data.numeros.split(',').map(t => t.trim())
-                : [''];
-
-            telefones.forEach(t => addTelefoneField(t));
-
-            currentDocs = Array.isArray(data.documentos) ? [...data.documentos] : [];
-
-            clientForm.dataset.editId = data.id;
-
-        }else{
-
-            addProcessoField();
-            addTelefoneField();
-
-            inputNome.value = "";
-            inputCPF.value = "";
-            inputObs.value = "";
-            inputStatus.value = "lista-fria";
-            inputClasse.value = "Outros";
-            inputValor.value = "";
-            inputEstado.value = "São Paulo";
-
-            currentDocs = [];
-
-            delete clientForm.dataset.editId;
-        }
-
-        renderDocsList();
-    }
-
-    function closeModal(){
-        modalBackdrop.style.display = 'none';
-    }
-
-    /* ================= PROCESSOS ================= */
-
-    function addProcessoField(value = ""){
-
-        const row = document.createElement('div');
-        row.className = 'processo-row';
-
-        const input = document.createElement('input');
-        input.className = 'inputProcesso';
-        input.placeholder = '0000000-00.0000.0.00.0000';
-        input.value = value;
-
-        const btnAdd = document.createElement('button');
-        btnAdd.type = 'button';
-        btnAdd.className = 'btn ghost';
-        btnAdd.textContent = '+';
-
-        btnAdd.onclick = () => {
-            addProcessoField();
-        };
-
-        const btnRemove = document.createElement('button');
-        btnRemove.type = 'button';
-        btnRemove.className = 'btn ghost';
-        btnRemove.textContent = '-';
-
-        btnRemove.onclick = () => {
-            row.remove();
-        };
-
-        row.appendChild(input);
-        row.appendChild(btnAdd);
-        row.appendChild(btnRemove);
-
-        processosContainer.appendChild(row);
-    }
-
-    /* ================= TELEFONES ================= */
-
-    function addTelefoneField(value = ""){
-
-        const row = document.createElement('div');
-        row.className = 'processo-row';
-
-        const input = document.createElement('input');
-        input.className = 'inputTelefone';
-        input.placeholder = 'Telefone / WhatsApp';
-        input.value = value;
-
-        const btnAdd = document.createElement('button');
-        btnAdd.type = 'button';
-        btnAdd.className = 'btn ghost';
-        btnAdd.textContent = '+';
-
-        btnAdd.onclick = () => {
-            addTelefoneField();
-        };
-
-        const btnRemove = document.createElement('button');
-        btnRemove.type = 'button';
-        btnRemove.className = 'btn ghost';
-        btnRemove.textContent = '-';
-
-        btnRemove.onclick = () => {
-            row.remove();
-        };
-
-        row.appendChild(input);
-        row.appendChild(btnAdd);
-        row.appendChild(btnRemove);
-
-        telefonesContainer.appendChild(row);
-    }
-
-    btnAddTelefone.onclick = () => {
-        addTelefoneField();
-    };
-
-    /* ================= CARDS ================= */
-
-    function criarCard(cliente){
-
-        const status = cliente.status || 'lista-fria';
-
-        const col = document.getElementById(status);
-
-        if(!col){
-            return;
-        }
-
-        const card = document.createElement('div');
-
-        card.className = `card ${status}`;
-
-        card.dataset.id = cliente.id;
-        card.dataset.status = status;
-        card.dataset.nome = cliente.nome.toLowerCase();
-
-        card.draggable = true;
-
-        const colorBar = document.createElement('div');
-        colorBar.className = 'color-bar';
-
-        card.appendChild(colorBar);
-
-        /* ================= ACTIONS ================= */
-
-        const actionsDiv = document.createElement('div');
-        actionsDiv.className = 'card-actions';
-
-        const btnCall = document.createElement('button');
-
-        btnCall.onclick = (e) => {
-            e.stopPropagation();
-            const numero = cliente.numeros
-                ? cliente.numeros.split(',')[0].trim()
-                : '';
-            ligar(numero);
-        };
-
-        btnCall.innerHTML =
-            '<img src="https://img.icons8.com/ios-glyphs/30/000000/phone.png"/>';
-
-        const btnWa = document.createElement('button');
-
-        btnWa.onclick = (e) => {
-            e.stopPropagation();
-            const numero = cliente.numeros
-                ? cliente.numeros.split(',')[0].trim()
-                : '';
-            whatsapp(numero);
-        };
-
-        btnWa.innerHTML =
-            '<img src="https://img.icons8.com/ios-glyphs/30/000000/whatsapp.png"/>';
-
-        actionsDiv.appendChild(btnCall);
-        actionsDiv.appendChild(btnWa);
-
-        card.appendChild(actionsDiv);
-
-        /* ================= CONTENT ================= */
-
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'card-content';
-
-        const processosArray = cliente.processo
-            ? cliente.processo.split(',').map(p => p.trim())
-            : [];
-
-        const primeiroProcesso = processosArray.length > 0
-            ? processosArray[0]
-            : '-';
-
-        contentDiv.innerHTML = `
-            <h3>${cliente.nome}</h3>
-
-            <p><strong>CPF:</strong> ${cliente.cpf || '-'}</p>
-            <p><strong>Classe:</strong> ${cliente.classe || '-'}</p>
-            <p><strong>Estado:</strong> ${cliente.estado || '-'}</p>
-            <p><strong>Processo:</strong> ${primeiroProcesso}</p>
-            <p><strong>Valor:</strong> R$ ${cliente.valor || 0}</p>
-        `;
-
-        // Renderiza os links de documentos no card
-        if (Array.isArray(cliente.documentos) && cliente.documentos.length > 0) {
-            const docsDiv = document.createElement('div');
-            docsDiv.style.marginTop = "12px";
-            docsDiv.innerHTML = `<p style="font-weight: 600; color: #fff; margin-bottom: 5px;">Documentos Anexos:</p>`;
-            
-            cliente.documentos.forEach(arquivo => {
-                const link = document.createElement('a');
-                link.href = "javascript:void(0)";
-                link.style.display = "block";
-                link.style.fontSize = "13px";
-                link.style.color = "#60a5fa"; // Azul mais claro para dark mode
-                link.style.textDecoration = "none";
-                link.style.margin = "4px 0";
-                
-                link.innerHTML = `📄 ${arquivo.name} <span style="font-size:10px; color:#9ca3af; margin-left: 5px;">(Baixar)</span>`;
-                
-                // Forçar o download ao invés de abrir o modal
-                link.onclick = (e) => {
-                    e.stopPropagation();
-                    window.forceDownload(arquivo.url, arquivo.name, e);
-                };
-                
-                docsDiv.appendChild(link);
-            });
-            contentDiv.appendChild(docsDiv);
-        }
-
-        card.appendChild(contentDiv);
-
-        card.onclick = () => {
-            openModal(true, cliente);
-        };
-
-        addDragEvents(card);
-
-        col.appendChild(card);
-
-        cardsMap[cliente.id] = card;
-    }
-
-    /* ================= TELEFONE ================= */
-
-    function ligar(numero){
-
-        if(!numero){
-            showToast("Número não informado");
-            return;
-        }
-
-        window.open(`tel:${numero.replace(/\D/g,'')}`);
-    }
-
-    function whatsapp(numero){
-
-        if(!numero){
-            showToast("Número não informado");
-            return;
-        }
-
-        const num = numero.replace(/\D/g,'');
-
-        window.open(`https://wa.me/55${num}`,'_blank');
-    }
-
-    /* ================= RENDER ================= */
-
-    async function render(){
-
-        STATUS.forEach(status => {
-            const col = document.getElementById(status);
-            
-            // Injeção do botão de robô apenas na coluna Lista Fria
-            if (status === 'lista-fria') {
-                col.innerHTML = `
-                    <div class="col-header-actions">
-                        <h2 style="margin-bottom:0;">LISTA FRIA</h2>
-                        <button class="btn-robot" title="Ativar Robô">
-                            <img src="https://img.icons8.com/ios-glyphs/30/000000/bot.png" alt="Robô"/>
-                        </button>
-                    </div>
-                `;
-            } else {
-                col.innerHTML = `<h2>${status.replace('-',' ').toUpperCase()}</h2>`;
-            }
-        });
-
-        for(const k in cardsMap){
-            delete cardsMap[k];
-        }
-
-        const clientes = await getClientes();
-
-        for(const cliente of clientes){
-            criarCard(cliente);
-        }
-
-        filtragemAplicada();
-    }
-
-    /* ================= FORM ================= */
-
-    clientForm.onsubmit = async function(e){
-
-        e.preventDefault();
-
-        const nome = inputNome.value.trim();
-
-        if(!nome){
-            showToast("Nome obrigatório");
-            return;
-        }
-
-        const processos = Array.from(
-            document.querySelectorAll('.inputProcesso')
-        )
-        .map(input => input.value.trim())
-        .filter(valor => valor);
-
-        const telefones = Array.from(
-            document.querySelectorAll('.inputTelefone')
-        )
-        .map(input => input.value.trim())
-        .filter(valor => valor);
-
-        const novo = {
-
-            nome: nome,
-
-            cpf: inputCPF.value.trim(),
-
-            obs: inputObs.value
-                .trim()
-                .substring(0,300),
-
-            status: inputStatus.value,
-
-            numeros: telefones.join(', '),
-
-            processo: processos.join(', '),
-
-            classe: inputClasse.value,
-
-            valor: inputValor.value,
-
-            estado: inputEstado.value,
-
-            documentos: currentDocs
-        };
-
-        if(clientForm.dataset.editId){
-
-            novo.id = clientForm.dataset.editId;
-
-            await saveCliente(novo);
-
-            showToast("Cliente atualizado!");
-
-        }else{
-
-            await saveCliente(novo);
-
-            showToast("Cliente adicionado!");
-        }
-
-        closeModal();
-
-        render();
-    };
-
-    btnAdd.onclick = () => {
-        openModal();
-    };
-
-    btnCancel.onclick = () => {
-        closeModal();
-    };
-
-    /* ================= DRAG ================= */
-
-    let draggedCard = null;
-
-    function addDragEvents(card){
-
-        card.addEventListener('dragstart', () => {
-            draggedCard = card;
-            card.style.opacity = '.5';
-        });
-
-        card.addEventListener('dragend', () => {
-            draggedCard = null;
-            card.style.opacity = '1';
-        });
-    }
-
-    document.querySelectorAll('.column').forEach(col => {
-
-        col.addEventListener('dragover', e => {
-            e.preventDefault();
-        });
-
-        col.addEventListener('drop', async () => {
-
-            if(!draggedCard){
-                return;
-            }
-
-            const id = draggedCard.dataset.id;
-            const status = col.id;
-            const docRef = doc(db,"clientes",id);
-
-            await updateDoc(docRef,{ status });
-
-            if(status === "fechado"){
-                coinSound.currentTime = 0;
-                coinSound.play();
-            }
-
-            render();
-            showToast("Status atualizado");
-        });
-    });
-
-    /* ================= FILTROS ================= */
-
-    function filtragemAplicada(){
-
-        const q = searchInput.value.toLowerCase();
-        const filterS = filterStatus.value;
-
-        Object.values(cardsMap).forEach(card => {
-
-            const matchSearch = card.dataset.nome.includes(q);
-            const matchStatus = !filterS || card.dataset.status === filterS;
-
-            card.style.display =
-                (matchSearch && matchStatus)
-                ? 'flex'
-                : 'none';
-        });
-    }
-
-    searchInput.oninput = filtragemAplicada;
-    filterStatus.onchange = filtragemAplicada;
-
-    /* ================= LOGIN ================= */
-
-    onAuthStateChanged(auth, user => {
-
-        if(user){
-            currentUser = user;
-            render();
-        }else{
-            window.location.href = "login.html";
-        }
-    });
-
-});
-
-</script>
-
 </head>
-
 <body>
 
 <div class="sidebar">
+    <div class="logo-title">
+        <div class="logo-circle">A</div>
+        <div>
+            <h1>APP FACTORY</h1>
+            <p>Construa seu app</p>
+        </div>
+    </div>
 
-    <h2 onclick="window.location.href='dashboard.html'">
-        AMR ADV
-    </h2>
+    <div class="section">
+        <h2>Logo do Escritório</h2>
+        <div class="logo-upload">
+            <input type="file" id="logoInput" accept="image/png,image/jpeg,image/webp">
+        </div>
+        <div class="logo-preview">
+            <img id="logoPreview" src="" style="display:none;">
+        </div>
+    </div>
 
-    <button onclick="window.location.href='crm.html'">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/dashboard.png"/>
-        <span>CRM</span>
+    <div class="section">
+        <h2>Cor do Aplicativo</h2>
+        <div class="color-grid">
+            <div class="color-btn active" data-color="#111827" style="background:#111827;"></div>
+            <div class="color-btn" data-color="#1e3a8a" style="background:#1e3a8a;"></div>
+            <div class="color-btn" data-color="#065f46" style="background:#065f46;"></div>
+            <div class="color-btn" data-color="#7c2d12" style="background:#7c2d12;"></div>
+            <div class="color-btn" data-color="#4c1d95" style="background:#4c1d95;"></div>
+            <div class="color-btn" data-color="#831843" style="background:#831843;"></div>
+            <div class="color-btn" data-color="#0f766e" style="background:#0f766e;"></div>
+            <div class="color-btn" data-color="#374151" style="background:#374151;"></div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Módulos</h2>
+        <div class="modules">
+            <div class="module-item">
+                <div class="module-left">
+                    <div class="module-icon"><i class="fi fi-tr-file-invoice"></i></div>
+                    <span>Boletos</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" class="module-toggle" data-module="boletos" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="module-item">
+                <div class="module-left">
+                    <div class="module-icon"><i class="fi fi-tr-handshake"></i></div>
+                    <span>Negociação</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" class="module-toggle" data-module="negociacao" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="module-item">
+                <div class="module-left">
+                    <div class="module-icon"><i class="fi fi-tr-chart-line-up"></i></div>
+                    <span>Andamento</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-andamento" class="module-toggle" data-module="andamento" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="module-item">
+                <div class="module-left">
+                    <div class="module-icon"><i class="fi fi-tr-folder-open"></i></div>
+                    <span>Documentos</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" class="module-toggle" data-module="documentos" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="module-item">
+                <div class="module-left">
+                    <div class="module-icon"><i class="fi fi-tr-bell"></i></div>
+                    <span>Alertas</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" class="module-toggle" data-module="alertas" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="section" id="config-andamento">
+        <h2>Origem do Andamento</h2>
+        <div class="segmented-control">
+            <input type="radio" id="and-auto" name="andamento-tipo" value="automatizado" checked>
+            <label for="and-auto"><i class="fi fi-tr-microchip"></i> Automatizado</label>
+            
+            <input type="radio" id="and-plan" name="andamento-tipo" value="planilha">
+            <label for="and-plan"><i class="fi fi-tr-table-layout"></i> Por Planilha</label>
+        </div>
+    </div>
+
+    <button class="generate-btn" id="generateBtn">
+        <i class="fi fi-tr-rocket-lunch"></i> Gerar Aplicativo
     </button>
-
-    <button onclick="window.location.href='relatorios.html'">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/combo-chart.png"/>
-        <span>Relatórios</span>
-    </button>
-
-    <button onclick="window.location.href='agenda.html'">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/calendar.png"/>
-        <span>Agenda</span>
-    </button>
-
-    <button onclick="window.location.href='discador.html'">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/contacts.png"/>
-        <span>Contatos</span>
-    </button>
-
-    <button onclick="window.location.href='clientes.html'">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/user-group-man-man.png"/>
-        <span>Clientes</span>
-    </button>
-
-    <button onclick="window.location.href='processos.html'">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/file.png"/>
-        <span>Processos</span>
-    </button>
-
-    <button onclick="window.location.href='app.html'">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/phone.png"/>
-        <span>App</span>
-    </button>
-
-    <button>
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/settings.png"/>
-        <span>Configurações</span>
-    </button>
-
 </div>
 
-<div class="main">
+<div class="preview">
+    <div class="phone-glow"></div>
+    
+    <div class="iphone-case">
+        <div class="btn-hw btn-action"></div>
+        <div class="btn-hw btn-vol-up"></div>
+        <div class="btn-hw btn-vol-down"></div>
+        <div class="btn-hw btn-power"></div>
 
-<header>
+        <div class="screen" id="screen">
+            <div class="dynamic-island">
+                <div class="camera"></div>
+            </div>
 
-    <h1>CRM</h1>
+            <div class="login-screen" id="loginScreen">
+                <div class="login-logo">
+                    <span id="defaultLogoText">Sua Logo</span>
+                    <img id="phoneLogo" src="" style="display:none;">
+                </div>
+                <h2>Área do Cliente</h2>
+                <p>Faça login com seu CPF</p>
+                <input type="text" class="login-input" placeholder="Digite seu CPF" id="cpfInput">
+                <button class="login-btn" id="loginBtn">Entrar</button>
+            </div>
 
-    <div style="display: flex; gap: 12px; align-items: center;">
-        <button id="btnAgente" class="btn btn-green">
-            Agente de Whatsapp
-        </button>
-        
-        <button id="btnAdd" class="btn primary">
-            + Adicionar Cliente
-        </button>
+            <div class="home-screen" id="homeScreen">
+                <div class="app-header">
+                    <div class="app-top">
+                        <img id="headerLogo" src="" style="display:none;">
+                        <div>
+                            <h2>AMR ADV</h2>
+                            <p>Área do Cliente</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modules-grid" id="modulesGrid"></div>
+            </div>
+
+            <div class="module-screen" id="screen-boletos">
+                <button class="back-btn">← Voltar</button>
+                <div class="screen-card">
+                    <h3>Mensalidade Março</h3>
+                    <p>Vencimento em 12/03/2026</p>
+                    <span class="tag pending">Pendente</span>
+                </div>
+                <div class="screen-card">
+                    <h3>Mensalidade Fevereiro</h3>
+                    <p>Pagamento confirmado</p>
+                    <span class="tag">Pago</span>
+                </div>
+            </div>
+
+            <div class="module-screen" id="screen-negociacao">
+                <button class="back-btn">← Voltar</button>
+                <div class="screen-card">
+                    <h3>Acordo Bancário</h3>
+                    <p>Redução aprovada de 42% nos juros contratuais.</p>
+                </div>
+                <div class="screen-card">
+                    <h3>Status</h3>
+                    <p>Contraproposta recebida e em análise jurídica.</p>
+                </div>
+            </div>
+
+            <div class="module-screen" id="screen-andamento">
+                <button class="back-btn">← Voltar</button>
+                <div class="screen-card">
+                    <h3>Processo nº 0002451-89</h3>
+                    <p>Petição protocolada no Tribunal de Justiça.</p>
+                    <span class="tag">Atualizado Hoje</span>
+                </div>
+                <div class="screen-card">
+                    <h3>Movimentação</h3>
+                    <p>Processo encaminhado para execução.</p>
+                </div>
+            </div>
+
+            <div class="module-screen" id="screen-documentos">
+                <button class="back-btn">← Voltar</button>
+                <div class="screen-card">
+                    <h3>Arquivos Disponíveis</h3>
+                    <div class="file-row">
+                        <span>Contrato.pdf</span>
+                        <button class="file-btn">Abrir</button>
+                    </div>
+                    <div class="file-row">
+                        <span>Petição.pdf</span>
+                        <button class="file-btn">Abrir</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="module-screen" id="screen-alertas">
+                <button class="back-btn">← Voltar</button>
+                <div class="screen-card">
+                    <h3>Audiência Marcada</h3>
+                    <p>15/04/2026 às 14h00</p>
+                    <span class="tag alert">Importante</span>
+                </div>
+                <div class="screen-card">
+                    <h3>Prazo Processual</h3>
+                    <p>Restam 3 dias úteis para manifestação.</p>
+                </div>
+            </div>
+
+        </div>
     </div>
-
-</header>
-
-<div class="search-bar">
-
-    <input
-        id="searchInput"
-        placeholder="Buscar cliente..."
-    />
-
-    <select id="filterStatus">
-        <option value="">Todos os status</option>
-        <option value="lista-fria">Lista Fria</option>
-        <option value="negociacao">Negociação</option>
-        <option value="contrato-assinado">Contrato Assinado</option>
-        <option value="fechado">Fechado</option>
-    </select>
-
 </div>
 
-<div class="kanban-container">
+<script>
 
-<main class="kanban" id="kanban">
+const screen = document.getElementById('screen');
+const modulesGrid = document.getElementById('modulesGrid');
+const colorButtons = document.querySelectorAll('.color-btn');
+const toggles = document.querySelectorAll('.module-toggle');
+const homeScreen = document.getElementById('homeScreen');
+const loginScreen = document.getElementById('loginScreen');
+const screens = document.querySelectorAll('.module-screen');
+const loginBtn = document.getElementById('loginBtn');
+const logoInput = document.getElementById('logoInput');
+const logoPreview = document.getElementById('logoPreview');
+const phoneLogo = document.getElementById('phoneLogo');
+const headerLogo = document.getElementById('headerLogo');
+const defaultLogoText = document.getElementById('defaultLogoText');
+const toggleAndamento = document.getElementById('toggle-andamento');
+const configAndamento = document.getElementById('config-andamento');
+const generateBtn = document.getElementById('generateBtn');
 
-    <div class="column" id="lista-fria">
-        <h2>LISTA FRIA</h2>
-    </div>
+const modulesData = {
+    boletos:{ icon:'<i class="fi fi-tr-file-invoice"></i>', title:'Boletos', desc:'Visualize pagamentos' },
+    negociacao:{ icon:'<i class="fi fi-tr-handshake"></i>', title:'Negociação', desc:'Acompanhe acordos' },
+    andamento:{ icon:'<i class="fi fi-tr-chart-line-up"></i>', title:'Andamento', desc:'Status processual' },
+    documentos:{ icon:'<i class="fi fi-tr-folder-open"></i>', title:'Documentos', desc:'Arquivos disponíveis' },
+    alertas:{ icon:'<i class="fi fi-tr-bell"></i>', title:'Alertas', desc:'Notificações importantes' }
+};
 
-    <div class="column" id="negociacao">
-        <h2>NEGOCIAÇÃO</h2>
-    </div>
+/* ================= GERAR APLICATIVO ================= */
+generateBtn.addEventListener('click', () => {
+    alert('Sucesso! Configurações salvas. Iniciando a geração do seu aplicativo...');
+});
 
-    <div class="column" id="contrato-assinado">
-        <h2>CONTRATO ASSINADO</h2>
-    </div>
+/* ================= ESCONDER/MOSTRAR OPÇÕES DO ANDAMENTO ================= */
+toggleAndamento.addEventListener('change', (e) => {
+    if(e.target.checked) {
+        configAndamento.style.display = 'block';
+    } else {
+        configAndamento.style.display = 'none';
+    }
+});
 
-    <div class="column" id="fechado">
-        <h2>FECHADO</h2>
-    </div>
+/* ================= LOGIN ================= */
+loginBtn.addEventListener('click', () => {
+    const cpf = document.getElementById('cpfInput').value.trim();
+    if(!cpf){
+        alert('Digite um CPF');
+        return;
+    }
+    loginScreen.style.display = 'none';
+    homeScreen.style.display = 'block';
+});
 
-</main>
+/* ================= LOGO ================= */
+logoInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if(!file) return;
 
-</div>
+    const reader = new FileReader();
+    reader.onload = function(event){
+        const url = event.target.result;
+        logoPreview.src = url;
+        logoPreview.style.display = 'block';
+        phoneLogo.src = url;
+        phoneLogo.style.display = 'block';
+        headerLogo.src = url;
+        headerLogo.style.display = 'block';
+        defaultLogoText.style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+});
 
-</div>
+/* ================= HOME ================= */
+function openModule(module){
+    homeScreen.style.display = 'none';
+    screens.forEach(screen => {
+        screen.classList.remove('active');
+    });
+    document.getElementById(`screen-${module}`).classList.add('active');
+}
 
-<div class="modal-backdrop" id="modalBackdrop">
+function goHome(){
+    homeScreen.style.display = 'block';
+    screens.forEach(screen => {
+        screen.classList.remove('active');
+    });
+}
 
-<div class="modal">
+/* ================= RENDER ================= */
+function renderModules(){
+    modulesGrid.innerHTML = '';
+    toggles.forEach(toggle => {
+        if(toggle.checked){
+            const key = toggle.dataset.module;
+            const module = modulesData[key];
+            const card = document.createElement('div');
+            card.className = 'app-module';
+            card.innerHTML = `
+                <div class="icon">${module.icon}</div>
+                <div>
+                    <h3>${module.title}</h3>
+                    <p>${module.desc}</p>
+                </div>
+            `;
+            card.addEventListener('click', () => {
+                openModule(key);
+            });
+            modulesGrid.appendChild(card);
+        }
+    });
+}
 
-<h3 id="modalTitle">
-    Novo Cliente
-</h3>
+/* ================= CORES ================= */
+colorButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        colorButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const color = btn.dataset.color;
+        screen.style.background = `linear-gradient(180deg, ${color}, #000000)`;
+    });
+});
 
-<form id="clientForm">
+/* ================= TOGGLES ================= */
+toggles.forEach(toggle => {
+    toggle.addEventListener('change', () => {
+        renderModules();
+    });
+});
 
-    <div class="row">
-        <input
-            id="inputNome"
-            placeholder="Nome do cliente"
-            required
-        />
-    </div>
+/* ================= VOLTAR ================= */
+document.querySelectorAll('.back-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        goHome();
+    });
+});
 
-    <div class="row">
-        <input
-            id="inputCPF"
-            placeholder="CPF/CNPJ"
-        />
-    </div>
+/* ================= INIT ================= */
+screen.style.background = `linear-gradient(180deg, #111827, #000000)`;
+renderModules();
 
-    <div id="telefonesContainer"></div>
-
-    <div class="row">
-
-        <button
-            type="button"
-            class="btn ghost"
-            id="btnAddTelefone"
-        >
-            + Adicionar Telefone
-        </button>
-
-    </div>
-
-    <div class="row">
-
-        <select id="inputClasse">
-            <option value="Outros">Outros</option>
-            <option value="Busca e Apreensão">Busca e Apreensão</option>
-            <option value="Execução">Execução</option>
-            <option value="Renegociação">Renegociação</option>
-        </select>
-
-    </div>
-
-    <div class="row">
-        <input
-            id="inputValor"
-            type="number"
-            placeholder="Valor (R$)"
-        />
-    </div>
-
-    <div class="row">
-
-    <select id="inputEstado">
-        <option value="Acre">Acre</option>
-        <option value="Alagoas">Alagoas</option>
-        <option value="Amapá">Amapá</option>
-        <option value="Amazonas">Amazonas</option>
-        <option value="Bahia">Bahia</option>
-        <option value="Ceará">Ceará</option>
-        <option value="Distrito Federal">Distrito Federal</option>
-        <option value="Espírito Santo">Espírito Santo</option>
-        <option value="Goiás">Goiás</option>
-        <option value="Maranhão">Maranhão</option>
-        <option value="Mato Grosso">Mato Grosso</option>
-        <option value="Mato Grosso do Sul">Mato Grosso do Sul</option>
-        <option value="Minas Gerais">Minas Gerais</option>
-        <option value="Pará">Pará</option>
-        <option value="Paraíba">Paraíba</option>
-        <option value="Paraná">Paraná</option>
-        <option value="Pernambuco">Pernambuco</option>
-        <option value="Piauí">Piauí</option>
-        <option value="Rio de Janeiro" selected>Rio de Janeiro</option>
-        <option value="Rio Grande do Norte">Rio Grande do Norte</option>
-        <option value="Rio Grande do Sul">Rio Grande do Sul</option>
-        <option value="Rondônia">Rondônia</option>
-        <option value="Roraima">Roraima</option>
-        <option value="Santa Catarina">Santa Catarina</option>
-        <option value="São Paulo">São Paulo</option>
-        <option value="Sergipe">Sergipe</option>
-        <option value="Tocantins">Tocantins</option>
-    </select>
-
-</div>
-    <div id="processosContainer"></div>
-
-    <div class="docs-section">
-        <h4>Documentos do Cliente</h4>
-        <div id="docsList"></div>
-        <input type="file" id="inputFile" style="display: none;" multiple />
-        
-        <button type="button" class="btn ghost" id="btnTriggerFile" style="margin-top: 8px;">
-            📁 Anexar Arquivos
-        </button>
-        <div id="uploadProgress" style="font-size: 12px; color: #10b981; margin-top: 5px; display: none;"></div>
-    </div>
-
-    <div class="row">
-        <textarea
-            id="inputObs"
-            maxlength="300"
-            placeholder="Observações (máx. 300 caracteres)"
-        ></textarea>
-    </div>
-
-    <div class="row">
-        <select id="inputStatus">
-            <option value="lista-fria">Lista Fria</option>
-            <option value="negociacao">Negociação</option>
-            <option value="contrato-assinado">Contrato Assinado</option>
-            <option value="fechado">Fechado</option>
-        </select>
-    </div>
-
-    <div class="actions">
-
-        <button
-            type="submit"
-            class="btn primary"
-        >
-            Salvar
-        </button>
-
-        <button
-            type="button"
-            class="btn ghost"
-            id="btnCancel"
-        >
-            Cancelar
-        </button>
-
-    </div>
-
-</form>
-
-</div>
-
-</div>
-
-<div class="toast" id="toast"></div>
-
-<audio
-    id="coinSound"
-    src="https://assets.mixkit.co/sfx/preview/mixkit-winning-notification-2018.mp3"
-    preload="auto">
-</audio>
+</script>
 
 </body>
 </html>
-
-```
