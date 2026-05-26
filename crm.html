@@ -1,6 +1,3 @@
-Cam okkkk
-
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -294,6 +291,7 @@ select option {
     flex-direction:column;
     justify-content:flex-start;
     overflow:hidden;
+    min-width: 0; /* GARANTE QUE O CONTEÚDO NÃO EXTRAPOLE O CARD EM FLEXBOX */
 }
 
 .card h3{
@@ -301,6 +299,8 @@ select option {
     margin-bottom:12px;
     color:#fff;
     font-weight: 700;
+    padding-right: 80px;
+    word-break: break-word;
 }
 
 .card p{
@@ -439,6 +439,17 @@ select option {
     background:rgba(255,255,255,0.2);
 }
 
+.btn-green {
+    background: #10b981;
+    color: #fff;
+}
+
+.btn-green:hover {
+    background: #059669;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+}
+
 /* ================= DINÂMICOS ================= */
 
 .processo-row{
@@ -496,6 +507,7 @@ select option {
     color: #60a5fa;
     text-decoration: none;
     word-break: break-all;
+    flex: 1;
 }
 .doc-item a:hover {
     text-decoration: underline;
@@ -509,9 +521,37 @@ select option {
     padding: 4px 8px;
     border-radius: 4px;
     transition: 0.2s;
+    margin-left: 10px;
 }
 .doc-item button:hover {
     background: rgba(239, 68, 68, 0.1);
+}
+
+.col-header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.btn-robot {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 8px;
+    cursor: pointer;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+}
+.btn-robot:hover {
+    background: rgba(255,255,255,0.2);
+}
+.btn-robot img {
+    width: 20px;
+    height: 20px;
+    filter: invert(1);
+    opacity: 0.9;
 }
 
 </style>
@@ -634,16 +674,37 @@ document.addEventListener('DOMContentLoaded', () => {
     /* ================= TOAST ================= */
 
     function showToast(msg){
-
         toastEl.innerText = msg;
         toastEl.style.display = 'block';
-
         clearTimeout(toastEl._t);
-
         toastEl._t = setTimeout(() => {
             toastEl.style.display = 'none';
         },3000);
     }
+
+    /* ================= FORÇAR DOWNLOAD DE DOCUMENTO ================= */
+    window.forceDownload = async function(url, filename, event) {
+        if(event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        showToast("Iniciando download...");
+        try {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            const objectUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = objectUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(objectUrl);
+        } catch (error) {
+            console.warn("Bloqueio de CORS. Abrindo em nova aba para download manual.", error);
+            window.open(url, '_blank');
+        }
+    };
 
     /* ================= FIRESTORE ================= */
 
@@ -675,18 +736,13 @@ document.addEventListener('DOMContentLoaded', () => {
         cliente.userId = currentUser.uid;
 
         if(cliente.id){
-
             const docRef = doc(db,"clientes",cliente.id);
-
             await setDoc(docRef,cliente);
-
         }else{
-
             const docRef = await addDoc(
                 collection(db,"clientes"),
                 cliente
             );
-
             cliente.id = docRef.id;
         }
     }
@@ -696,7 +752,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderDocsList() {
         docsList.innerHTML = '';
         if (currentDocs.length === 0) {
-            // Ajustado para tema escuro
             docsList.innerHTML = '<span style="color:rgba(255,255,255,0.5); font-size:12px;">Nenhum documento anexado.</span>';
             return;
         }
@@ -704,11 +759,13 @@ document.addEventListener('DOMContentLoaded', () => {
         currentDocs.forEach((arquivo, index) => {
             const div = document.createElement('div');
             div.className = 'doc-item';
-            div.innerHTML = `<a href="${arquivo.url}" target="_blank">📄 ${arquivo.name}</a>`;
+            
+            div.innerHTML = `<a href="javascript:void(0)" onclick="window.forceDownload('${arquivo.url}', '${arquivo.name}', event)" title="Baixar documento">📄 ${arquivo.name} <span style="font-size:10px; color:#9ca3af; margin-left: 5px;">(Baixar)</span></a>`;
             
             const btnRemove = document.createElement('button');
             btnRemove.type = 'button';
             btnRemove.innerText = 'X';
+            btnRemove.title = "Remover documento";
             btnRemove.onclick = () => {
                 currentDocs.splice(index, 1);
                 renderDocsList();
@@ -725,7 +782,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     inputFile.onchange = async (e) => {
         if (!storage) {
-            showToast("Serviço de arquivos não configurado");
+            showToast("Erro: Serviço de arquivos do Firebase não configurado");
             return;
         }
 
@@ -733,25 +790,38 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!files.length || !currentUser) return;
         
         uploadProgress.style.display = 'block';
-        uploadProgress.innerText = `Enviando ${files.length} arquivo(s)...`;
+        uploadProgress.style.color = '#f59e0b'; // Amarelo enquanto carrega
+        uploadProgress.innerText = `Enviando ${files.length} arquivo(s)... Aguarde.`;
         
-        for (let file of files) {
-            try {
-                const uniqueName = Date.now() + "_" + file.name;
-                const storageRef = ref(storage, `documentos/${currentUser.uid}/${uniqueName}`);
-                await uploadBytes(storageRef, file);
-                const url = await getDownloadURL(storageRef);
-                currentDocs.push({ name: file.name, url: url });
-            } catch (error) {
-                console.error("Erro no upload:", error);
-                showToast("Erro ao enviar " + file.name);
+        let errorOccurred = false;
+
+        try {
+            for (let file of files) {
+                try {
+                    const uniqueName = Date.now() + "_" + file.name;
+                    const storageRef = ref(storage, `documentos/${currentUser.uid}/${uniqueName}`);
+                    await uploadBytes(storageRef, file);
+                    const url = await getDownloadURL(storageRef);
+                    currentDocs.push({ name: file.name, url: url });
+                } catch (error) {
+                    console.error("Erro no upload do arquivo:", error);
+                    errorOccurred = true;
+                    showToast("Erro ao enviar: " + file.name);
+                }
             }
+        } finally {
+            if (errorOccurred) {
+                uploadProgress.style.color = '#ef4444'; // Vermelho
+                uploadProgress.innerText = 'Erro de permissão no Firebase. Arquivo não salvo.';
+                setTimeout(() => { uploadProgress.style.display = 'none'; }, 5000);
+            } else {
+                uploadProgress.style.color = '#10b981'; // Verde
+                uploadProgress.innerText = 'Upload concluído com sucesso!';
+                setTimeout(() => { uploadProgress.style.display = 'none'; }, 2000);
+            }
+            inputFile.value = ''; 
+            renderDocsList();
         }
-        
-        uploadProgress.style.display = 'none';
-        inputFile.value = ''; 
-        renderDocsList();
-        showToast("Upload concluído!");
     };
 
     /* ================= MODAL ================= */
@@ -815,6 +885,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function closeModal(){
         modalBackdrop.style.display = 'none';
+        uploadProgress.style.display = 'none';
     }
 
     /* ================= PROCESSOS ================= */
@@ -930,13 +1001,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const btnCall = document.createElement('button');
 
         btnCall.onclick = (e) => {
-
             e.stopPropagation();
-
             const numero = cliente.numeros
                 ? cliente.numeros.split(',')[0].trim()
                 : '';
-
             ligar(numero);
         };
 
@@ -946,13 +1014,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const btnWa = document.createElement('button');
 
         btnWa.onclick = (e) => {
-
             e.stopPropagation();
-
             const numero = cliente.numeros
                 ? cliente.numeros.split(',')[0].trim()
                 : '';
-
             whatsapp(numero);
         };
 
@@ -981,13 +1046,9 @@ document.addEventListener('DOMContentLoaded', () => {
             <h3>${cliente.nome}</h3>
 
             <p><strong>CPF:</strong> ${cliente.cpf || '-'}</p>
-
             <p><strong>Classe:</strong> ${cliente.classe || '-'}</p>
-
             <p><strong>Estado:</strong> ${cliente.estado || '-'}</p>
-
             <p><strong>Processo:</strong> ${primeiroProcesso}</p>
-
             <p><strong>Valor:</strong> R$ ${cliente.valor || 0}</p>
         `;
 
@@ -995,21 +1056,29 @@ document.addEventListener('DOMContentLoaded', () => {
         if (Array.isArray(cliente.documentos) && cliente.documentos.length > 0) {
             const docsDiv = document.createElement('div');
             docsDiv.style.marginTop = "12px";
-            // Ajustado para tema escuro
             docsDiv.innerHTML = `<p style="font-weight: 600; color: #fff; margin-bottom: 5px;">Documentos Anexos:</p>`;
             
             cliente.documentos.forEach(arquivo => {
                 const link = document.createElement('a');
-                link.href = arquivo.url;
-                link.target = "_blank";
+                link.href = "javascript:void(0)";
+                
+                // --- AJUSTES DE ESTILO APLICADOS AQUI PARA O TEXTO NÃO QUEBRAR O CARD ---
                 link.style.display = "block";
                 link.style.fontSize = "13px";
-                link.style.color = "#60a5fa"; // Azul mais claro para dark mode
+                link.style.color = "#60a5fa"; 
                 link.style.textDecoration = "none";
-                link.style.margin = "3px 0";
-                link.innerHTML = `📄 ${arquivo.name}`;
+                link.style.margin = "4px 0";
+                link.style.whiteSpace = "nowrap";       // Evita que o texto quebre pra linha de baixo
+                link.style.overflow = "hidden";         // Oculta o que ultrapassar
+                link.style.textOverflow = "ellipsis";   // Adiciona os três pontinhos (...)
+                // ------------------------------------------------------------------------
                 
-                link.onclick = (e) => e.stopPropagation();
+                link.innerHTML = `📄 ${arquivo.name} <span style="font-size:10px; color:#9ca3af; margin-left: 5px;">(Baixar)</span>`;
+                
+                link.onclick = (e) => {
+                    e.stopPropagation();
+                    window.forceDownload(arquivo.url, arquivo.name, e);
+                };
                 
                 docsDiv.appendChild(link);
             });
@@ -1058,11 +1127,20 @@ document.addEventListener('DOMContentLoaded', () => {
     async function render(){
 
         STATUS.forEach(status => {
-
             const col = document.getElementById(status);
-
-            col.innerHTML =
-                `<h2>${status.replace('-',' ').toUpperCase()}</h2>`;
+            
+            if (status === 'lista-fria') {
+                col.innerHTML = `
+                    <div class="col-header-actions">
+                        <h2 style="margin-bottom:0;">LISTA FRIA</h2>
+                        <button class="btn-robot" title="Ativar Robô">
+                            <img src="https://img.icons8.com/ios-glyphs/30/000000/bot.png" alt="Robô"/>
+                        </button>
+                    </div>
+                `;
+            } else {
+                col.innerHTML = `<h2>${status.replace('-',' ').toUpperCase()}</h2>`;
+            }
         });
 
         for(const k in cardsMap){
@@ -1163,16 +1241,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function addDragEvents(card){
 
         card.addEventListener('dragstart', () => {
-
             draggedCard = card;
-
             card.style.opacity = '.5';
         });
 
         card.addEventListener('dragend', () => {
-
             draggedCard = null;
-
             card.style.opacity = '1';
         });
     }
@@ -1190,22 +1264,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const id = draggedCard.dataset.id;
-
             const status = col.id;
-
             const docRef = doc(db,"clientes",id);
 
             await updateDoc(docRef,{ status });
 
             if(status === "fechado"){
-
                 coinSound.currentTime = 0;
-
                 coinSound.play();
             }
 
             render();
-
             showToast("Status atualizado");
         });
     });
@@ -1215,17 +1284,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function filtragemAplicada(){
 
         const q = searchInput.value.toLowerCase();
-
         const filterS = filterStatus.value;
 
         Object.values(cardsMap).forEach(card => {
 
-            const matchSearch =
-                card.dataset.nome.includes(q);
-
-            const matchStatus =
-                !filterS ||
-                card.dataset.status === filterS;
+            const matchSearch = card.dataset.nome.includes(q);
+            const matchStatus = !filterS || card.dataset.status === filterS;
 
             card.style.display =
                 (matchSearch && matchStatus)
@@ -1235,7 +1299,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     searchInput.oninput = filtragemAplicada;
-
     filterStatus.onchange = filtragemAplicada;
 
     /* ================= LOGIN ================= */
@@ -1243,13 +1306,9 @@ document.addEventListener('DOMContentLoaded', () => {
     onAuthStateChanged(auth, user => {
 
         if(user){
-
             currentUser = user;
-
             render();
-
         }else{
-
             window.location.href = "login.html";
         }
     });
@@ -1298,6 +1357,11 @@ document.addEventListener('DOMContentLoaded', () => {
         <span>Processos</span>
     </button>
 
+    <button onclick="window.location.href='app.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/phone.png"/>
+        <span>App</span>
+    </button>
+
     <button>
         <img src="https://img.icons8.com/ios-filled/50/ffffff/settings.png"/>
         <span>Configurações</span>
@@ -1311,9 +1375,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     <h1>CRM</h1>
 
-    <button id="btnAdd" class="btn primary">
-        + Adicionar Cliente
-    </button>
+    <div style="display: flex; gap: 12px; align-items: center;">
+        <button id="btnAgente" class="btn btn-green">
+            Agente de Whatsapp
+        </button>
+        
+        <button id="btnAdd" class="btn primary">
+            + Adicionar Cliente
+        </button>
+    </div>
 
 </header>
 
@@ -1325,27 +1395,11 @@ document.addEventListener('DOMContentLoaded', () => {
     />
 
     <select id="filterStatus">
-
-        <option value="">
-            Todos os status
-        </option>
-
-        <option value="lista-fria">
-            Lista Fria
-        </option>
-
-        <option value="negociacao">
-            Negociação
-        </option>
-
-        <option value="contrato-assinado">
-            Contrato Assinado
-        </option>
-
-        <option value="fechado">
-            Fechado
-        </option>
-
+        <option value="">Todos os status</option>
+        <option value="lista-fria">Lista Fria</option>
+        <option value="negociacao">Negociação</option>
+        <option value="contrato-assinado">Contrato Assinado</option>
+        <option value="fechado">Fechado</option>
     </select>
 
 </div>
@@ -1418,41 +1472,25 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="row">
 
         <select id="inputClasse">
-
-            <option value="Outros">
-                Outros
-            </option>
-
-            <option value="Busca e Apreensão">
-                Busca e Apreensão
-            </option>
-
-            <option value="Execução">
-                Execução
-            </option>
-
-            <option value="Renegociação">
-                Renegociação
-            </option>
-
+            <option value="Outros">Outros</option>
+            <option value="Busca e Apreensão">Busca e Apreensão</option>
+            <option value="Execução">Execução</option>
+            <option value="Renegociação">Renegociação</option>
         </select>
 
     </div>
 
     <div class="row">
-
         <input
             id="inputValor"
             type="number"
             placeholder="Valor (R$)"
         />
-
     </div>
 
     <div class="row">
 
     <select id="inputEstado">
-
         <option value="Acre">Acre</option>
         <option value="Alagoas">Alagoas</option>
         <option value="Amapá">Amapá</option>
@@ -1480,7 +1518,6 @@ document.addEventListener('DOMContentLoaded', () => {
         <option value="São Paulo">São Paulo</option>
         <option value="Sergipe">Sergipe</option>
         <option value="Tocantins">Tocantins</option>
-
     </select>
 
 </div>
@@ -1498,26 +1535,20 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
 
     <div class="row">
-
         <textarea
             id="inputObs"
             maxlength="300"
             placeholder="Observações (máx. 300 caracteres)"
         ></textarea>
-
     </div>
 
     <div class="row">
-
         <select id="inputStatus">
-
             <option value="lista-fria">Lista Fria</option>
             <option value="negociacao">Negociação</option>
             <option value="contrato-assinado">Contrato Assinado</option>
             <option value="fechado">Fechado</option>
-
         </select>
-
     </div>
 
     <div class="actions">
@@ -1555,5 +1586,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
-
-```
