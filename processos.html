@@ -1,68 +1,174 @@
+Aqui está o código completo da página de **Processos**, transformado para o mesmo padrão visual (Dark Mode / Glassmorphism) e com a funcionalidade da **Linha do Tempo de Andamentos** aprimorada!
+
+### O que foi inovado nesta versão:
+
+1. **Andamento Direto no Card:** O último andamento salvo e a data/hora aparecem diretamente no card do cliente, sem precisar abrir, facilitando a visualização rápida.
+2. **Linha do Tempo (Timeline) Real:** Dentro do modal, o histórico de movimentações foi estilizado como uma verdadeira *Timeline* vertical com marcadores coloridos e datas bem destacadas.
+3. **Limpeza Inteligente:** Após adicionar um andamento e salvar, o campo de nova movimentação limpa automaticamente, mantendo a experiência limpa.
+4. **Notificação (Toast):** Adicionado o sistema de notificação visual para confirmar quando o processo for salvo.
+
+### Código Completo (`processos.html`)
+
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Processos - CRM AMR ADV</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
-<style>
-* { margin:0; padding:0; box-sizing:border-box; font-family: 'Segoe UI', sans-serif; }
-body { display:flex; background:#f0f2f5; height:100vh; overflow:hidden; transition:filter 0.3s; }
 
-.sidebar {
-  width:80px; background:#1e1e2f; display:flex; flex-direction:column; align-items:center;
-  padding:20px 0; flex-shrink:0; transition:width 0.4s ease; position:relative; z-index:10;
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+
+* { margin:0; padding:0; box-sizing:border-box; font-family: 'Inter', sans-serif; }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+
+body { 
+    display:flex; height:100vh; overflow:hidden; transition:filter 0.3s; 
+    background:
+        radial-gradient(circle at top left,#2f3f73 0%,transparent 30%),
+        radial-gradient(circle at bottom right,#0f766e 0%,transparent 25%),
+        linear-gradient(135deg,#0f172a,#111827,#020617);
+    color: #fff;
 }
-.sidebar.expanded { width:220px; }
+
+/* ================= SIDEBAR ================= */
+.sidebar {
+    width:80px; display:flex; flex-direction:column; align-items:center;
+    padding:20px 0; flex-shrink:0; transition:width 0.4s ease; position:relative; z-index:10;
+    backdrop-filter:blur(30px); background:rgba(255,255,255,0.06); border-right:1px solid rgba(255,255,255,0.08);
+    box-shadow:0 0 40px rgba(0,0,0,0.25);
+}
+.sidebar.expanded { width:240px; }
 .sidebar h2 {
-  font-size:22px; font-family:'Poppins', sans-serif; font-weight:600; color:#fff;
-  letter-spacing:1px; margin-bottom:30px; text-align:center; cursor:pointer;
-  width:100%; white-space:nowrap; overflow:hidden; transition:opacity 0.3s;
-  opacity:0;
+    font-size:22px; font-weight:800; color:#fff;
+    letter-spacing:1px; margin-bottom:30px; text-align:center; cursor:pointer;
+    width:100%; white-space:nowrap; overflow:hidden; transition:opacity 0.3s; opacity:0;
 }
 .sidebar.expanded h2 { opacity:1; }
 
 .sidebar button {
-  width:100%; background:transparent; border:none; color:#fff;
-  display:flex; align-items:center; gap:15px; padding:12px 20px; margin:5px 0;
-  cursor:pointer; border-radius:10px; transition:background 0.3s, color 0.3s; font-size:14px;
-  white-space:nowrap; overflow:hidden;
+    width:calc(100% - 20px); background:transparent; border:none; color:rgba(255,255,255,0.7);
+    display:flex; align-items:center; gap:15px; padding:12px 15px; margin:5px 10px;
+    cursor:pointer; border-radius:14px; transition:all 0.3s; font-size:14px;
+    white-space:nowrap; overflow:hidden;
 }
-.sidebar button img { width:28px; height:28px; filter: invert(1); flex-shrink:0; transition:transform 0.3s; }
-.sidebar button span { display:inline-block; opacity:0; transition:opacity 0.3s; font-weight:500; }
+.sidebar button img { width:24px; height:24px; filter:invert(1) opacity(0.7); flex-shrink:0; transition:transform 0.3s, filter 0.3s; }
+.sidebar button span { display:inline-block; opacity:0; transition:opacity 0.3s; font-weight:600; }
 .sidebar.expanded button span { opacity:1; }
-.sidebar button:hover img { transform:scale(1.1); }
-.sidebar button:hover { background:#2a2a40; color:#fff; }
+.sidebar button:hover img { transform:scale(1.1); filter:invert(1) opacity(1); }
+.sidebar button:hover { background:rgba(255,255,255,0.1); color:#fff; }
 
+/* ================= MAIN ================= */
 .main { flex:1; display:flex; flex-direction:column; overflow:hidden; transition:filter 0.3s; }
-.main.blur { filter:blur(4px) brightness(0.85); }
+.main.blur { filter:blur(5px) brightness(0.7); }
 
-header { height:60px; background:#fff; border-bottom:1px solid #ddd; display:flex; justify-content:space-between; align-items:center; padding:0 20px; flex-shrink:0; border-radius:12px; box-shadow:0 2px 8px rgba(0,0,0,0.05);}
-header h1 { font-size:22px; color:#1e1e2f; font-family:'Poppins', sans-serif; }
-header input { padding:6px 10px; border-radius:6px; border:1px solid #ccc; width:250px; }
+header { 
+    height:70px; background:transparent; border-bottom:1px solid rgba(255,255,255,0.08); 
+    display:flex; align-items:center; justify-content:space-between; padding:0 30px; flex-shrink:0; 
+}
+header h1 { font-size:24px; color:#fff; font-weight:800; }
 
-.kanban-container { flex:1; overflow-y:auto; padding:20px; }
-.kanban { display:flex; flex-wrap:wrap; gap:20px; }
-.card { display:flex; background:#fff; border-radius:15px; box-shadow:0 12px 30px rgba(0,0,0,0.12); cursor:pointer; overflow:hidden; transition:0.3s; min-height:160px; flex-direction:row; position:relative; width:320px; }
-.card:hover { transform:scale(1.03); }
-.card .color-bar { width:8px; height:100%; border-radius:15px 0 0 15px; }
-.card-content { padding:20px; flex:1; display:flex; flex-direction:column; justify-content:center; }
-.card h3 { font-size:20px; margin-bottom:6px; color:#333; }
-.card p { font-size:14px; color:#555; margin:3px 0; }
-.fechado .color-bar { background:#2ecc71; }
+/* ================= SEARCH ================= */
+#searchInput {
+    padding:12px 16px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1);
+    border-radius:12px; color:#fff; font-size: 14px; outline: none; transition: 0.3s;
+    backdrop-filter: blur(10px); width: 280px;
+}
+#searchInput:focus { background:rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); }
+#searchInput::placeholder { color: rgba(255,255,255,0.5); }
 
-.modal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.35); justify-content:center; align-items:center; z-index:50; }
-.modal { background:#fff; padding:18px; border-radius:15px; min-width:320px; max-width:500px; max-height:80vh; overflow-y:auto; box-shadow:0 8px 30px rgba(0,0,0,.25); }
-.modal h3 { margin-bottom:12px; }
-.modal .row { margin-bottom:20px; }
-.modal input { width:100%; padding:8px; border-radius:6px; border:1px solid #ccc; margin-top:4px; }
-.hist-container { margin-top:10px; display:flex; flex-direction:column; gap:6px; max-height:150px; overflow-y:auto; }
-.hist-card { background:#f1f3f5; padding:6px 10px; border-radius:10px; box-shadow:0 2px 4px rgba(0,0,0,0.1); font-size:14px; color:#333; display:flex; justify-content:space-between; }
-.hist-card span { font-size:12px; color:#888; margin-left:8px; }
-.modal .actions { display:flex; gap:8px; justify-content:flex-end; margin-top:10px; }
-.btn { padding:8px 12px; border-radius:6px; border:0; cursor:pointer; }
-.btn.primary { background:#1e1e2f; color:#fff; }
-.btn.ghost { background:#f1f3f5; }
+/* ================= KANBAN / CARDS ================= */
+.kanban-container { flex:1; overflow-y:auto; padding:30px; }
+.kanban { display:flex; flex-wrap:wrap; gap:25px; }
+
+.card { 
+    display:flex; background:rgba(255,255,255,0.05); backdrop-filter:blur(15px);
+    border:1px solid rgba(255,255,255,0.08); border-radius:16px; box-shadow:0 8px 30px rgba(0,0,0,0.15);
+    cursor:pointer; overflow:hidden; transition:transform 0.3s, background 0.3s; 
+    min-height:180px; flex-direction:row; position:relative; width:340px; 
+}
+.card:hover { transform:translateY(-5px); background:rgba(255,255,255,0.08); }
+.card .color-bar { width:6px; height:100%; border-radius:16px 0 0 16px; background:#10b981; }
+
+.card-content { padding:20px; flex:1; display:flex; flex-direction:column; justify-content:flex-start; }
+.card h3 { font-size:18px; margin-bottom:12px; color:#fff; font-weight:700; }
+.card p { font-size:13px; color:rgba(255,255,255,0.7); margin:4px 0; }
+.card p strong { color: #fff; font-weight: 600; }
+
+.latest-update {
+    margin-top: auto;
+    padding-top: 12px;
+    border-top: 1px dashed rgba(255,255,255,0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.latest-update .title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #10b981; font-weight: 700;}
+.latest-update .text { font-size: 13px; color: #fff; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;}
+.latest-update .date { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 2px;}
+
+/* ================= MODAL ================= */
+.modal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(8px); justify-content:center; align-items:center; z-index:50; }
+.modal { background:#0f172a; border:1px solid rgba(255,255,255,0.1); padding:24px; border-radius:24px; min-width:320px; max-width:550px; width:100%; max-height:85vh; overflow-y:auto; box-shadow:0 20px 50px rgba(0,0,0,0.5); }
+.modal h3 { margin-bottom:20px; font-size:20px; font-weight:700; color:#fff; }
+
+.process-section { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); padding: 16px; border-radius: 16px; margin-bottom: 20px; }
+.process-section h4 { font-size: 15px; color: #10b981; margin-bottom: 12px; }
+
+.modal input { 
+    width:100%; padding:12px 16px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1);
+    border-radius:12px; color:#fff; font-size:14px; outline:none; transition:0.3s; margin-bottom: 12px;
+}
+.modal input:focus { background:rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); }
+.modal input::placeholder { color: rgba(255,255,255,0.5); }
+
+/* ================= TIMELINE DE ANDAMENTOS ================= */
+.timeline {
+    margin-top: 20px;
+    padding-left: 18px;
+    border-left: 2px solid rgba(16, 185, 129, 0.3);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    max-height: 250px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+.timeline::-webkit-scrollbar { width: 4px; }
+
+.hist-card { 
+    position: relative; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.05); 
+    padding:12px 15px; border-radius:12px; font-size:13px; color:#fff; display:flex; flex-direction: column; gap: 5px;
+}
+.hist-card::before {
+    content: ''; position: absolute; left: -25px; top: 16px; width: 10px; height: 10px;
+    background: #10b981; border-radius: 50%; box-shadow: 0 0 10px rgba(16, 185, 129, 0.6);
+}
+.hist-card span.date { font-size:11px; color:rgba(255,255,255,0.4); font-weight: 500;}
+
+/* ================= BUTTONS ================= */
+.modal .actions { display:flex; gap:10px; justify-content:flex-end; margin-top:20px; }
+.btn { padding:10px 18px; border-radius:12px; border:0; cursor:pointer; font-weight:600; font-size:14px; transition:0.3s; }
+.btn.primary { background:#fff; color:#111827; }
+.btn.primary:hover { transform:translateY(-2px); box-shadow:0 5px 15px rgba(255,255,255,0.2); }
+.btn.ghost { background:rgba(255,255,255,0.12); color:#fff; }
+.btn.ghost:hover { background:rgba(255,255,255,0.2); }
+
+/* Toast */
+.toast {
+    position:fixed; right:30px; bottom:30px; background:rgba(255,255,255,0.1);
+    backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); color:#fff;
+    padding:12px 20px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.4);
+    display:none; z-index:9999; font-size:14px; font-weight: 500;
+}
+
 </style>
 
 <script type="module">
@@ -88,27 +194,34 @@ const processosContainer = document.getElementById("processosContainer");
 const header = document.querySelector("header");
 const mainContent = document.querySelector(".main");
 const sidebar = document.querySelector(".sidebar");
+const toastEl = document.getElementById("toast");
 
 // Sidebar hover + blur
 sidebar.addEventListener('mouseenter', () => { sidebar.classList.add('expanded'); mainContent.classList.add('blur'); });
 sidebar.addEventListener('mouseleave', () => { sidebar.classList.remove('expanded'); mainContent.classList.remove('blur'); });
 
+// Search Input creation
 const searchInput = document.createElement("input");
 searchInput.id = "searchInput";
-searchInput.placeholder = "Pesquisar clientes...";
-searchInput.style.padding = "6px 10px";
-searchInput.style.borderRadius = "6px";
-searchInput.style.border = "1px solid #ccc";
-searchInput.style.width = "250px";
+searchInput.placeholder = "Pesquisar por nome ou processo...";
 header.appendChild(searchInput);
 
 let clienteAtual = null;
 
+function showToast(msg){
+    toastEl.textContent = msg;
+    toastEl.style.display = 'block';
+    clearTimeout(toastEl._t);
+    toastEl._t = setTimeout(() => toastEl.style.display = 'none', 3000);
+}
+
 async function carregarClientes() {
     clientesContainer.innerHTML = "";
     const snapshot = await getDocs(collection(db,"clientes"));
+    
     snapshot.forEach(docSnap => {
         const cliente = { id: docSnap.id, ...docSnap.data() };
+        
         if (cliente.status === "fechado") {
             const card = document.createElement("div");
             card.className = "card fechado";
@@ -118,13 +231,36 @@ async function carregarClientes() {
             colorBar.className = "color-bar";
             card.appendChild(colorBar);
 
+            // Busca a última movimentação para exibir no card
+            let ultimaMov = "Aguardando primeira atualização...";
+            let dataMov = "";
+            
+            if (cliente.processos) {
+                const numProcessos = Object.keys(cliente.processos);
+                if (numProcessos.length > 0) {
+                    const primeiroProcesso = numProcessos[0];
+                    const historico = cliente.processos[primeiroProcesso].historico || [];
+                    if(historico.length > 0) {
+                        // Pega a última inserida (no final do array)
+                        const lastIndex = historico.length - 1;
+                        ultimaMov = historico[lastIndex].text;
+                        dataMov = historico[lastIndex].data;
+                    }
+                }
+            }
+
             const content = document.createElement("div");
             content.className = "card-content";
             content.innerHTML = `
                 <h3>${cliente.nome}</h3>
-                <p>CPF: ${cliente.cpf||"-"}</p>
-                <p>Classe: ${cliente.classe||"-"}</p>
-                <p>Processo: ${cliente.processo||"-"}</p>
+                <p><strong>CPF:</strong> ${cliente.cpf||"-"}</p>
+                <p><strong>Processo:</strong> ${cliente.processo||"-"}</p>
+                
+                <div class="latest-update">
+                    <span class="title">Último Andamento</span>
+                    <span class="text">${ultimaMov}</span>
+                    <span class="date">${dataMov}</span>
+                </div>
             `;
             card.appendChild(content);
 
@@ -137,8 +273,8 @@ searchInput.addEventListener("input", () => {
     const termo = searchInput.value.toLowerCase();
     const cards = clientesContainer.querySelectorAll(".card");
     cards.forEach(card => {
-        const nome = card.querySelector("h3").textContent.toLowerCase();
-        card.style.display = nome.includes(termo) ? "flex" : "none";
+        const text = card.textContent.toLowerCase();
+        card.style.display = text.includes(termo) ? "flex" : "none";
     });
 });
 
@@ -148,26 +284,36 @@ async function abrirModal(cliente) {
     const docSnap = await getDoc(docRef);
     const clienteData = docSnap.exists() ? docSnap.data() : {};
 
-    modalTitle.textContent = `Processos de ${cliente.nome}`;
+    modalTitle.textContent = `Gestão de Processos: ${cliente.nome}`;
     processosContainer.innerHTML = "";
 
     const processos = cliente.processo ? cliente.processo.split(",").map(p => p.trim()) : [];
+    
     processos.forEach(numero => {
+        if(!numero) return; // ignora vazios
+        
         const valor = clienteData?.processos?.[numero]?.valorCausa || "";
-        const ultima = clienteData?.processos?.[numero]?.ultimaMovimentacao || "";
+        // Inverte o array para mostrar as mais recentes no topo da timeline
         const historico = clienteData?.processos?.[numero]?.historico || [];
+        const historicoReverso = [...historico].reverse(); 
 
-        const row = document.createElement("div");
-        row.className = "row";
-        row.innerHTML = `
-            <p><b>Nº ${numero}</b></p>
-            <input type="text" placeholder="Valor da causa" data-numero="${numero}" data-field="valorCausa" value="${valor}"/>
-            <input type="text" placeholder="Última movimentação" data-numero="${numero}" data-field="ultimaMovimentacao" value="${ultima}"/>
-            <div class="hist-container" id="hist-${numero}">
-                ${historico.map(mov => `<div class="hist-card">${mov.text}<span>${mov.data}</span></div>`).join("")}
+        const section = document.createElement("div");
+        section.className = "process-section";
+        section.innerHTML = `
+            <h4>Processo Nº ${numero}</h4>
+            <input type="text" placeholder="Valor da causa (Ex: R$ 50.000,00)" data-numero="${numero}" data-field="valorCausa" value="${valor}"/>
+            <input type="text" placeholder="Descreva a nova movimentação..." data-numero="${numero}" data-field="novaMovimentacao" value=""/>
+            
+            <div class="timeline" id="hist-${numero}">
+                ${historicoReverso.map(mov => `
+                    <div class="hist-card">
+                        ${mov.text}
+                        <span class="date">${mov.data}</span>
+                    </div>
+                `).join("")}
             </div>
         `;
-        processosContainer.appendChild(row);
+        processosContainer.appendChild(section);
     });
 
     modalBackdrop.style.display = "flex";
@@ -184,6 +330,7 @@ processosForm.onsubmit = async function(e) {
 
     const updates = {};
     const historicoUpdates = {};
+    let addedMovement = false;
 
     processosContainer.querySelectorAll("input").forEach(input => {
         const numero = input.dataset.numero;
@@ -191,42 +338,57 @@ processosForm.onsubmit = async function(e) {
         const value = input.value.trim();
 
         if (!updates[`processos.${numero}`]) updates[`processos.${numero}`] = {};
-        updates[`processos.${numero}`][field] = value;
+        
+        if (field === "valorCausa") {
+            updates[`processos.${numero}`][field] = value;
+        }
 
-        if (field === "ultimaMovimentacao" && value !== "") {
+        if (field === "novaMovimentacao" && value !== "") {
             if (!historicoUpdates[numero]) historicoUpdates[numero] = [];
             historicoUpdates[numero].push({ text: value, data: agoraFormatado() });
+            addedMovement = true;
         }
     });
 
-    const docRef = doc(db,"clientes",clienteAtual.id);
-    await updateDoc(docRef, updates);
+    try {
+        const docRef = doc(db,"clientes",clienteAtual.id);
+        
+        // Atualiza campos normais (ex: valorCausa)
+        await updateDoc(docRef, updates);
 
-    for (const numero in historicoUpdates) {
-        for (const mov of historicoUpdates[numero]) {
-            await updateDoc(docRef, { [`processos.${numero}.historico`]: arrayUnion(mov) });
+        // Atualiza o histórico usando arrayUnion
+        for (const numero in historicoUpdates) {
+            for (const mov of historicoUpdates[numero]) {
+                await updateDoc(docRef, { [`processos.${numero}.historico`]: arrayUnion(mov) });
+            }
         }
-    }
 
-    for (const numero in historicoUpdates) {
-        const container = document.getElementById(`hist-${numero}`);
-        historicoUpdates[numero].forEach(mov => {
-            const div = document.createElement("div");
-            div.className = "hist-card";
-            div.innerHTML = `${mov.text}<span>${mov.data}</span>`;
-            container.appendChild(div);
-        });
-    }
+        showToast("Andamentos salvos com sucesso!");
+        
+        // Recarrega os dados do modal e dos cards
+        carregarClientes(); 
+        abrirModal(clienteAtual); // Reabre o modal atualizado
 
-    alert("Processos atualizados com histórico e timestamps!");
+    } catch (error) {
+        console.error("Erro ao salvar processo:", error);
+        showToast("Erro ao salvar. Tente novamente.");
+    }
 };
 
 document.getElementById("btnCancel").onclick = () => { modalBackdrop.style.display = "none"; };
+
+// Fechar modal clicando fora
+modalBackdrop.addEventListener('click', (e) => {
+    if(e.target === modalBackdrop) {
+        modalBackdrop.style.display = 'none';
+    }
+});
 
 carregarClientes();
 </script>
 </head>
 <body>
+
 <div class="sidebar">
     <h2 onclick="window.location.href='dashboard.html'">AMR ADV</h2>
     <button onclick="location.href='crm.html'"><img src="https://img.icons8.com/ios-filled/50/ffffff/dashboard.png"/><span>CRM</span></button>
@@ -239,26 +401,31 @@ carregarClientes();
 </div>
 
 <div class="main">
-<header>
-    <h1>Processos</h1>
-</header>
+    <header>
+        <h1>Acompanhamento Processual</h1>
+    </header>
 
-<div class="kanban-container">
-    <div class="kanban" id="clientesContainer"></div>
-</div>
+    <div class="kanban-container">
+        <div class="kanban" id="clientesContainer"></div>
+    </div>
 </div>
 
 <div class="modal-backdrop" id="modalBackdrop">
-<div class="modal">
-    <h3 id="modalTitle">Processos</h3>
-    <form id="processosForm">
-        <div id="processosContainer"></div>
-        <div class="actions">
-            <button type="submit" class="btn primary">Salvar</button>
-            <button type="button" class="btn ghost" id="btnCancel">Cancelar</button>
-        </div>
-    </form>
+    <div class="modal">
+        <h3 id="modalTitle">Processos</h3>
+        <form id="processosForm">
+            <div id="processosContainer"></div>
+            <div class="actions">
+                <button type="button" class="btn ghost" id="btnCancel">Fechar</button>
+                <button type="submit" class="btn primary">Salvar Andamento</button>
+            </div>
+        </form>
+    </div>
 </div>
-</div>
+
+<div class="toast" id="toast"></div>
+
 </body>
 </html>
+
+```
