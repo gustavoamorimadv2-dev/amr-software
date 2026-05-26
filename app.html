@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -19,7 +20,7 @@
 }
 
 body{
-    background:#f2f4f8;
+    background:#eef1f6;
     min-height:100vh;
     display:flex;
     overflow:hidden;
@@ -99,6 +100,8 @@ body{
     color:#333;
 }
 
+/* ================= SWITCH ================= */
+
 .switch{
     position:relative;
     width:50px;
@@ -131,7 +134,7 @@ body{
 }
 
 .switch input:checked + .slider{
-    background:#1e1e2f;
+    background:#111827;
 }
 
 .switch input:checked + .slider::before{
@@ -150,10 +153,10 @@ body{
 }
 
 .iphone{
-    width:350px;
-    height:720px;
+    width:360px;
+    height:740px;
     background:#111;
-    border-radius:50px;
+    border-radius:55px;
     padding:14px;
     position:relative;
     box-shadow:0 30px 60px rgba(0,0,0,0.25);
@@ -174,13 +177,15 @@ body{
 .screen{
     width:100%;
     height:100%;
-    border-radius:38px;
+    border-radius:40px;
     overflow:hidden;
     position:relative;
     transition:background 0.3s;
     display:flex;
     flex-direction:column;
 }
+
+/* ================= HEADER ================= */
 
 .app-header{
     padding:65px 25px 25px;
@@ -198,6 +203,13 @@ body{
     margin-top:4px;
 }
 
+/* ================= HOME ================= */
+
+.home-screen{
+    flex:1;
+    overflow-y:auto;
+}
+
 .modules-grid{
     padding:20px;
     display:grid;
@@ -209,7 +221,7 @@ body{
     background:rgba(255,255,255,0.18);
     backdrop-filter:blur(10px);
     border-radius:24px;
-    min-height:130px;
+    min-height:140px;
     padding:18px;
     color:#fff;
     display:flex;
@@ -217,6 +229,7 @@ body{
     justify-content:space-between;
     transition:0.2s;
     border:1px solid rgba(255,255,255,0.15);
+    cursor:pointer;
 }
 
 .app-module:hover{
@@ -224,7 +237,7 @@ body{
 }
 
 .app-module .icon{
-    font-size:34px;
+    font-size:38px;
 }
 
 .app-module h3{
@@ -235,6 +248,91 @@ body{
 .app-module p{
     font-size:12px;
     opacity:0.8;
+}
+
+/* ================= TELAS ================= */
+
+.module-screen{
+    flex:1;
+    padding:80px 20px 20px;
+    overflow-y:auto;
+    color:#fff;
+    display:none;
+}
+
+.module-screen.active{
+    display:block;
+}
+
+.back-btn{
+    width:100%;
+    border:none;
+    background:rgba(255,255,255,0.15);
+    color:#fff;
+    padding:14px;
+    border-radius:16px;
+    margin-bottom:20px;
+    cursor:pointer;
+    font-weight:600;
+    backdrop-filter:blur(10px);
+}
+
+.screen-card{
+    background:rgba(255,255,255,0.12);
+    border:1px solid rgba(255,255,255,0.12);
+    border-radius:20px;
+    padding:18px;
+    margin-bottom:16px;
+    backdrop-filter:blur(10px);
+}
+
+.screen-card h3{
+    font-size:16px;
+    margin-bottom:8px;
+}
+
+.screen-card p{
+    font-size:13px;
+    opacity:0.85;
+    line-height:1.6;
+}
+
+.tag{
+    display:inline-block;
+    background:#22c55e;
+    color:#fff;
+    padding:6px 10px;
+    border-radius:999px;
+    font-size:12px;
+    margin-top:10px;
+}
+
+.alert{
+    background:#ef4444;
+}
+
+.pending{
+    background:#f59e0b;
+}
+
+.file-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:12px;
+    padding:12px;
+    border-radius:12px;
+    background:rgba(255,255,255,0.08);
+}
+
+.file-btn{
+    border:none;
+    padding:8px 12px;
+    border-radius:10px;
+    background:#fff;
+    color:#111;
+    cursor:pointer;
+    font-weight:600;
 }
 
 /* ================= RESPONSIVO ================= */
@@ -405,17 +503,211 @@ body{
 
         <div class="screen" id="screen">
 
-            <div class="app-header">
+            <!-- HOME -->
 
-                <h2>AMR ADV</h2>
+            <div class="home-screen" id="homeScreen">
 
-                <p>Área do Cliente</p>
+                <div class="app-header">
+
+                    <h2>AMR ADV</h2>
+
+                    <p>Área do Cliente</p>
+
+                </div>
+
+                <div class="modules-grid" id="modulesGrid"></div>
 
             </div>
 
-            <div class="modules-grid" id="modulesGrid">
+            <!-- BOLETOS -->
 
-                <!-- MODULOS GERADOS -->
+            <div class="module-screen" id="screen-boletos">
+
+                <button class="back-btn">
+                    ← Voltar
+                </button>
+
+                <div class="screen-card">
+
+                    <h3>Mensalidade Março</h3>
+
+                    <p>
+                        Vencimento: 12/03/2026
+                    </p>
+
+                    <span class="tag pending">
+                        Pendente
+                    </span>
+
+                </div>
+
+                <div class="screen-card">
+
+                    <h3>Mensalidade Fevereiro</h3>
+
+                    <p>
+                        Pago em 05/02/2026
+                    </p>
+
+                    <span class="tag">
+                        Pago
+                    </span>
+
+                </div>
+
+            </div>
+
+            <!-- NEGOCIAÇÃO -->
+
+            <div class="module-screen" id="screen-negociacao">
+
+                <button class="back-btn">
+                    ← Voltar
+                </button>
+
+                <div class="screen-card">
+
+                    <h3>Acordo Bancário</h3>
+
+                    <p>
+                        Proposta enviada ao banco com redução de 42% dos juros.
+                    </p>
+
+                </div>
+
+                <div class="screen-card">
+
+                    <h3>Última Atualização</h3>
+
+                    <p>
+                        Contraproposta recebida em análise pelo jurídico.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <!-- ANDAMENTO -->
+
+            <div class="module-screen" id="screen-andamento">
+
+                <button class="back-btn">
+                    ← Voltar
+                </button>
+
+                <div class="screen-card">
+
+                    <h3>Processo nº 0002451-89</h3>
+
+                    <p>
+                        Petição protocolada no Tribunal de Justiça.
+                    </p>
+
+                    <span class="tag">
+                        Atualizado Hoje
+                    </span>
+
+                </div>
+
+                <div class="screen-card">
+
+                    <h3>Movimentação</h3>
+
+                    <p>
+                        Juiz encaminhou para análise de execução.
+                    </p>
+
+                </div>
+
+                <div class="screen-card">
+
+                    <h3>Próxima Etapa</h3>
+
+                    <p>
+                        Aguardar despacho judicial.
+                    </p>
+
+                </div>
+
+            </div>
+
+            <!-- DOCUMENTOS -->
+
+            <div class="module-screen" id="screen-documentos">
+
+                <button class="back-btn">
+                    ← Voltar
+                </button>
+
+                <div class="screen-card">
+
+                    <h3>Documentos Disponíveis</h3>
+
+                    <div class="file-row">
+
+                        <span>Contrato.pdf</span>
+
+                        <button class="file-btn">
+                            Abrir
+                        </button>
+
+                    </div>
+
+                    <div class="file-row">
+
+                        <span>Petição.pdf</span>
+
+                        <button class="file-btn">
+                            Abrir
+                        </button>
+
+                    </div>
+
+                    <div class="file-row">
+
+                        <span>Procuração.pdf</span>
+
+                        <button class="file-btn">
+                            Abrir
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- ALERTAS -->
+
+            <div class="module-screen" id="screen-alertas">
+
+                <button class="back-btn">
+                    ← Voltar
+                </button>
+
+                <div class="screen-card">
+
+                    <h3>Audiência Marcada</h3>
+
+                    <p>
+                        15/04/2026 às 14:00
+                    </p>
+
+                    <span class="tag alert">
+                        Importante
+                    </span>
+
+                </div>
+
+                <div class="screen-card">
+
+                    <h3>Prazo Processual</h3>
+
+                    <p>
+                        Prazo encerra em 3 dias úteis.
+                    </p>
+
+                </div>
 
             </div>
 
@@ -435,10 +727,14 @@ const colorButtons = document.querySelectorAll('.color-btn');
 
 const toggles = document.querySelectorAll('.module-toggle');
 
+const homeScreen = document.getElementById('homeScreen');
+
+const screens = document.querySelectorAll('.module-screen');
+
 const modulesData = {
 
     boletos:{
-        icon:'◼',
+        icon:'◫',
         title:'Boletos',
         desc:'Visualize pagamentos'
     },
@@ -452,7 +748,7 @@ const modulesData = {
     andamento:{
         icon:'▲',
         title:'Andamento',
-        desc:'Status do processo'
+        desc:'Status processual'
     },
 
     documentos:{
@@ -464,10 +760,37 @@ const modulesData = {
     alertas:{
         icon:'◆',
         title:'Alertas',
-        desc:'Notificações importantes'
+        desc:'Notificações'
     }
 
 };
+
+/* ================= HOME ================= */
+
+function openModule(module){
+
+    homeScreen.style.display = 'none';
+
+    screens.forEach(screen => {
+        screen.classList.remove('active');
+    });
+
+    document
+        .getElementById(`screen-${module}`)
+        .classList
+        .add('active');
+
+}
+
+function goHome(){
+
+    homeScreen.style.display = 'block';
+
+    screens.forEach(screen => {
+        screen.classList.remove('active');
+    });
+
+}
 
 /* ================= RENDER ================= */
 
@@ -507,7 +830,12 @@ function renderModules(){
 
             `;
 
+            card.addEventListener('click', () => {
+                openModule(key);
+            });
+
             modulesGrid.appendChild(card);
+
         }
 
     });
@@ -535,6 +863,7 @@ colorButtons.forEach(btn => {
                 #000000
             )
         `;
+
     });
 
 });
@@ -546,6 +875,18 @@ toggles.forEach(toggle => {
     toggle.addEventListener('change', () => {
 
         renderModules();
+
+    });
+
+});
+
+/* ================= BOTAO VOLTAR ================= */
+
+document.querySelectorAll('.back-btn').forEach(btn => {
+
+    btn.addEventListener('click', () => {
+
+        goHome();
 
     });
 
