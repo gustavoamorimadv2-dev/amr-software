@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -773,9 +773,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    /* ================= LÓGICA DO AGENTE BOT ================= */
+    /* ================= LÓGICA DO AGENTE BOT (MÚLTIPLAS ABAS POR CLIENTE) ================= */
     
-    // Abre o Modal do Agente
     if (btnAgente) {
         btnAgente.onclick = () => {
             modalAgenteBackdrop.style.display = 'flex';
@@ -784,14 +783,12 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    // Fecha o Modal do Agente
     if (btnFecharAgente) {
         btnFecharAgente.onclick = () => {
             modalAgenteBackdrop.style.display = 'none';
         };
     }
 
-    // Carrega a Lista Fria para a Fila de Disparo
     if (btnCarregarFila) {
         btnCarregarFila.onclick = async () => {
             const template = agenteMensagem.value.trim();
@@ -804,7 +801,6 @@ document.addEventListener('DOMContentLoaded', () => {
             btnCarregarFila.innerText = "Carregando...";
             const clientes = await getClientes();
             
-            // Filtra quem tá na lista fria E tem número salvo
             const listaFria = clientes.filter(c => c.status === 'lista-fria' && c.numeros);
 
             btnCarregarFila.innerText = "Carregar Lista Fria";
@@ -818,33 +814,37 @@ document.addEventListener('DOMContentLoaded', () => {
             agenteLista.innerHTML = '';
             
             listaFria.forEach(cliente => {
-                // Pega o primeiro numero e remove caracteres não numéricos
-                const numRaw = cliente.numeros.split(',')[0];
-                const numLimpo = numRaw.replace(/\D/g, '');
+                // Filtra e limpa todos os números de telefone válidos do cliente
+                const numerosLimpos = cliente.numeros
+                    .split(',')
+                    .map(n => n.replace(/\D/g, ''))
+                    .filter(n => n !== '');
                 
-                if (!numLimpo) return;
+                if (numerosLimpos.length === 0) return;
 
                 const divFila = document.createElement('div');
                 divFila.className = 'fila-item';
 
                 const spanNome = document.createElement('span');
-                spanNome.innerText = cliente.nome;
+                // Se tiver mais de um número, avisa visualmente ao usuário
+                spanNome.innerText = cliente.nome + (numerosLimpos.length > 1 ? ` (${numerosLimpos.length} números)` : '');
 
                 const btnEnviar = document.createElement('button');
                 btnEnviar.className = 'btn btn-green btn-enviar-msg';
-                btnEnviar.innerHTML = 'Enviar ↗';
+                btnEnviar.innerHTML = numerosLimpos.length > 1 ? `Enviar para todos (${numerosLimpos.length}) ↗` : 'Enviar ↗';
 
                 btnEnviar.onclick = () => {
-                    // Troca a tag {nome} pelo nome real do cliente salvo no card
                     const mensagemFinal = template.replace(/{nome}/g, cliente.nome);
                     
-                    // Monta a URL do WhatsApp Web
-                    const waUrl = `https://wa.me/55${numLimpo}?text=${encodeURIComponent(mensagemFinal)}`;
-                    window.open(waUrl, '_blank');
+                    // Loop para abrir uma nova aba para cada número do cliente
+                    numerosLimpos.forEach(num => {
+                        const waUrl = `https://wa.me/55${num}?text=${encodeURIComponent(mensagemFinal)}`;
+                        window.open(waUrl, '_blank');
+                    });
 
-                    // Marca o botão visualmente para o usuário não se perder
-                    btnEnviar.innerHTML = '✓ Enviado';
-                    btnEnviar.style.background = '#4b5563'; // Fica cinza escuro
+                    // Feedback visual
+                    btnEnviar.innerHTML = '✓ Enviados';
+                    btnEnviar.style.background = '#4b5563'; 
                     btnEnviar.disabled = true;
                 };
 
@@ -1236,7 +1236,6 @@ document.addEventListener('DOMContentLoaded', () => {
         STATUS.forEach(status => {
             const col = document.getElementById(status);
             
-            // O botão do robô no Header da coluna chama o Agente também.
             if (status === 'lista-fria') {
                 col.innerHTML = `
                     <div class="col-header-actions">
@@ -1599,6 +1598,13 @@ document.addEventListener('DOMContentLoaded', () => {
 <div class="modal-backdrop" id="modalAgenteBackdrop">
     <div class="modal">
         <h3 style="margin-bottom: 5px;">🤖 Agente de WhatsApp</h3>
+        
+        <div style="background: rgba(245, 158, 11, 0.1); border-left: 3px solid #f59e0b; padding: 10px; margin-bottom: 15px; border-radius: 4px;">
+            <p style="font-size: 12px; color: #fcd34d; margin: 0;">
+                <strong>Aviso:</strong> Se um cliente tiver múltiplos números, o seu navegador pode bloquear a abertura das abas extras. Caso isso aconteça, clique no ícone de "Pop-up bloqueado" na barra de endereços lá em cima e selecione <strong>"Sempre permitir pop-ups"</strong>.
+            </p>
+        </div>
+
         <p style="font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 20px;">
             Digite a mensagem base. Escreva <strong>{nome}</strong> para que o sistema troque automaticamente pelo nome do cliente.
         </p>
