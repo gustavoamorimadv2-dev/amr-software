@@ -291,7 +291,7 @@ select option {
     flex-direction:column;
     justify-content:flex-start;
     overflow:hidden;
-    min-width: 0; /* GARANTE QUE O CONTEÚDO NÃO EXTRAPOLE O CARD EM FLEXBOX */
+    min-width: 0;
 }
 
 .card h3{
@@ -299,8 +299,8 @@ select option {
     margin-bottom:12px;
     color:#fff;
     font-weight: 700;
-    padding-right: 80px;
-    word-break: break-word;
+    padding-right: 80px; 
+    word-break: break-word; 
 }
 
 .card p{
@@ -342,7 +342,7 @@ select option {
 .card-actions img{
     width:16px;
     height:16px;
-    filter:invert(1); /* Inverte para branco */
+    filter:invert(1); 
     opacity:0.8;
     transition:opacity 0.2s;
 }
@@ -354,7 +354,7 @@ select option {
     opacity:1;
 }
 
-/* ================= MODAL ================= */
+/* ================= MODAIS ================= */
 
 .modal-backdrop{
     display:none;
@@ -442,6 +442,8 @@ select option {
 .btn-green {
     background: #10b981;
     color: #fff;
+    border: none;
+    cursor: pointer;
 }
 
 .btn-green:hover {
@@ -554,6 +556,28 @@ select option {
     opacity: 0.9;
 }
 
+/* Fila de Disparo */
+.fila-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255,255,255,0.05);
+    padding: 10px 15px;
+    border-radius: 10px;
+    margin-bottom: 8px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+.fila-item span {
+    font-size: 14px;
+    font-weight: 500;
+}
+.btn-enviar-msg {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 6px;
+    transition: 0.3s;
+}
+
 </style>
 
 <script type="module">
@@ -616,7 +640,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const mainContent = document.querySelector(".main");
 
     if(sidebar && mainContent){
-
         sidebar.addEventListener('mouseenter', () => {
             sidebar.classList.add('expanded');
             mainContent.classList.add('blur');
@@ -671,6 +694,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let currentUser = null;
 
+    /* ================= VARIÁVEIS AGENTE WHATSAPP ================= */
+    const btnAgente = document.getElementById('btnAgente');
+    const modalAgenteBackdrop = document.getElementById('modalAgenteBackdrop');
+    const btnFecharAgente = document.getElementById('btnFecharAgente');
+    const btnCarregarFila = document.getElementById('btnCarregarFila');
+    const agenteMensagem = document.getElementById('agenteMensagem');
+    const agenteFilaContainer = document.getElementById('agenteFilaContainer');
+    const agenteLista = document.getElementById('agenteLista');
+
     /* ================= TOAST ================= */
 
     function showToast(msg){
@@ -709,18 +741,14 @@ document.addEventListener('DOMContentLoaded', () => {
     /* ================= FIRESTORE ================= */
 
     async function getClientes(){
-
         if(!currentUser){
             return [];
         }
-
         const q = query(
             collection(db,"clientes"),
             where("userId","==",currentUser.uid)
         );
-
         const snapshot = await getDocs(q);
-
         return snapshot.docs.map(docData => ({
             id: docData.id,
             ...docData.data()
@@ -728,11 +756,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function saveCliente(cliente){
-
         if(!currentUser){
             return;
         }
-
         cliente.userId = currentUser.uid;
 
         if(cliente.id){
@@ -745,6 +771,90 @@ document.addEventListener('DOMContentLoaded', () => {
             );
             cliente.id = docRef.id;
         }
+    }
+
+    /* ================= LÓGICA DO AGENTE BOT ================= */
+    
+    // Abre o Modal do Agente
+    if (btnAgente) {
+        btnAgente.onclick = () => {
+            modalAgenteBackdrop.style.display = 'flex';
+            agenteFilaContainer.style.display = 'none';
+            agenteLista.innerHTML = '';
+        };
+    }
+
+    // Fecha o Modal do Agente
+    if (btnFecharAgente) {
+        btnFecharAgente.onclick = () => {
+            modalAgenteBackdrop.style.display = 'none';
+        };
+    }
+
+    // Carrega a Lista Fria para a Fila de Disparo
+    if (btnCarregarFila) {
+        btnCarregarFila.onclick = async () => {
+            const template = agenteMensagem.value.trim();
+            
+            if (!template) {
+                showToast("Por favor, digite uma mensagem padrão.");
+                return;
+            }
+
+            btnCarregarFila.innerText = "Carregando...";
+            const clientes = await getClientes();
+            
+            // Filtra quem tá na lista fria E tem número salvo
+            const listaFria = clientes.filter(c => c.status === 'lista-fria' && c.numeros);
+
+            btnCarregarFila.innerText = "Carregar Lista Fria";
+
+            if (listaFria.length === 0) {
+                showToast("Nenhum cliente com telefone na Lista Fria.");
+                agenteFilaContainer.style.display = 'none';
+                return;
+            }
+
+            agenteLista.innerHTML = '';
+            
+            listaFria.forEach(cliente => {
+                // Pega o primeiro numero e remove caracteres não numéricos
+                const numRaw = cliente.numeros.split(',')[0];
+                const numLimpo = numRaw.replace(/\D/g, '');
+                
+                if (!numLimpo) return;
+
+                const divFila = document.createElement('div');
+                divFila.className = 'fila-item';
+
+                const spanNome = document.createElement('span');
+                spanNome.innerText = cliente.nome;
+
+                const btnEnviar = document.createElement('button');
+                btnEnviar.className = 'btn btn-green btn-enviar-msg';
+                btnEnviar.innerHTML = 'Enviar ↗';
+
+                btnEnviar.onclick = () => {
+                    // Troca a tag {nome} pelo nome real do cliente salvo no card
+                    const mensagemFinal = template.replace(/{nome}/g, cliente.nome);
+                    
+                    // Monta a URL do WhatsApp Web
+                    const waUrl = `https://wa.me/55${numLimpo}?text=${encodeURIComponent(mensagemFinal)}`;
+                    window.open(waUrl, '_blank');
+
+                    // Marca o botão visualmente para o usuário não se perder
+                    btnEnviar.innerHTML = '✓ Enviado';
+                    btnEnviar.style.background = '#4b5563'; // Fica cinza escuro
+                    btnEnviar.disabled = true;
+                };
+
+                divFila.appendChild(spanNome);
+                divFila.appendChild(btnEnviar);
+                agenteLista.appendChild(divFila);
+            });
+
+            agenteFilaContainer.style.display = 'block';
+        };
     }
 
     /* ================= UPLOAD DE DOCUMENTOS ================= */
@@ -790,7 +900,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!files.length || !currentUser) return;
         
         uploadProgress.style.display = 'block';
-        uploadProgress.style.color = '#f59e0b'; // Amarelo enquanto carrega
+        uploadProgress.style.color = '#f59e0b';
         uploadProgress.innerText = `Enviando ${files.length} arquivo(s)... Aguarde.`;
         
         let errorOccurred = false;
@@ -811,11 +921,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } finally {
             if (errorOccurred) {
-                uploadProgress.style.color = '#ef4444'; // Vermelho
+                uploadProgress.style.color = '#ef4444';
                 uploadProgress.innerText = 'Erro de permissão no Firebase. Arquivo não salvo.';
                 setTimeout(() => { uploadProgress.style.display = 'none'; }, 5000);
             } else {
-                uploadProgress.style.color = '#10b981'; // Verde
+                uploadProgress.style.color = '#10b981';
                 uploadProgress.innerText = 'Upload concluído com sucesso!';
                 setTimeout(() => { uploadProgress.style.display = 'none'; }, 2000);
             }
@@ -824,7 +934,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    /* ================= MODAL ================= */
+    /* ================= MODAL DE CLIENTES ================= */
 
     function openModal(edit = false, data = null){
 
@@ -1052,7 +1162,6 @@ document.addEventListener('DOMContentLoaded', () => {
             <p><strong>Valor:</strong> R$ ${cliente.valor || 0}</p>
         `;
 
-        // Renderiza os links de documentos no card
         if (Array.isArray(cliente.documentos) && cliente.documentos.length > 0) {
             const docsDiv = document.createElement('div');
             docsDiv.style.marginTop = "12px";
@@ -1062,16 +1171,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 const link = document.createElement('a');
                 link.href = "javascript:void(0)";
                 
-                // --- AJUSTES DE ESTILO APLICADOS AQUI PARA O TEXTO NÃO QUEBRAR O CARD ---
                 link.style.display = "block";
                 link.style.fontSize = "13px";
                 link.style.color = "#60a5fa"; 
                 link.style.textDecoration = "none";
                 link.style.margin = "4px 0";
-                link.style.whiteSpace = "nowrap";       // Evita que o texto quebre pra linha de baixo
-                link.style.overflow = "hidden";         // Oculta o que ultrapassar
-                link.style.textOverflow = "ellipsis";   // Adiciona os três pontinhos (...)
-                // ------------------------------------------------------------------------
+                link.style.whiteSpace = "nowrap";      
+                link.style.overflow = "hidden";        
+                link.style.textOverflow = "ellipsis";  
                 
                 link.innerHTML = `📄 ${arquivo.name} <span style="font-size:10px; color:#9ca3af; margin-left: 5px;">(Baixar)</span>`;
                 
@@ -1129,11 +1236,12 @@ document.addEventListener('DOMContentLoaded', () => {
         STATUS.forEach(status => {
             const col = document.getElementById(status);
             
+            // O botão do robô no Header da coluna chama o Agente também.
             if (status === 'lista-fria') {
                 col.innerHTML = `
                     <div class="col-header-actions">
                         <h2 style="margin-bottom:0;">LISTA FRIA</h2>
-                        <button class="btn-robot" title="Ativar Robô">
+                        <button class="btn-robot" title="Ativar Robô" onclick="document.getElementById('btnAgente').click()">
                             <img src="https://img.icons8.com/ios-glyphs/30/000000/bot.png" alt="Robô"/>
                         </button>
                     </div>
@@ -1182,47 +1290,28 @@ document.addEventListener('DOMContentLoaded', () => {
         .filter(valor => valor);
 
         const novo = {
-
             nome: nome,
-
             cpf: inputCPF.value.trim(),
-
-            obs: inputObs.value
-                .trim()
-                .substring(0,300),
-
+            obs: inputObs.value.trim().substring(0,300),
             status: inputStatus.value,
-
             numeros: telefones.join(', '),
-
             processo: processos.join(', '),
-
             classe: inputClasse.value,
-
             valor: inputValor.value,
-
             estado: inputEstado.value,
-
             documentos: currentDocs
         };
 
         if(clientForm.dataset.editId){
-
             novo.id = clientForm.dataset.editId;
-
             await saveCliente(novo);
-
             showToast("Cliente atualizado!");
-
         }else{
-
             await saveCliente(novo);
-
             showToast("Cliente adicionado!");
         }
 
         closeModal();
-
         render();
     };
 
@@ -1239,7 +1328,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let draggedCard = null;
 
     function addDragEvents(card){
-
         card.addEventListener('dragstart', () => {
             draggedCard = card;
             card.style.opacity = '.5';
@@ -1252,13 +1340,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.querySelectorAll('.column').forEach(col => {
-
         col.addEventListener('dragover', e => {
             e.preventDefault();
         });
 
         col.addEventListener('drop', async () => {
-
             if(!draggedCard){
                 return;
             }
@@ -1282,12 +1368,10 @@ document.addEventListener('DOMContentLoaded', () => {
     /* ================= FILTROS ================= */
 
     function filtragemAplicada(){
-
         const q = searchInput.value.toLowerCase();
         const filterS = filterStatus.value;
 
         Object.values(cardsMap).forEach(card => {
-
             const matchSearch = card.dataset.nome.includes(q);
             const matchStatus = !filterS || card.dataset.status === filterS;
 
@@ -1304,7 +1388,6 @@ document.addEventListener('DOMContentLoaded', () => {
     /* ================= LOGIN ================= */
 
     onAuthStateChanged(auth, user => {
-
         if(user){
             currentUser = user;
             render();
@@ -1376,8 +1459,8 @@ document.addEventListener('DOMContentLoaded', () => {
     <h1>CRM</h1>
 
     <div style="display: flex; gap: 12px; align-items: center;">
-        <button id="btnAgente" class="btn btn-green">
-            Agente de Whatsapp
+        <button id="btnAgente" class="btn btn-green" style="padding: 10px 18px; border-radius: 12px; font-weight: 600;">
+            🤖 Agente de Whatsapp
         </button>
         
         <button id="btnAdd" class="btn primary">
@@ -1431,149 +1514,110 @@ document.addEventListener('DOMContentLoaded', () => {
 </div>
 
 <div class="modal-backdrop" id="modalBackdrop">
-
-<div class="modal">
-
-<h3 id="modalTitle">
-    Novo Cliente
-</h3>
-
-<form id="clientForm">
-
-    <div class="row">
-        <input
-            id="inputNome"
-            placeholder="Nome do cliente"
-            required
-        />
+    <div class="modal">
+        <h3 id="modalTitle">Novo Cliente</h3>
+        <form id="clientForm">
+            <div class="row">
+                <input id="inputNome" placeholder="Nome do cliente" required />
+            </div>
+            <div class="row">
+                <input id="inputCPF" placeholder="CPF/CNPJ" />
+            </div>
+            <div id="telefonesContainer"></div>
+            <div class="row">
+                <button type="button" class="btn ghost" id="btnAddTelefone">+ Adicionar Telefone</button>
+            </div>
+            <div class="row">
+                <select id="inputClasse">
+                    <option value="Outros">Outros</option>
+                    <option value="Busca e Apreensão">Busca e Apreensão</option>
+                    <option value="Execução">Execução</option>
+                    <option value="Renegociação">Renegociação</option>
+                </select>
+            </div>
+            <div class="row">
+                <input id="inputValor" type="number" placeholder="Valor (R$)" />
+            </div>
+            <div class="row">
+                <select id="inputEstado">
+                    <option value="Acre">Acre</option>
+                    <option value="Alagoas">Alagoas</option>
+                    <option value="Amapá">Amapá</option>
+                    <option value="Amazonas">Amazonas</option>
+                    <option value="Bahia">Bahia</option>
+                    <option value="Ceará">Ceará</option>
+                    <option value="Distrito Federal">Distrito Federal</option>
+                    <option value="Espírito Santo">Espírito Santo</option>
+                    <option value="Goiás">Goiás</option>
+                    <option value="Maranhão">Maranhão</option>
+                    <option value="Mato Grosso">Mato Grosso</option>
+                    <option value="Mato Grosso do Sul">Mato Grosso do Sul</option>
+                    <option value="Minas Gerais">Minas Gerais</option>
+                    <option value="Pará">Pará</option>
+                    <option value="Paraíba">Paraíba</option>
+                    <option value="Paraná">Paraná</option>
+                    <option value="Pernambuco">Pernambuco</option>
+                    <option value="Piauí">Piauí</option>
+                    <option value="Rio de Janeiro" selected>Rio de Janeiro</option>
+                    <option value="Rio Grande do Norte">Rio Grande do Norte</option>
+                    <option value="Rio Grande do Sul">Rio Grande do Sul</option>
+                    <option value="Rondônia">Rondônia</option>
+                    <option value="Roraima">Roraima</option>
+                    <option value="Santa Catarina">Santa Catarina</option>
+                    <option value="São Paulo">São Paulo</option>
+                    <option value="Sergipe">Sergipe</option>
+                    <option value="Tocantins">Tocantins</option>
+                </select>
+            </div>
+            <div id="processosContainer"></div>
+            <div class="docs-section">
+                <h4>Documentos do Cliente</h4>
+                <div id="docsList"></div>
+                <input type="file" id="inputFile" style="display: none;" multiple />
+                <button type="button" class="btn ghost" id="btnTriggerFile" style="margin-top: 8px;">📁 Anexar Arquivos</button>
+                <div id="uploadProgress" style="font-size: 12px; color: #10b981; margin-top: 5px; display: none;"></div>
+            </div>
+            <div class="row">
+                <textarea id="inputObs" maxlength="300" placeholder="Observações (máx. 300 caracteres)"></textarea>
+            </div>
+            <div class="row">
+                <select id="inputStatus">
+                    <option value="lista-fria">Lista Fria</option>
+                    <option value="negociacao">Negociação</option>
+                    <option value="contrato-assinado">Contrato Assinado</option>
+                    <option value="fechado">Fechado</option>
+                </select>
+            </div>
+            <div class="actions">
+                <button type="submit" class="btn primary">Salvar</button>
+                <button type="button" class="btn ghost" id="btnCancel">Cancelar</button>
+            </div>
+        </form>
     </div>
-
-    <div class="row">
-        <input
-            id="inputCPF"
-            placeholder="CPF/CNPJ"
-        />
-    </div>
-
-    <div id="telefonesContainer"></div>
-
-    <div class="row">
-
-        <button
-            type="button"
-            class="btn ghost"
-            id="btnAddTelefone"
-        >
-            + Adicionar Telefone
-        </button>
-
-    </div>
-
-    <div class="row">
-
-        <select id="inputClasse">
-            <option value="Outros">Outros</option>
-            <option value="Busca e Apreensão">Busca e Apreensão</option>
-            <option value="Execução">Execução</option>
-            <option value="Renegociação">Renegociação</option>
-        </select>
-
-    </div>
-
-    <div class="row">
-        <input
-            id="inputValor"
-            type="number"
-            placeholder="Valor (R$)"
-        />
-    </div>
-
-    <div class="row">
-
-    <select id="inputEstado">
-        <option value="Acre">Acre</option>
-        <option value="Alagoas">Alagoas</option>
-        <option value="Amapá">Amapá</option>
-        <option value="Amazonas">Amazonas</option>
-        <option value="Bahia">Bahia</option>
-        <option value="Ceará">Ceará</option>
-        <option value="Distrito Federal">Distrito Federal</option>
-        <option value="Espírito Santo">Espírito Santo</option>
-        <option value="Goiás">Goiás</option>
-        <option value="Maranhão">Maranhão</option>
-        <option value="Mato Grosso">Mato Grosso</option>
-        <option value="Mato Grosso do Sul">Mato Grosso do Sul</option>
-        <option value="Minas Gerais">Minas Gerais</option>
-        <option value="Pará">Pará</option>
-        <option value="Paraíba">Paraíba</option>
-        <option value="Paraná">Paraná</option>
-        <option value="Pernambuco">Pernambuco</option>
-        <option value="Piauí">Piauí</option>
-        <option value="Rio de Janeiro" selected>Rio de Janeiro</option>
-        <option value="Rio Grande do Norte">Rio Grande do Norte</option>
-        <option value="Rio Grande do Sul">Rio Grande do Sul</option>
-        <option value="Rondônia">Rondônia</option>
-        <option value="Roraima">Roraima</option>
-        <option value="Santa Catarina">Santa Catarina</option>
-        <option value="São Paulo">São Paulo</option>
-        <option value="Sergipe">Sergipe</option>
-        <option value="Tocantins">Tocantins</option>
-    </select>
-
 </div>
-    <div id="processosContainer"></div>
 
-    <div class="docs-section">
-        <h4>Documentos do Cliente</h4>
-        <div id="docsList"></div>
-        <input type="file" id="inputFile" style="display: none;" multiple />
+<div class="modal-backdrop" id="modalAgenteBackdrop">
+    <div class="modal">
+        <h3 style="margin-bottom: 5px;">🤖 Agente de WhatsApp</h3>
+        <p style="font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 20px;">
+            Digite a mensagem base. Escreva <strong>{nome}</strong> para que o sistema troque automaticamente pelo nome do cliente.
+        </p>
         
-        <button type="button" class="btn ghost" id="btnTriggerFile" style="margin-top: 8px;">
-            📁 Anexar Arquivos
-        </button>
-        <div id="uploadProgress" style="font-size: 12px; color: #10b981; margin-top: 5px; display: none;"></div>
+        <div class="row">
+            <textarea id="agenteMensagem" rows="5" placeholder="Olá {nome}, tudo bem? Vi que seu caso..." style="background: rgba(255,255,255,0.05);"></textarea>
+        </div>
+
+        <div class="actions">
+            <button class="btn primary" id="btnCarregarFila">Carregar Lista Fria</button>
+            <button class="btn ghost" id="btnFecharAgente">Fechar</button>
+        </div>
+
+        <div id="agenteFilaContainer" style="margin-top: 25px; display: none;">
+            <h4 style="margin-bottom: 12px; font-size: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">Fila de Disparo</h4>
+            <div id="agenteLista" style="max-height: 250px; overflow-y: auto; padding-right: 5px;">
+                </div>
+        </div>
     </div>
-
-    <div class="row">
-        <textarea
-            id="inputObs"
-            maxlength="300"
-            placeholder="Observações (máx. 300 caracteres)"
-        ></textarea>
-    </div>
-
-    <div class="row">
-        <select id="inputStatus">
-            <option value="lista-fria">Lista Fria</option>
-            <option value="negociacao">Negociação</option>
-            <option value="contrato-assinado">Contrato Assinado</option>
-            <option value="fechado">Fechado</option>
-        </select>
-    </div>
-
-    <div class="actions">
-
-        <button
-            type="submit"
-            class="btn primary"
-        >
-            Salvar
-        </button>
-
-        <button
-            type="button"
-            class="btn ghost"
-            id="btnCancel"
-        >
-            Cancelar
-        </button>
-
-    </div>
-
-</form>
-
-</div>
-
 </div>
 
 <div class="toast" id="toast"></div>
