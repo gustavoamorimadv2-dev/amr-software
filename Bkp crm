@@ -1,0 +1,1588 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRM AMR ADV</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Inter',sans-serif;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02); 
+}
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1); 
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2); 
+}
+
+body{
+    display:flex;
+    height:100vh;
+    overflow:hidden;
+    /* Fundo Escuro com Gradientes */
+    background:
+        radial-gradient(circle at top left,#2f3f73 0%,transparent 30%),
+        radial-gradient(circle at bottom right,#0f766e 0%,transparent 25%),
+        linear-gradient(135deg,#0f172a,#111827,#020617);
+    color: #fff;
+}
+
+/* ================= SIDEBAR ================= */
+
+.sidebar{
+    width:80px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:20px 0;
+    flex-shrink:0;
+    transition:width 0.4s ease;
+    position:relative;
+    z-index:10;
+    /* Efeito Glassmorphism */
+    backdrop-filter:blur(30px);
+    background:rgba(255,255,255,0.06);
+    border-right:1px solid rgba(255,255,255,0.08);
+    box-shadow:0 0 40px rgba(0,0,0,0.25);
+}
+
+.sidebar.expanded{
+    width:240px;
+}
+
+.sidebar h2{
+    font-size:22px;
+    font-weight:800;
+    color:#fff;
+    letter-spacing:1px;
+    margin-bottom:30px;
+    text-align:center;
+    cursor:pointer;
+    width:100%;
+    white-space:nowrap;
+    overflow:hidden;
+    transition:opacity 0.3s;
+    opacity:0;
+}
+
+.sidebar.expanded h2{
+    opacity:1;
+}
+
+.sidebar button{
+    width:calc(100% - 20px);
+    background:transparent;
+    border:none;
+    color:rgba(255,255,255,0.7);
+    display:flex;
+    align-items:center;
+    gap:15px;
+    padding:12px 15px;
+    margin:5px 10px;
+    cursor:pointer;
+    border-radius:14px;
+    transition:all 0.3s;
+    font-size:14px;
+    white-space:nowrap;
+    overflow:hidden;
+}
+
+.sidebar button img{
+    width:24px;
+    height:24px;
+    filter:invert(1) opacity(0.7);
+    flex-shrink:0;
+    transition:transform 0.3s, filter 0.3s;
+}
+
+.sidebar button span{
+    display:inline-block;
+    opacity:0;
+    transition:opacity 0.3s;
+    font-weight:600;
+}
+
+.sidebar.expanded button span{
+    opacity:1;
+}
+
+.sidebar button:hover img{
+    transform:scale(1.1);
+    filter:invert(1) opacity(1);
+}
+
+.sidebar button:hover{
+    background:rgba(255,255,255,0.1);
+    color:#fff;
+}
+
+/* ================= MAIN ================= */
+
+.main{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+    transition:filter 0.3s;
+}
+
+.main.blur{
+    filter:blur(5px) brightness(0.7);
+}
+
+header{
+    height:70px;
+    background:transparent;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:0 30px;
+    flex-shrink:0;
+}
+
+header h1{
+    font-size:24px;
+    color:#fff;
+    font-weight:800;
+}
+
+/* ================= SEARCH ================= */
+
+.search-bar{
+    padding:15px 30px;
+    background:transparent;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+    display:flex;
+    gap:15px;
+    align-items:center;
+    flex-shrink:0;
+}
+
+.search-bar input,
+.search-bar select,
+.modal input,
+.modal textarea,
+.modal select {
+    padding:12px 16px;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:12px;
+    color:#fff;
+    font-size: 14px;
+    outline: none;
+    transition: 0.3s;
+    backdrop-filter: blur(10px);
+}
+
+.search-bar input:focus,
+.search-bar select:focus,
+.modal input:focus,
+.modal textarea:focus,
+.modal select:focus {
+    background:rgba(255,255,255,0.15);
+    border-color: rgba(255,255,255,0.3);
+}
+
+.search-bar input::placeholder,
+.modal input::placeholder,
+.modal textarea::placeholder {
+    color: rgba(255,255,255,0.5);
+}
+
+.search-bar input{
+    flex:1;
+}
+
+/* Estilizando as opções do select para ficarem legíveis no dark mode */
+select option {
+    background: #111827;
+    color: #fff;
+}
+
+/* ================= KANBAN ================= */
+
+.kanban-container{
+    flex:1;
+    overflow-x:auto;
+    padding:20px 30px;
+}
+
+.kanban{
+    display:flex;
+    gap:20px;
+    min-width:max-content;
+    height:100%;
+}
+
+.column{
+    background:rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px);
+    border-radius:20px;
+    padding:15px;
+    min-width:320px;
+    max-height:100%;
+    display:flex;
+    flex-direction:column;
+    gap:15px;
+    overflow-y:auto;
+}
+
+.column h2{
+    margin-bottom:10px;
+    font-size:14px;
+    color:#fff;
+    font-weight: 700;
+    letter-spacing: 1px;
+    opacity: 0.8;
+}
+
+/* ================= CARDS ================= */
+
+.card{
+    display:flex;
+    background:rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(15px);
+    border-radius:16px;
+    box-shadow:0 8px 30px rgba(0,0,0,0.2);
+    cursor:pointer;
+    overflow:hidden;
+    transition:transform 0.3s, background 0.3s;
+    position:relative;
+    flex-direction:row;
+    width:100%;
+    min-height:200px;
+}
+
+.card:hover{
+    transform:translateY(-4px);
+    background:rgba(255,255,255,0.1);
+}
+
+.card .color-bar{
+    width:6px;
+    height:100%;
+    border-radius:16px 0 0 16px;
+}
+
+.card-content{
+    padding:20px;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-start;
+    overflow:hidden;
+    min-width: 0; /* GARANTE QUE O CONTEÚDO NÃO EXTRAPOLE O CARD EM FLEXBOX */
+}
+
+.card h3{
+    font-size:18px;
+    margin-bottom:12px;
+    color:#fff;
+    font-weight: 700;
+    padding-right: 80px;
+    word-break: break-word;
+}
+
+.card p{
+    font-size:13px;
+    color:rgba(255,255,255,0.7);
+    margin:5px 0;
+}
+
+.card p strong {
+    color: #fff;
+    font-weight: 600;
+}
+
+.lista-fria .color-bar{ background:#3b82f6; }
+.negociacao .color-bar{ background:#f59e0b; }
+.contrato-assinado .color-bar{ background:#8b5cf6; }
+.fechado .color-bar{ background:#10b981; }
+
+.card-actions{
+    position:absolute;
+    top:15px;
+    right:15px;
+    display:flex;
+    gap:10px;
+}
+
+.card-actions button{
+    background:rgba(255,255,255,0.1);
+    border:1px solid rgba(255,255,255,0.05);
+    border-radius: 8px;
+    cursor:pointer;
+    padding:6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+}
+
+.card-actions img{
+    width:16px;
+    height:16px;
+    filter:invert(1); /* Inverte para branco */
+    opacity:0.8;
+    transition:opacity 0.2s;
+}
+
+.card-actions button:hover{
+    background:rgba(255,255,255,0.2);
+}
+.card-actions button:hover img{
+    opacity:1;
+}
+
+/* ================= MODAL ================= */
+
+.modal-backdrop{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.6);
+    backdrop-filter: blur(8px);
+    justify-content:center;
+    align-items:center;
+    z-index:50;
+}
+
+.modal{
+    background:#0f172a;
+    border: 1px solid rgba(255,255,255,0.1);
+    padding:24px;
+    border-radius:24px;
+    min-width:320px;
+    max-width:500px;
+    width:100%;
+    box-shadow:0 20px 50px rgba(0,0,0,0.5);
+    max-height:90vh;
+    overflow-y:auto;
+}
+
+.modal h3{
+    margin-bottom:20px;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.modal .row{
+    margin-bottom:14px;
+}
+
+.modal input,
+.modal textarea,
+.modal select{
+    width:100%;
+}
+
+.modal textarea{
+    min-height:100px;
+    resize:vertical;
+}
+
+.modal .actions{
+    display:flex;
+    gap:10px;
+    justify-content:flex-end;
+    margin-top:20px;
+}
+
+/* ================= BUTTONS ================= */
+
+.btn{
+    padding:10px 18px;
+    border-radius:12px;
+    border:0;
+    cursor:pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: 0.3s;
+}
+
+.btn.primary{
+    background:#fff;
+    color:#111827;
+}
+
+.btn.primary:hover{
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(255,255,255,0.2);
+}
+
+.btn.ghost{
+    background:rgba(255,255,255,0.12);
+    color:#fff;
+}
+
+.btn.ghost:hover{
+    background:rgba(255,255,255,0.2);
+}
+
+.btn-green {
+    background: #10b981;
+    color: #fff;
+}
+
+.btn-green:hover {
+    background: #059669;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
+}
+
+/* ================= DINÂMICOS ================= */
+
+.processo-row{
+    display:flex;
+    gap:8px;
+    margin-bottom:10px;
+}
+
+.processo-row input{
+    flex:1;
+}
+
+/* ================= TOAST ================= */
+
+.toast{
+    position:fixed;
+    right:30px;
+    bottom:30px;
+    background:rgba(255,255,255,0.1);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.1);
+    color:#fff;
+    padding:12px 20px;
+    border-radius:12px;
+    box-shadow:0 10px 30px rgba(0,0,0,.4);
+    display:none;
+    z-index:60;
+    font-weight: 500;
+}
+
+/* ================= DOCUMENTOS UPLOAD ================= */
+.docs-section {
+    border: 1px dashed rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.03);
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 14px;
+}
+.docs-section h4 {
+    font-size: 14px;
+    margin-bottom: 12px;
+    color: #fff;
+}
+.doc-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255,255,255,0.08);
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    font-size: 13px;
+}
+.doc-item a {
+    color: #60a5fa;
+    text-decoration: none;
+    word-break: break-all;
+    flex: 1;
+}
+.doc-item a:hover {
+    text-decoration: underline;
+}
+.doc-item button {
+    background: transparent;
+    border: none;
+    color: #ef4444;
+    cursor: pointer;
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: 0.2s;
+    margin-left: 10px;
+}
+.doc-item button:hover {
+    background: rgba(239, 68, 68, 0.1);
+}
+
+.col-header-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.btn-robot {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.05);
+    border-radius: 8px;
+    cursor: pointer;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+}
+.btn-robot:hover {
+    background: rgba(255,255,255,0.2);
+}
+.btn-robot img {
+    width: 20px;
+    height: 20px;
+    filter: invert(1);
+    opacity: 0.9;
+}
+
+</style>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+
+import {
+    getFirestore,
+    collection,
+    addDoc,
+    getDocs,
+    doc,
+    setDoc,
+    updateDoc,
+    query,
+    where
+} from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+import {
+    getAuth,
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+
+import {
+    getStorage,
+    ref,
+    uploadBytes,
+    getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js";
+
+/* ================= FIREBASE ================= */
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAFJJAqVf3ge0WDHBpmS9E6sXKvnjuFkhw",
+    authDomain: "dapapp-38637.firebaseapp.com",
+    projectId: "dapapp-38637",
+    storageBucket: "dapapp-38637.firebasestorage.app",
+    messagingSenderId: "628852295313",
+    appId: "1:628852295313:web:1234567890abcdef123456"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+let storage;
+
+try {
+    storage = getStorage(app);
+} catch (error) {
+    console.error("Storage indisponível:", error);
+}
+
+window.firebaseDB = db;
+
+/* ================= APP ================= */
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    const sidebar = document.querySelector(".sidebar");
+    const mainContent = document.querySelector(".main");
+
+    if(sidebar && mainContent){
+
+        sidebar.addEventListener('mouseenter', () => {
+            sidebar.classList.add('expanded');
+            mainContent.classList.add('blur');
+        });
+
+        sidebar.addEventListener('mouseleave', () => {
+            sidebar.classList.remove('expanded');
+            mainContent.classList.remove('blur');
+        });
+    }
+
+    const STATUS = [
+        'lista-fria',
+        'negociacao',
+        'contrato-assinado',
+        'fechado'
+    ];
+
+    const cardsMap = {};
+
+    const modalBackdrop = document.getElementById('modalBackdrop');
+    const clientForm = document.getElementById('clientForm');
+
+    const inputNome = document.getElementById('inputNome');
+    const inputCPF = document.getElementById('inputCPF');
+    const inputObs = document.getElementById('inputObs');
+    const inputStatus = document.getElementById('inputStatus');
+    const inputClasse = document.getElementById('inputClasse');
+    const inputValor = document.getElementById('inputValor');
+    const inputEstado = document.getElementById('inputEstado');
+
+    const btnAdd = document.getElementById('btnAdd');
+    const btnCancel = document.getElementById('btnCancel');
+
+    const searchInput = document.getElementById('searchInput');
+    const filterStatus = document.getElementById('filterStatus');
+
+    const toastEl = document.getElementById('toast');
+    const coinSound = document.getElementById('coinSound');
+
+    const processosContainer = document.getElementById('processosContainer');
+
+    const telefonesContainer = document.getElementById('telefonesContainer');
+    const btnAddTelefone = document.getElementById('btnAddTelefone');
+
+    /* ================= VARIÁVEIS DOCUMENTOS ================= */
+    const inputFile = document.getElementById('inputFile');
+    const btnTriggerFile = document.getElementById('btnTriggerFile');
+    const docsList = document.getElementById('docsList');
+    const uploadProgress = document.getElementById('uploadProgress');
+    let currentDocs = [];
+
+    let currentUser = null;
+
+    /* ================= TOAST ================= */
+
+    function showToast(msg){
+        toastEl.innerText = msg;
+        toastEl.style.display = 'block';
+        clearTimeout(toastEl._t);
+        toastEl._t = setTimeout(() => {
+            toastEl.style.display = 'none';
+        },3000);
+    }
+
+    /* ================= FORÇAR DOWNLOAD DE DOCUMENTO ================= */
+    window.forceDownload = async function(url, filename, event) {
+        if(event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        showToast("Iniciando download...");
+        try {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            const objectUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = objectUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(objectUrl);
+        } catch (error) {
+            console.warn("Bloqueio de CORS. Abrindo em nova aba para download manual.", error);
+            window.open(url, '_blank');
+        }
+    };
+
+    /* ================= FIRESTORE ================= */
+
+    async function getClientes(){
+
+        if(!currentUser){
+            return [];
+        }
+
+        const q = query(
+            collection(db,"clientes"),
+            where("userId","==",currentUser.uid)
+        );
+
+        const snapshot = await getDocs(q);
+
+        return snapshot.docs.map(docData => ({
+            id: docData.id,
+            ...docData.data()
+        }));
+    }
+
+    async function saveCliente(cliente){
+
+        if(!currentUser){
+            return;
+        }
+
+        cliente.userId = currentUser.uid;
+
+        if(cliente.id){
+            const docRef = doc(db,"clientes",cliente.id);
+            await setDoc(docRef,cliente);
+        }else{
+            const docRef = await addDoc(
+                collection(db,"clientes"),
+                cliente
+            );
+            cliente.id = docRef.id;
+        }
+    }
+
+    /* ================= UPLOAD DE DOCUMENTOS ================= */
+
+    function renderDocsList() {
+        docsList.innerHTML = '';
+        if (currentDocs.length === 0) {
+            docsList.innerHTML = '<span style="color:rgba(255,255,255,0.5); font-size:12px;">Nenhum documento anexado.</span>';
+            return;
+        }
+
+        currentDocs.forEach((arquivo, index) => {
+            const div = document.createElement('div');
+            div.className = 'doc-item';
+            
+            div.innerHTML = `<a href="javascript:void(0)" onclick="window.forceDownload('${arquivo.url}', '${arquivo.name}', event)" title="Baixar documento">📄 ${arquivo.name} <span style="font-size:10px; color:#9ca3af; margin-left: 5px;">(Baixar)</span></a>`;
+            
+            const btnRemove = document.createElement('button');
+            btnRemove.type = 'button';
+            btnRemove.innerText = 'X';
+            btnRemove.title = "Remover documento";
+            btnRemove.onclick = () => {
+                currentDocs.splice(index, 1);
+                renderDocsList();
+            };
+
+            div.appendChild(btnRemove);
+            docsList.appendChild(div);
+        });
+    }
+
+    btnTriggerFile.onclick = () => {
+        inputFile.click();
+    };
+
+    inputFile.onchange = async (e) => {
+        if (!storage) {
+            showToast("Erro: Serviço de arquivos do Firebase não configurado");
+            return;
+        }
+
+        const files = Array.from(e.target.files);
+        if (!files.length || !currentUser) return;
+        
+        uploadProgress.style.display = 'block';
+        uploadProgress.style.color = '#f59e0b'; // Amarelo enquanto carrega
+        uploadProgress.innerText = `Enviando ${files.length} arquivo(s)... Aguarde.`;
+        
+        let errorOccurred = false;
+
+        try {
+            for (let file of files) {
+                try {
+                    const uniqueName = Date.now() + "_" + file.name;
+                    const storageRef = ref(storage, `documentos/${currentUser.uid}/${uniqueName}`);
+                    await uploadBytes(storageRef, file);
+                    const url = await getDownloadURL(storageRef);
+                    currentDocs.push({ name: file.name, url: url });
+                } catch (error) {
+                    console.error("Erro no upload do arquivo:", error);
+                    errorOccurred = true;
+                    showToast("Erro ao enviar: " + file.name);
+                }
+            }
+        } finally {
+            if (errorOccurred) {
+                uploadProgress.style.color = '#ef4444'; // Vermelho
+                uploadProgress.innerText = 'Erro de permissão no Firebase. Arquivo não salvo.';
+                setTimeout(() => { uploadProgress.style.display = 'none'; }, 5000);
+            } else {
+                uploadProgress.style.color = '#10b981'; // Verde
+                uploadProgress.innerText = 'Upload concluído com sucesso!';
+                setTimeout(() => { uploadProgress.style.display = 'none'; }, 2000);
+            }
+            inputFile.value = ''; 
+            renderDocsList();
+        }
+    };
+
+    /* ================= MODAL ================= */
+
+    function openModal(edit = false, data = null){
+
+        modalBackdrop.style.display = 'flex';
+
+        document.getElementById('modalTitle').innerText =
+            edit ? "Editar Cliente" : "Novo Cliente";
+
+        processosContainer.innerHTML = '';
+        telefonesContainer.innerHTML = '';
+
+        if(edit && data){
+
+            inputNome.value = data.nome || "";
+            inputCPF.value = data.cpf || "";
+            inputObs.value = data.obs || "";
+            inputStatus.value = data.status || "lista-fria";
+            inputClasse.value = data.classe || "Outros";
+            inputValor.value = data.valor || "";
+            inputEstado.value = data.estado || "São Paulo";
+
+            const processos = data.processo
+                ? data.processo.split(',').map(p => p.trim())
+                : [''];
+
+            processos.forEach(p => addProcessoField(p));
+
+            const telefones = data.numeros
+                ? data.numeros.split(',').map(t => t.trim())
+                : [''];
+
+            telefones.forEach(t => addTelefoneField(t));
+
+            currentDocs = Array.isArray(data.documentos) ? [...data.documentos] : [];
+
+            clientForm.dataset.editId = data.id;
+
+        }else{
+
+            addProcessoField();
+            addTelefoneField();
+
+            inputNome.value = "";
+            inputCPF.value = "";
+            inputObs.value = "";
+            inputStatus.value = "lista-fria";
+            inputClasse.value = "Outros";
+            inputValor.value = "";
+            inputEstado.value = "São Paulo";
+
+            currentDocs = [];
+
+            delete clientForm.dataset.editId;
+        }
+
+        renderDocsList();
+    }
+
+    function closeModal(){
+        modalBackdrop.style.display = 'none';
+        uploadProgress.style.display = 'none';
+    }
+
+    /* ================= PROCESSOS ================= */
+
+    function addProcessoField(value = ""){
+
+        const row = document.createElement('div');
+        row.className = 'processo-row';
+
+        const input = document.createElement('input');
+        input.className = 'inputProcesso';
+        input.placeholder = '0000000-00.0000.0.00.0000';
+        input.value = value;
+
+        const btnAdd = document.createElement('button');
+        btnAdd.type = 'button';
+        btnAdd.className = 'btn ghost';
+        btnAdd.textContent = '+';
+
+        btnAdd.onclick = () => {
+            addProcessoField();
+        };
+
+        const btnRemove = document.createElement('button');
+        btnRemove.type = 'button';
+        btnRemove.className = 'btn ghost';
+        btnRemove.textContent = '-';
+
+        btnRemove.onclick = () => {
+            row.remove();
+        };
+
+        row.appendChild(input);
+        row.appendChild(btnAdd);
+        row.appendChild(btnRemove);
+
+        processosContainer.appendChild(row);
+    }
+
+    /* ================= TELEFONES ================= */
+
+    function addTelefoneField(value = ""){
+
+        const row = document.createElement('div');
+        row.className = 'processo-row';
+
+        const input = document.createElement('input');
+        input.className = 'inputTelefone';
+        input.placeholder = 'Telefone / WhatsApp';
+        input.value = value;
+
+        const btnAdd = document.createElement('button');
+        btnAdd.type = 'button';
+        btnAdd.className = 'btn ghost';
+        btnAdd.textContent = '+';
+
+        btnAdd.onclick = () => {
+            addTelefoneField();
+        };
+
+        const btnRemove = document.createElement('button');
+        btnRemove.type = 'button';
+        btnRemove.className = 'btn ghost';
+        btnRemove.textContent = '-';
+
+        btnRemove.onclick = () => {
+            row.remove();
+        };
+
+        row.appendChild(input);
+        row.appendChild(btnAdd);
+        row.appendChild(btnRemove);
+
+        telefonesContainer.appendChild(row);
+    }
+
+    btnAddTelefone.onclick = () => {
+        addTelefoneField();
+    };
+
+    /* ================= CARDS ================= */
+
+    function criarCard(cliente){
+
+        const status = cliente.status || 'lista-fria';
+
+        const col = document.getElementById(status);
+
+        if(!col){
+            return;
+        }
+
+        const card = document.createElement('div');
+
+        card.className = `card ${status}`;
+
+        card.dataset.id = cliente.id;
+        card.dataset.status = status;
+        card.dataset.nome = cliente.nome.toLowerCase();
+
+        card.draggable = true;
+
+        const colorBar = document.createElement('div');
+        colorBar.className = 'color-bar';
+
+        card.appendChild(colorBar);
+
+        /* ================= ACTIONS ================= */
+
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'card-actions';
+
+        const btnCall = document.createElement('button');
+
+        btnCall.onclick = (e) => {
+            e.stopPropagation();
+            const numero = cliente.numeros
+                ? cliente.numeros.split(',')[0].trim()
+                : '';
+            ligar(numero);
+        };
+
+        btnCall.innerHTML =
+            '<img src="https://img.icons8.com/ios-glyphs/30/000000/phone.png"/>';
+
+        const btnWa = document.createElement('button');
+
+        btnWa.onclick = (e) => {
+            e.stopPropagation();
+            const numero = cliente.numeros
+                ? cliente.numeros.split(',')[0].trim()
+                : '';
+            whatsapp(numero);
+        };
+
+        btnWa.innerHTML =
+            '<img src="https://img.icons8.com/ios-glyphs/30/000000/whatsapp.png"/>';
+
+        actionsDiv.appendChild(btnCall);
+        actionsDiv.appendChild(btnWa);
+
+        card.appendChild(actionsDiv);
+
+        /* ================= CONTENT ================= */
+
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'card-content';
+
+        const processosArray = cliente.processo
+            ? cliente.processo.split(',').map(p => p.trim())
+            : [];
+
+        const primeiroProcesso = processosArray.length > 0
+            ? processosArray[0]
+            : '-';
+
+        contentDiv.innerHTML = `
+            <h3>${cliente.nome}</h3>
+
+            <p><strong>CPF:</strong> ${cliente.cpf || '-'}</p>
+            <p><strong>Classe:</strong> ${cliente.classe || '-'}</p>
+            <p><strong>Estado:</strong> ${cliente.estado || '-'}</p>
+            <p><strong>Processo:</strong> ${primeiroProcesso}</p>
+            <p><strong>Valor:</strong> R$ ${cliente.valor || 0}</p>
+        `;
+
+        // Renderiza os links de documentos no card
+        if (Array.isArray(cliente.documentos) && cliente.documentos.length > 0) {
+            const docsDiv = document.createElement('div');
+            docsDiv.style.marginTop = "12px";
+            docsDiv.innerHTML = `<p style="font-weight: 600; color: #fff; margin-bottom: 5px;">Documentos Anexos:</p>`;
+            
+            cliente.documentos.forEach(arquivo => {
+                const link = document.createElement('a');
+                link.href = "javascript:void(0)";
+                
+                // --- AJUSTES DE ESTILO APLICADOS AQUI PARA O TEXTO NÃO QUEBRAR O CARD ---
+                link.style.display = "block";
+                link.style.fontSize = "13px";
+                link.style.color = "#60a5fa"; 
+                link.style.textDecoration = "none";
+                link.style.margin = "4px 0";
+                link.style.whiteSpace = "nowrap";       // Evita que o texto quebre pra linha de baixo
+                link.style.overflow = "hidden";         // Oculta o que ultrapassar
+                link.style.textOverflow = "ellipsis";   // Adiciona os três pontinhos (...)
+                // ------------------------------------------------------------------------
+                
+                link.innerHTML = `📄 ${arquivo.name} <span style="font-size:10px; color:#9ca3af; margin-left: 5px;">(Baixar)</span>`;
+                
+                link.onclick = (e) => {
+                    e.stopPropagation();
+                    window.forceDownload(arquivo.url, arquivo.name, e);
+                };
+                
+                docsDiv.appendChild(link);
+            });
+            contentDiv.appendChild(docsDiv);
+        }
+
+        card.appendChild(contentDiv);
+
+        card.onclick = () => {
+            openModal(true, cliente);
+        };
+
+        addDragEvents(card);
+
+        col.appendChild(card);
+
+        cardsMap[cliente.id] = card;
+    }
+
+    /* ================= TELEFONE ================= */
+
+    function ligar(numero){
+
+        if(!numero){
+            showToast("Número não informado");
+            return;
+        }
+
+        window.open(`tel:${numero.replace(/\D/g,'')}`);
+    }
+
+    function whatsapp(numero){
+
+        if(!numero){
+            showToast("Número não informado");
+            return;
+        }
+
+        const num = numero.replace(/\D/g,'');
+
+        window.open(`https://wa.me/55${num}`,'_blank');
+    }
+
+    /* ================= RENDER ================= */
+
+    async function render(){
+
+        STATUS.forEach(status => {
+            const col = document.getElementById(status);
+            
+            if (status === 'lista-fria') {
+                col.innerHTML = `
+                    <div class="col-header-actions">
+                        <h2 style="margin-bottom:0;">LISTA FRIA</h2>
+                        <button class="btn-robot" title="Ativar Robô">
+                            <img src="https://img.icons8.com/ios-glyphs/30/000000/bot.png" alt="Robô"/>
+                        </button>
+                    </div>
+                `;
+            } else {
+                col.innerHTML = `<h2>${status.replace('-',' ').toUpperCase()}</h2>`;
+            }
+        });
+
+        for(const k in cardsMap){
+            delete cardsMap[k];
+        }
+
+        const clientes = await getClientes();
+
+        for(const cliente of clientes){
+            criarCard(cliente);
+        }
+
+        filtragemAplicada();
+    }
+
+    /* ================= FORM ================= */
+
+    clientForm.onsubmit = async function(e){
+
+        e.preventDefault();
+
+        const nome = inputNome.value.trim();
+
+        if(!nome){
+            showToast("Nome obrigatório");
+            return;
+        }
+
+        const processos = Array.from(
+            document.querySelectorAll('.inputProcesso')
+        )
+        .map(input => input.value.trim())
+        .filter(valor => valor);
+
+        const telefones = Array.from(
+            document.querySelectorAll('.inputTelefone')
+        )
+        .map(input => input.value.trim())
+        .filter(valor => valor);
+
+        const novo = {
+
+            nome: nome,
+
+            cpf: inputCPF.value.trim(),
+
+            obs: inputObs.value
+                .trim()
+                .substring(0,300),
+
+            status: inputStatus.value,
+
+            numeros: telefones.join(', '),
+
+            processo: processos.join(', '),
+
+            classe: inputClasse.value,
+
+            valor: inputValor.value,
+
+            estado: inputEstado.value,
+
+            documentos: currentDocs
+        };
+
+        if(clientForm.dataset.editId){
+
+            novo.id = clientForm.dataset.editId;
+
+            await saveCliente(novo);
+
+            showToast("Cliente atualizado!");
+
+        }else{
+
+            await saveCliente(novo);
+
+            showToast("Cliente adicionado!");
+        }
+
+        closeModal();
+
+        render();
+    };
+
+    btnAdd.onclick = () => {
+        openModal();
+    };
+
+    btnCancel.onclick = () => {
+        closeModal();
+    };
+
+    /* ================= DRAG ================= */
+
+    let draggedCard = null;
+
+    function addDragEvents(card){
+
+        card.addEventListener('dragstart', () => {
+            draggedCard = card;
+            card.style.opacity = '.5';
+        });
+
+        card.addEventListener('dragend', () => {
+            draggedCard = null;
+            card.style.opacity = '1';
+        });
+    }
+
+    document.querySelectorAll('.column').forEach(col => {
+
+        col.addEventListener('dragover', e => {
+            e.preventDefault();
+        });
+
+        col.addEventListener('drop', async () => {
+
+            if(!draggedCard){
+                return;
+            }
+
+            const id = draggedCard.dataset.id;
+            const status = col.id;
+            const docRef = doc(db,"clientes",id);
+
+            await updateDoc(docRef,{ status });
+
+            if(status === "fechado"){
+                coinSound.currentTime = 0;
+                coinSound.play();
+            }
+
+            render();
+            showToast("Status atualizado");
+        });
+    });
+
+    /* ================= FILTROS ================= */
+
+    function filtragemAplicada(){
+
+        const q = searchInput.value.toLowerCase();
+        const filterS = filterStatus.value;
+
+        Object.values(cardsMap).forEach(card => {
+
+            const matchSearch = card.dataset.nome.includes(q);
+            const matchStatus = !filterS || card.dataset.status === filterS;
+
+            card.style.display =
+                (matchSearch && matchStatus)
+                ? 'flex'
+                : 'none';
+        });
+    }
+
+    searchInput.oninput = filtragemAplicada;
+    filterStatus.onchange = filtragemAplicada;
+
+    /* ================= LOGIN ================= */
+
+    onAuthStateChanged(auth, user => {
+
+        if(user){
+            currentUser = user;
+            render();
+        }else{
+            window.location.href = "login.html";
+        }
+    });
+
+});
+
+</script>
+
+</head>
+
+<body>
+
+<div class="sidebar">
+
+    <h2 onclick="window.location.href='dashboard.html'">
+        AMR ADV
+    </h2>
+
+    <button onclick="window.location.href='crm.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/dashboard.png"/>
+        <span>CRM</span>
+    </button>
+
+    <button onclick="window.location.href='relatorios.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/combo-chart.png"/>
+        <span>Relatórios</span>
+    </button>
+
+    <button onclick="window.location.href='agenda.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/calendar.png"/>
+        <span>Agenda</span>
+    </button>
+
+    <button onclick="window.location.href='discador.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/contacts.png"/>
+        <span>Contatos</span>
+    </button>
+
+    <button onclick="window.location.href='clientes.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/user-group-man-man.png"/>
+        <span>Clientes</span>
+    </button>
+
+    <button onclick="window.location.href='processos.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/file.png"/>
+        <span>Processos</span>
+    </button>
+
+    <button onclick="window.location.href='app.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/phone.png"/>
+        <span>App</span>
+    </button>
+
+    <button>
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/settings.png"/>
+        <span>Configurações</span>
+    </button>
+
+</div>
+
+<div class="main">
+
+<header>
+
+    <h1>CRM</h1>
+
+    <div style="display: flex; gap: 12px; align-items: center;">
+        <button id="btnAgente" class="btn btn-green">
+            Agente de Whatsapp
+        </button>
+        
+        <button id="btnAdd" class="btn primary">
+            + Adicionar Cliente
+        </button>
+    </div>
+
+</header>
+
+<div class="search-bar">
+
+    <input
+        id="searchInput"
+        placeholder="Buscar cliente..."
+    />
+
+    <select id="filterStatus">
+        <option value="">Todos os status</option>
+        <option value="lista-fria">Lista Fria</option>
+        <option value="negociacao">Negociação</option>
+        <option value="contrato-assinado">Contrato Assinado</option>
+        <option value="fechado">Fechado</option>
+    </select>
+
+</div>
+
+<div class="kanban-container">
+
+<main class="kanban" id="kanban">
+
+    <div class="column" id="lista-fria">
+        <h2>LISTA FRIA</h2>
+    </div>
+
+    <div class="column" id="negociacao">
+        <h2>NEGOCIAÇÃO</h2>
+    </div>
+
+    <div class="column" id="contrato-assinado">
+        <h2>CONTRATO ASSINADO</h2>
+    </div>
+
+    <div class="column" id="fechado">
+        <h2>FECHADO</h2>
+    </div>
+
+</main>
+
+</div>
+
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+
+<div class="modal">
+
+<h3 id="modalTitle">
+    Novo Cliente
+</h3>
+
+<form id="clientForm">
+
+    <div class="row">
+        <input
+            id="inputNome"
+            placeholder="Nome do cliente"
+            required
+        />
+    </div>
+
+    <div class="row">
+        <input
+            id="inputCPF"
+            placeholder="CPF/CNPJ"
+        />
+    </div>
+
+    <div id="telefonesContainer"></div>
+
+    <div class="row">
+
+        <button
+            type="button"
+            class="btn ghost"
+            id="btnAddTelefone"
+        >
+            + Adicionar Telefone
+        </button>
+
+    </div>
+
+    <div class="row">
+
+        <select id="inputClasse">
+            <option value="Outros">Outros</option>
+            <option value="Busca e Apreensão">Busca e Apreensão</option>
+            <option value="Execução">Execução</option>
+            <option value="Renegociação">Renegociação</option>
+        </select>
+
+    </div>
+
+    <div class="row">
+        <input
+            id="inputValor"
+            type="number"
+            placeholder="Valor (R$)"
+        />
+    </div>
+
+    <div class="row">
+
+    <select id="inputEstado">
+        <option value="Acre">Acre</option>
+        <option value="Alagoas">Alagoas</option>
+        <option value="Amapá">Amapá</option>
+        <option value="Amazonas">Amazonas</option>
+        <option value="Bahia">Bahia</option>
+        <option value="Ceará">Ceará</option>
+        <option value="Distrito Federal">Distrito Federal</option>
+        <option value="Espírito Santo">Espírito Santo</option>
+        <option value="Goiás">Goiás</option>
+        <option value="Maranhão">Maranhão</option>
+        <option value="Mato Grosso">Mato Grosso</option>
+        <option value="Mato Grosso do Sul">Mato Grosso do Sul</option>
+        <option value="Minas Gerais">Minas Gerais</option>
+        <option value="Pará">Pará</option>
+        <option value="Paraíba">Paraíba</option>
+        <option value="Paraná">Paraná</option>
+        <option value="Pernambuco">Pernambuco</option>
+        <option value="Piauí">Piauí</option>
+        <option value="Rio de Janeiro" selected>Rio de Janeiro</option>
+        <option value="Rio Grande do Norte">Rio Grande do Norte</option>
+        <option value="Rio Grande do Sul">Rio Grande do Sul</option>
+        <option value="Rondônia">Rondônia</option>
+        <option value="Roraima">Roraima</option>
+        <option value="Santa Catarina">Santa Catarina</option>
+        <option value="São Paulo">São Paulo</option>
+        <option value="Sergipe">Sergipe</option>
+        <option value="Tocantins">Tocantins</option>
+    </select>
+
+</div>
+    <div id="processosContainer"></div>
+
+    <div class="docs-section">
+        <h4>Documentos do Cliente</h4>
+        <div id="docsList"></div>
+        <input type="file" id="inputFile" style="display: none;" multiple />
+        
+        <button type="button" class="btn ghost" id="btnTriggerFile" style="margin-top: 8px;">
+            📁 Anexar Arquivos
+        </button>
+        <div id="uploadProgress" style="font-size: 12px; color: #10b981; margin-top: 5px; display: none;"></div>
+    </div>
+
+    <div class="row">
+        <textarea
+            id="inputObs"
+            maxlength="300"
+            placeholder="Observações (máx. 300 caracteres)"
+        ></textarea>
+    </div>
+
+    <div class="row">
+        <select id="inputStatus">
+            <option value="lista-fria">Lista Fria</option>
+            <option value="negociacao">Negociação</option>
+            <option value="contrato-assinado">Contrato Assinado</option>
+            <option value="fechado">Fechado</option>
+        </select>
+    </div>
+
+    <div class="actions">
+
+        <button
+            type="submit"
+            class="btn primary"
+        >
+            Salvar
+        </button>
+
+        <button
+            type="button"
+            class="btn ghost"
+            id="btnCancel"
+        >
+            Cancelar
+        </button>
+
+    </div>
+
+</form>
+
+</div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<audio
+    id="coinSound"
+    src="https://assets.mixkit.co/sfx/preview/mixkit-winning-notification-2018.mp3"
+    preload="auto">
+</audio>
+
+</body>
+</html>
