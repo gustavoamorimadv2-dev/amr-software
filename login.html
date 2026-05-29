@@ -72,6 +72,8 @@ button:disabled { background: #ccc; cursor: not-allowed; }
   color:#ff7675;
   font-size:13px;
   display:none;
+  margin-top: 5px;
+  line-height: 1.4;
 }
 
 /* ÁREA DO VÍDEO */
@@ -117,22 +119,24 @@ button:disabled { background: #ccc; cursor: not-allowed; }
   right:20px;
   background:#222;
   color:#fff;
-  padding:8px 12px;
+  padding:12px 20px;
   border-radius:8px;
   display:none;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  z-index: 999;
 }
 </style>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, collection, query, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAFJJAqVf3ge0WDHBpmS9E6sXKvnjuFkhw",
     authDomain: "dapapp-38637.firebaseapp.com",
     projectId: "dapapp-38637",
-    storageBucket: "dapapp-38637.firebasestorage.app", // Link do storage atualizado
+    storageBucket: "dapapp-38637.firebasestorage.app", 
     messagingSenderId: "628852295313",
     appId: "1:628852295313:web:1234567890abcdef123456"
 };
@@ -150,45 +154,58 @@ document.addEventListener("DOMContentLoaded", () => {
   const video = document.getElementById("bgVideo");
   const btnSubmit = form.querySelector("button[type='submit']");
 
-  // Garante que o vídeo inicie corretamente
   video.muted = true;
   video.play().catch(() => {
-    console.warn("Autoplay bloqueado, aguardando interação do usuário.");
     document.body.addEventListener("click", () => video.play(), { once: true });
   });
 
   function showToast(msg){
-    toast.innerText=msg;
-    toast.style.display='block';
+    toast.innerText = msg;
+    toast.style.display = 'block';
     clearTimeout(toast._t);
-    toast._t=setTimeout(()=>toast.style.display='none',3000);
+    toast._t = setTimeout(() => toast.style.display = 'none', 4000);
+  }
+
+  function resetBotao(mensagemErro = null) {
+      if(mensagemErro) {
+          errorMsg.innerText = mensagemErro;
+          errorMsg.style.display = "block";
+      }
+      btnSubmit.innerText = "Entrar";
+      btnSubmit.disabled = false;
   }
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     errorMsg.style.display = "none";
     
+    // Convertendo para minúsculo para garantir a compatibilidade
     const email = emailInput.value.trim().toLowerCase();
     const senha = passwordInput.value;
 
-    btnSubmit.innerText = "Entrando...";
+    btnSubmit.innerText = "Autenticando...";
     btnSubmit.disabled = true;
 
     try {
       // 1. TENTA O LOGIN NORMAL
-      const userCredential = await signInWithEmailAndPassword(auth, email, senha);
-      const user = userCredential.user;
-
+      await signInWithEmailAndPassword(auth, email, senha);
       showToast("Login realizado com sucesso!");
       setTimeout(() => window.location.href = "crm.html", 1000);
 
     } catch (error) {
-      console.log("Falha no login normal, verificando pré-cadastro...", error.code);
+      console.log("Falha no Auth, verificando pré-cadastro...", error.code);
 
-      // 2. SE FALHAR, VERIFICA SE EXISTE UM PRÉ-CADASTRO NA FILA
+      // 2. SE FALHAR, VERIFICA O PRÉ-CADASTRO
       if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
           try {
-              const qPre = query(collection(db, "pre_cadastros"), where("email", "==", email), where("senhaPadrao", "==", senha));
+              btnSubmit.innerText = "Verificando convite...";
+              
+              const qPre = query(
+                  collection(db, "pre_cadastros"), 
+                  where("email", "==", email), 
+                  where("senhaPadrao", "==", senha)
+              );
+              
               const preSnap = await getDocs(qPre);
 
               if (!preSnap.empty) {
@@ -196,35 +213,38 @@ document.addEventListener("DOMContentLoaded", () => {
                   const dadosFunc = docDados.data();
 
                   showToast("Configurando seu primeiro acesso...");
+                  btnSubmit.innerText = "Criando conta...";
 
-                  // Cria o usuário oficialmente no Firebase Auth
                   const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
                   const novoUid = userCredential.user.uid;
 
-                  // Salva na coleção oficial 'funcionarios' (para aparecer no painel ADM)
                   await setDoc(doc(db, "funcionarios", novoUid), {
-                      nome: dadosFunc.nome,
+                      nome: dadosFunc.nome || "Usuário",
                       email: email,
                       criadoEm: new Date().toISOString()
                   });
 
-                  // Deleta da fila de pré-cadastros
                   await deleteDoc(doc(db, "pre_cadastros", docDados.id));
 
                   showToast("Tudo pronto! Redirecionando...");
                   setTimeout(() => window.location.href = "crm.html", 1500);
-                  return;
+              } else {
+                  // Pré-cadastro realmente não existe ou a senha não bate
+                  resetBotao("E-mail ou senha inválidos. O cadastro não foi encontrado no sistema.");
               }
           } catch (errDb) {
               console.error("Erro no fluxo do primeiro acesso: ", errDb);
+              // Verifica se é erro de permissão do Firestore
+              if(errDb.code === 'permission-denied') {
+                  resetBotao("Erro de Segurança: O banco de dados bloqueou a verificação do pré-cadastro. Ajuste as regras do Firestore.");
+              } else {
+                  resetBotao("Erro de conexão ao buscar o cadastro. Tente novamente.");
+              }
           }
+      } else {
+          // Outros erros (ex: muitas tentativas, bloqueado)
+          resetBotao("Erro no login: " + error.message);
       }
-
-      // Se falhar no login e não achar o pré-cadastro, mostra erro
-      errorMsg.innerText = "E-mail ou senha inválidos.";
-      errorMsg.style.display = "block";
-      btnSubmit.innerText = "Entrar";
-      btnSubmit.disabled = false;
     }
   });
 });
