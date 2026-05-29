@@ -172,7 +172,7 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     border-radius:20px;
     padding:15px;
     min-width:400px;
-    flex: 1; /* Permite que as colunas preencham o espaço de forma equilibrada */
+    flex: 1; 
     max-width: 50%;
     max-height:100%;
     display:flex;
@@ -203,7 +203,7 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     position:relative;
     flex-direction:column;
     width:100%;
-    min-height: 200px; /* Igual ao CRM padrão */
+    min-height: 200px;
     cursor: pointer;
 }
 
@@ -256,7 +256,6 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     min-width: 0;
 }
 
-/* Estilo do texto do CRM padrão */
 .card-content p {
     font-size:13px;
     color:rgba(255,255,255,0.7);
@@ -322,15 +321,39 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     padding:24px;
     border-radius:24px;
     min-width:320px;
-    max-width:500px;
+    max-width:600px; /* Aumentado para acomodar os detalhes */
     width:100%;
     box-shadow:0 20px 50px rgba(0,0,0,0.5);
+    max-height:90vh;
+    overflow-y:auto;
 }
 
 .modal h3 {
     margin-bottom:10px;
     font-size: 20px;
     font-weight: 700;
+}
+
+/* Painel de Informações do Cliente no Modal */
+.modal-client-info {
+    background: rgba(255,255,255,0.05);
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    color: rgba(255,255,255,0.8);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.modal-client-info p {
+    margin: 0;
+}
+
+.modal-client-info strong {
+    color: #fff;
 }
 
 .modal textarea {
@@ -462,6 +485,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Elementos do Modal
     const modalBackdrop = document.getElementById('modalBackdrop');
     const modalTitle = document.getElementById('modalTitle');
+    const modalClientInfo = document.getElementById('modalClientInfo');
     const inputAndamento = document.getElementById('inputAndamento');
     const btnFecharModal = document.getElementById('btnFecharModal');
     const btnEnviarAndamento = document.getElementById('btnEnviarAndamento');
@@ -507,8 +531,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function abrirModal(cliente) {
         clienteSelecionado = cliente;
+        
+        // Título e saudação padrão
         modalTitle.innerText = `Andamento: ${cliente.nome}`;
-        inputAndamento.value = `Olá {nome}, tudo bem?\nAqui é do setor de andamento da AMR ADV. \n\nA atualização do seu processo é: \n\n`;
+        inputAndamento.value = `Olá ${cliente.nome.split(' ')[0]}, tudo bem?\nAqui é do setor de andamento da AMR ADV. \n\nA atualização do seu processo é: \n\n`;
+        
+        // Renderizar Detalhes do Cliente no Modal
+        modalClientInfo.innerHTML = `
+            <p><strong>CPF/CNPJ:</strong> ${cliente.cpf || 'Não informado'}</p>
+            <p><strong>Telefone:</strong> ${cliente.numeros || 'Não informado'}</p>
+            <p><strong>Estado:</strong> ${cliente.estado || 'Não informado'}</p>
+            <p><strong>Classe:</strong> ${cliente.classe || 'Não informado'}</p>
+            <p style="grid-column: span 2; word-break: break-all;"><strong>Processo(s):</strong> ${cliente.processo || 'Não informado'}</p>
+            <p style="grid-column: span 2;"><strong>Obs:</strong> ${cliente.obs || 'Nenhuma observação.'}</p>
+        `;
+
         modalBackdrop.style.display = 'flex';
     }
 
@@ -538,7 +575,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const mensagemFinal = texto.replace(/{nome}/g, clienteSelecionado.nome);
+        const mensagemFinal = texto;
 
         try {
             btnEnviarAndamento.disabled = true;
@@ -582,10 +619,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const card = document.createElement('div');
             card.className = `card ${pendente ? 'aberto' : 'concluido'}`;
 
-            // Dados do CRM padrão
-            const primeiroProcesso = cliente.processo ? cliente.processo.split(',')[0].trim() : '-';
-            const cpf = cliente.cpf || '-';
-            const estado = cliente.estado || '-';
+            // Puxar os dados para o card
+            const cpf = cliente.cpf || 'Não informado';
+            const estado = cliente.estado || 'Não informado';
+            const todosProcessos = cliente.processo || 'Não informado';
             const textoAndamento = cliente.ultimoAndamentoTexto ? cliente.ultimoAndamentoTexto : '';
 
             let badgeTexto = pendente ? "Pendente" : "Atualizado";
@@ -607,7 +644,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="card-content">
                     <p><strong>CPF/CNPJ:</strong> ${cpf}</p>
                     <p><strong>Estado:</strong> ${estado}</p>
-                    <p><strong>Processo:</strong> ${primeiroProcesso}</p>
+                    <p style="word-break: break-all;"><strong>Processo:</strong> ${todosProcessos}</p>
                     
                     ${textoAndamento ? `
                     <div class="ultimo-andamento">
@@ -719,8 +756,11 @@ document.addEventListener('DOMContentLoaded', () => {
 <div class="modal-backdrop" id="modalBackdrop">
     <div class="modal">
         <h3 id="modalTitle">Escrever Andamento</h3>
+        
+        <div class="modal-client-info" id="modalClientInfo"></div>
+        
         <p style="font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 15px;">
-            A tag <strong>{nome}</strong> será substituída automaticamente pelo nome do cliente. Salvar isso move o card para "Concluídos".
+            A mensagem abaixo será enviada para o WhatsApp do cliente. Salvar move o card para "Concluídos".
         </p>
         
         <textarea id="inputAndamento" placeholder="Digite o andamento do processo aqui..."></textarea>
