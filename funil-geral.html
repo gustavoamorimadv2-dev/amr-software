@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Funil Geral - CRM AMR ADV</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Inter',sans-serif;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+
+body{
+    display:flex;
+    height:100vh;
+    overflow:hidden;
+    background: radial-gradient(circle at top left,#2f3f73 0%,transparent 30%),
+                radial-gradient(circle at bottom right,#0f766e 0%,transparent 25%),
+                linear-gradient(135deg,#0f172a,#111827,#020617);
+    color: #fff;
+}
+
+/* ================= SIDEBAR ================= */
+.sidebar{ width:80px; display:flex; flex-direction:column; align-items:center; padding:20px 0; flex-shrink:0; transition:width 0.4s ease; position:relative; z-index:10; backdrop-filter:blur(30px); background:rgba(255,255,255,0.06); border-right:1px solid rgba(255,255,255,0.08); box-shadow:0 0 40px rgba(0,0,0,0.25); }
+.sidebar.expanded{ width:240px; }
+.sidebar h2{ font-size:22px; font-weight:800; color:#fff; letter-spacing:1px; margin-bottom:30px; text-align:center; cursor:pointer; width:100%; white-space:nowrap; overflow:hidden; transition:opacity 0.3s; opacity:0; }
+.sidebar.expanded h2{ opacity:1; }
+.sidebar button{ width:calc(100% - 20px); background:transparent; border:none; color:rgba(255,255,255,0.7); display:flex; align-items:center; gap:15px; padding:12px 15px; margin:5px 10px; cursor:pointer; border-radius:14px; transition:all 0.3s; font-size:14px; white-space:nowrap; overflow:hidden; }
+.sidebar button img{ width:24px; height:24px; filter:invert(1) opacity(0.7); flex-shrink:0; transition:transform 0.3s, filter 0.3s; }
+.sidebar button span{ display:inline-block; opacity:0; transition:opacity 0.3s; font-weight:600; }
+.sidebar.expanded button span{ opacity:1; }
+.sidebar button:hover img{ transform:scale(1.1); filter:invert(1) opacity(1); }
+.sidebar button:hover{ background:rgba(255,255,255,0.1); color:#fff; }
+.active-menu { background: rgba(255,255,255,0.15) !important; color: #fff !important; }
+
+/* ================= MAIN ================= */
+.main{ flex:1; display:flex; flex-direction:column; overflow:hidden; }
+header{ height:70px; background:transparent; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; justify-content:space-between; align-items:center; padding:0 30px; flex-shrink:0; }
+header h1{ font-size:24px; color:#fff; font-weight:800; }
+
+/* ================= KANBAN 2 COLUNAS ================= */
+.kanban-container{ flex:1; overflow-x:auto; padding:30px; }
+.kanban{ display:flex; gap:30px; width:100%; height:100%; }
+
+.column{
+    background:rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px);
+    border-radius:20px;
+    padding:20px;
+    flex: 1; /* Divide a tela no meio */
+    min-width: 400px;
+    max-height:100%;
+    display:flex;
+    flex-direction:column;
+    gap:15px;
+    overflow-y:auto;
+}
+
+.column h2{ margin-bottom:10px; font-size:16px; color:#fff; font-weight: 700; letter-spacing: 1px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 15px;}
+.column p.desc { font-size: 12px; color: rgba(255,255,255,0.5); text-align: center; margin-top: -15px; margin-bottom: 15px;}
+
+/* ================= CARDS ================= */
+.card{
+    display:flex;
+    background:rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(15px);
+    border-radius:16px;
+    box-shadow:0 8px 30px rgba(0,0,0,0.2);
+    cursor:grab;
+    overflow:hidden;
+    transition:transform 0.3s, background 0.3s;
+    position:relative;
+    flex-direction:column;
+    width:100%;
+    padding: 20px;
+}
+.card:active { cursor: grabbing; }
+.card:hover{ transform:translateY(-4px); background:rgba(255,255,255,0.1); }
+
+.card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+.card h3{ font-size:18px; color:#fff; font-weight: 700; word-break: break-word; flex:1; padding-right: 10px; }
+
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+.badge-fria { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+.badge-negociacao { background: rgba(245, 158, 11, 0.2); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.3); }
+.badge-contrato { background: rgba(139, 92, 246, 0.2); color: #c4b5fd; border: 1px solid rgba(139, 92, 246, 0.3); }
+.badge-fechado { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.3); }
+
+.card p{ font-size:13px; color:rgba(255,255,255,0.7); margin:4px 0; }
+.card p strong { color: #fff; font-weight: 600; }
+
+.owner-badge {
+    margin-top: 15px;
+    background: rgba(255,255,255,0.05);
+    border: 1px dashed rgba(255,255,255,0.2);
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* ================= TOAST ================= */
+.toast{ position:fixed; right:30px; bottom:30px; background:rgba(255,255,255,0.1); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); color:#fff; padding:12px 20px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.4); display:none; z-index:60; font-weight: 500; }
+
+</style>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+import { getFirestore, collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAFJJAqVf3ge0WDHBpmS9E6sXKvnjuFkhw",
+    authDomain: "dapapp-38637.firebaseapp.com",
+    projectId: "dapapp-38637",
+    storageBucket: "dapapp-38637.firebasestorage.app",
+    messagingSenderId: "628852295313",
+    appId: "1:628852295313:web:1234567890abcdef123456"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    const sidebar = document.querySelector(".sidebar");
+    if(sidebar){
+        sidebar.addEventListener('mouseenter', () => sidebar.classList.add('expanded'));
+        sidebar.addEventListener('mouseleave', () => sidebar.classList.remove('expanded'));
+    }
+
+    const toastEl = document.getElementById('toast');
+    function showToast(msg){
+        toastEl.innerText = msg;
+        toastEl.style.display = 'block';
+        clearTimeout(toastEl._t);
+        toastEl._t = setTimeout(() => { toastEl.style.display = 'none'; }, 3000);
+    }
+
+    let currentUser = null;
+    let mapaFuncionarios = {}; // Dicionário para traduzir o ID no Nome Real
+
+    const colGeral = document.getElementById('col-geral');
+    const colMeus = document.getElementById('col-meus');
+    let draggedCard = null;
+
+    // Converte o status do banco para a etiqueta visual
+    function getBadge(status) {
+        if(status === 'lista-fria') return '<span class="status-badge badge-fria">Lista Fria</span>';
+        if(status === 'negociacao') return '<span class="status-badge badge-negociacao">Negociação</span>';
+        if(status === 'contrato-assinado') return '<span class="status-badge badge-contrato">Contrato</span>';
+        if(status === 'fechado') return '<span class="status-badge badge-fechado">Fechado</span>';
+        return '<span class="status-badge badge-fria">Lista Fria</span>';
+    }
+
+    async function renderizarFunil() {
+        colGeral.innerHTML = `<h2> FUNIL DE TODA A EQUIPE</h2><p class="desc">Todos os clientes cadastrados no escritório.</p>`;
+        colMeus.innerHTML = `<h2> MEUS CLIENTES RESGATADOS</h2><p class="desc">Arraste um cliente para cá para assumir a responsabilidade.</p>`;
+
+        try {
+            // 1. Puxa todos os funcionários para descobrirmos os nomes
+            const funcSnap = await getDocs(collection(db, "funcionarios"));
+            funcSnap.forEach(doc => {
+                mapaFuncionarios[doc.id] = doc.data().nome;
+            });
+            // Garante que o próprio usuário se reconheça facilmente
+            mapaFuncionarios[currentUser.uid] = "Você (" + (mapaFuncionarios[currentUser.uid] || currentUser.email) + ")";
+
+            // 2. Puxa TODOS os clientes do escritório
+            const clientesSnap = await getDocs(collection(db, "clientes"));
+            const clientes = clientesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+            clientes.forEach(cliente => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.dataset.id = cliente.id;
+                card.draggable = true;
+
+                const responsavelNome = mapaFuncionarios[cliente.userId] || "Sem Responsável";
+                
+                const processosArray = cliente.processo ? cliente.processo.split(',').map(p => p.trim()) : [];
+                const primeiroProcesso = processosArray.length > 0 ? processosArray[0] : '-';
+
+                card.innerHTML = `
+                    <div class="card-header">
+                        <h3>${cliente.nome}</h3>
+                        ${getBadge(cliente.status)}
+                    </div>
+                    <p><strong>CPF:</strong> ${cliente.cpf || '-'}</p>
+                    <p><strong>Processo:</strong> ${primeiroProcesso}</p>
+                    <p><strong>Estado:</strong> ${cliente.estado || '-'}</p>
+                    <p><strong>Valor:</strong> R$ ${cliente.valor || 0}</p>
+                    
+                    <div class="owner-badge">
+                        <img src="https://img.icons8.com/ios-filled/50/ffffff/manager.png" width="14" height="14" style="opacity:0.7">
+                        Responsável: <strong>${responsavelNome}</strong>
+                    </div>
+                `;
+
+                // Eventos de Drag & Drop
+                card.addEventListener('dragstart', () => {
+                    draggedCard = card;
+                    card.style.opacity = '0.5';
+                });
+
+                card.addEventListener('dragend', () => {
+                    draggedCard = null;
+                    card.style.opacity = '1';
+                });
+
+                // Separa os cards na coluna certa
+                if (cliente.userId === currentUser.uid) {
+                    colMeus.appendChild(card);
+                } else {
+                    colGeral.appendChild(card);
+                }
+            });
+
+        } catch (error) {
+            console.error("Erro ao carregar o funil geral:", error);
+            showToast("Erro de permissão ou falha ao carregar clientes.");
+        }
+    }
+
+    // Configurando as áreas de soltar (Drop Zones)
+    [colGeral, colMeus].forEach(col => {
+        col.addEventListener('dragover', e => {
+            e.preventDefault(); // Necessário para permitir o drop
+        });
+
+        col.addEventListener('drop', async e => {
+            e.preventDefault();
+            if (!draggedCard) return;
+
+            const clienteId = draggedCard.dataset.id;
+            const clienteRef = doc(db, "clientes", clienteId);
+
+            try {
+                // Se soltou na coluna "Meus Resgates" (Pegar a posse)
+                if (col.id === 'col-meus') {
+                    await updateDoc(clienteRef, { userId: currentUser.uid });
+                    showToast("Cliente resgatado para sua responsabilidade!");
+                } 
+                // Se soltou na coluna "Geral" (Devolver pro escritório/Tirar seu nome)
+                // OBS: Ele vai ficar órfão/genérico no banco
+                else if (col.id === 'col-geral') {
+                    await updateDoc(clienteRef, { userId: "escritorio_pool" });
+                    showToast("Cliente devolvido para a equipe.");
+                }
+
+                // Recarrega a tela para atualizar o nome na etiqueta
+                renderizarFunil();
+                
+            } catch (error) {
+                console.error("Erro ao transferir card:", error);
+                showToast("Erro ao alterar o responsável do card.");
+            }
+        });
+    });
+
+    // VERIFICA LOGIN
+    onAuthStateChanged(auth, user => {
+        if(user){
+            currentUser = user;
+            renderizarFunil();
+        }else{
+            window.location.href = "login.html";
+        }
+    });
+
+});
+</script>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2 onclick="window.location.href='dashboard.html'">AMR ADV</h2>
+    
+    <button onclick="window.location.href='crm.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/dashboard.png"/>
+        <span>Meu CRM</span>
+    </button>
+    
+    <button class="active-menu" onclick="window.location.href='funil-geral.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/sorting-options.png"/>
+        <span>Funil Geral</span>
+    </button>
+
+    <button onclick="window.location.href='relatorios.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/combo-chart.png"/>
+        <span>Relatórios</span>
+    </button>
+    <button onclick="window.location.href='agenda.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/calendar.png"/>
+        <span>Agenda</span>
+    </button>
+    <button onclick="window.location.href='discador.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/contacts.png"/>
+        <span>Contatos</span>
+    </button>
+    <button onclick="window.location.href='clientes.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/user-group-man-man.png"/>
+        <span>Clientes</span>
+    </button>
+    <button onclick="window.location.href='processos.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/file.png"/>
+        <span>Processos</span>
+    </button>
+    <button onclick="window.location.href='app.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/phone.png"/>
+        <span>App</span>
+    </button>
+    <button onclick="window.location.href='perfil.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/user-male-circle.png"/>
+        <span>Meu Perfil</span>
+    </button>
+</div>
+
+<div class="main">
+    <header>
+        <h1>Funil Geral da Equipe</h1>
+    </header>
+
+    <div class="kanban-container">
+        <main class="kanban">
+            
+            <div class="column" id="col-geral">
+                <h2> FUNIL DE TODA A EQUIPE</h2>
+                <p class="desc">Carregando...</p>
+            </div>
+
+            <div class="column" id="col-meus" style="background: rgba(59, 130, 246, 0.05); border-color: rgba(59, 130, 246, 0.2);">
+                <h2> MEUS CLIENTES RESGATADOS</h2>
+                <p class="desc">Carregando...</p>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+</body>
+</html>
