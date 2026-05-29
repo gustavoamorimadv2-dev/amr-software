@@ -151,15 +151,42 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 
 .search-bar input::placeholder { color: rgba(255,255,255,0.5); }
 
-/* ================= GRID DE CARDS ================= */
-.cards-container {
+/* ================= KANBAN COLUNAS ================= */
+.kanban-container {
     flex:1;
-    overflow-y:auto;
+    overflow-x:auto;
     padding:20px 30px;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 20px;
-    align-content: start;
+}
+
+.kanban {
+    display:flex;
+    gap:20px;
+    min-width:max-content;
+    height:100%;
+}
+
+.column {
+    background:rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px);
+    border-radius:20px;
+    padding:15px;
+    min-width:400px;
+    width: 48%;
+    max-height:100%;
+    display:flex;
+    flex-direction:column;
+    gap:15px;
+    overflow-y:auto;
+}
+
+.column h2 {
+    margin-bottom:10px;
+    font-size:14px;
+    color:#fff;
+    font-weight: 700;
+    letter-spacing: 1px;
+    opacity: 0.8;
 }
 
 /* ================= CARDS ================= */
@@ -175,17 +202,23 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     position:relative;
     flex-direction:column;
     width:100%;
-    cursor: pointer; /* Indica que o card é clicável */
+    cursor: pointer;
 }
 
 .card:hover {
     transform:translateY(-4px);
     background:rgba(255,255,255,0.1);
-    border-color: rgba(16, 185, 129, 0.5); /* Destaque verde no hover */
 }
 
+/* Indicadores de Cor */
+.aberto { border-left: 6px solid #ef4444; } /* Vermelho para pendente */
+.aberto:hover { border-color: #f87171; }
+
+.concluido { border-left: 6px solid #10b981; } /* Verde para concluído */
+.concluido:hover { border-color: #34d399; }
+
 .card-header {
-    background: rgba(16, 185, 129, 0.2); 
+    background: rgba(0, 0, 0, 0.2); 
     border-bottom: 1px solid rgba(255,255,255,0.05);
     padding: 15px 20px;
     display: flex;
@@ -202,13 +235,12 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     text-overflow: ellipsis;
 }
 
-.badge-fechado {
-    background: #10b981;
-    color: #fff;
+.badge-tempo {
     font-size: 11px;
     font-weight: bold;
     padding: 4px 8px;
     border-radius: 6px;
+    background: rgba(255,255,255,0.1);
 }
 
 .card-content {
@@ -322,6 +354,16 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4);
 }
 
+.btn-blue {
+    background: #3b82f6;
+    color: #fff;
+    border: none;
+}
+.btn-blue:hover {
+    background: #2563eb;
+    transform: translateY(-2px);
+}
+
 /* ================= TOAST ================= */
 .toast {
     position:fixed;
@@ -347,7 +389,9 @@ import {
     collection,
     getDocs,
     query,
-    where
+    where,
+    doc,
+    updateDoc
 } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 import {
     getAuth,
@@ -372,7 +416,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const sidebar = document.querySelector(".sidebar");
     const searchInput = document.getElementById('searchInput');
-    const cardsContainer = document.getElementById('cardsContainer');
+    const colAberto = document.getElementById('col-aberto');
+    const colConcluido = document.getElementById('col-concluido');
     const toastEl = document.getElementById('toast');
     
     // Elementos do Modal
@@ -398,6 +443,15 @@ document.addEventListener('DOMContentLoaded', () => {
         toastEl._t = setTimeout(() => { toastEl.style.display = 'none'; }, 3000);
     }
 
+    // Calcula os dias passados desde o último andamento
+    function calcularDiasAndamento(dataAndamento) {
+        if (!dataAndamento) return 999; // Retorna número alto se não tiver andamento, forçando a ir para "Aberto"
+        const data1 = new Date(dataAndamento);
+        const data2 = new Date();
+        const diffTempo = Math.abs(data2 - data1);
+        return Math.floor(diffTempo / (1000 * 60 * 60 * 24));
+    }
+
     async function fetchClientesFechados(){
         try {
             const q = query(collection(db, "clientes"), where("status", "==", "fechado"));
@@ -413,7 +467,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Função interna que abre o modal recebendo o objeto do cliente
+    // Função para abrir o modal de andamento
     function abrirModal(cliente) {
         clienteSelecionado = cliente;
         modalTitle.innerText = `Andamento: ${cliente.nome}`;
@@ -426,7 +480,8 @@ document.addEventListener('DOMContentLoaded', () => {
         clienteSelecionado = null;
     };
 
-    btnEnviarAndamento.onclick = () => {
+    // Fluxo de envio de mensagem e atualização no Firebase
+    btnEnviarAndamento.onclick = async () => {
         if(!clienteSelecionado) return;
 
         const texto = inputAndamento.value.trim();
@@ -447,33 +502,69 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const mensagemFinal = texto.replace(/{nome}/g, clienteSelecionado.nome);
-        const waUrl = `https://wa.me/55${numeroLimpo}?text=${encodeURIComponent(mensagemFinal)}`;
-        
-        window.open(waUrl, '_blank');
-        showToast("WhatsApp aberto para envio!");
-        modalBackdrop.style.display = 'none';
+        // 1. Atualizar no Firebase a data do último andamento
+        try {
+            btnEnviarAndamento.disabled = true;
+            btnEnviarAndamento.innerText = "Salvando...";
+
+            const docRef = doc(db, "clientes", clienteSelecionado.id);
+            await updateDoc(docRef, { 
+                dataUltimoAndamento: new Date().toISOString() 
+            });
+
+            // 2. Montar e abrir WhatsApp
+            const mensagemFinal = texto.replace(/{nome}/g, clienteSelecionado.nome);
+            const waUrl = `https://wa.me/55${numeroLimpo}?text=${encodeURIComponent(mensagemFinal)}`;
+            window.open(waUrl, '_blank');
+
+            showToast("Andamento salvo e WhatsApp aberto!");
+            modalBackdrop.style.display = 'none';
+            
+            // 3. Recarregar os dados para mover o card de coluna
+            await fetchClientesFechados();
+            
+        } catch (error) {
+            console.error("Erro ao salvar andamento:", error);
+            showToast("Erro ao registrar o andamento no sistema.");
+        } finally {
+            btnEnviarAndamento.disabled = false;
+            btnEnviarAndamento.innerHTML = "↗️ Enviar via WhatsApp";
+        }
     };
 
     function renderCards(){
-        cardsContainer.innerHTML = '';
+        // Preserva os títulos das colunas e limpa os cards
+        colAberto.innerHTML = '<h2>ANDAMENTOS EM ABERTO (Aguardando Atualização)</h2>';
+        colConcluido.innerHTML = '<h2>ANDAMENTOS CONCLUÍDOS (Atualizados há menos de 5 dias)</h2>';
+        
         const qTexto = searchInput.value.toLowerCase();
 
         clientesFechados.forEach(cliente => {
             if (cliente.nome && !cliente.nome.toLowerCase().includes(qTexto)) return;
 
+            // Logica de separação de coluna
+            const diasPassados = calcularDiasAndamento(cliente.dataUltimoAndamento);
+            const pendente = diasPassados >= 5;
+
             const card = document.createElement('div');
-            card.className = 'card';
+            card.className = `card ${pendente ? 'aberto' : 'concluido'}`;
 
             const primeiroProcesso = cliente.processo ? cliente.processo.split(',')[0].trim() : 'Não informado';
             const valorCausa = cliente.valor ? `R$ ${cliente.valor}` : 'Não informado';
             const estado = cliente.estado || 'Não informado';
+            
+            // Texto da Badge
+            let badgeTexto = pendente ? "Pendente" : "Atualizado";
+            if (!pendente) {
+                badgeTexto += diasPassados === 0 ? " (Hoje)" : ` (${diasPassados}d atrás)`;
+            }
 
-            // Montagem do HTML do Card
             card.innerHTML = `
                 <div class="card-header">
                     <h3 title="${cliente.nome}">${cliente.nome}</h3>
-                    <span class="badge-fechado">Fechado</span>
+                    <span class="badge-tempo" style="color: ${pendente ? '#fca5a5' : '#6ee7b7'};">
+                        ${badgeTexto}
+                    </span>
                 </div>
                 <div class="card-content">
                     <p><strong>Processo:</strong> ${primeiroProcesso}</p>
@@ -481,32 +572,30 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p><strong>Estado:</strong> ${estado}</p>
                 </div>
                 <div class="card-footer">
-                    <button class="btn btn-green btn-abrir-andamento">
+                    <button class="btn ${pendente ? 'btn-blue' : 'btn-green'} btn-abrir-andamento">
                         💬 Escrever Andamento
                     </button>
                 </div>
             `;
 
-            // Adiciona o evento de clique via JavaScript diretamente nos elementos
             const btnAbrir = card.querySelector('.btn-abrir-andamento');
             
-            // Se clicar no botão
             btnAbrir.onclick = (e) => {
-                e.stopPropagation(); // Evita que clique duas vezes
+                e.stopPropagation(); 
                 abrirModal(cliente);
             };
 
-            // Se clicar em qualquer outra área do card
             card.onclick = () => {
                 abrirModal(cliente);
             };
 
-            cardsContainer.appendChild(card);
+            // Insere na coluna correta
+            if (pendente) {
+                colAberto.appendChild(card);
+            } else {
+                colConcluido.appendChild(card);
+            }
         });
-
-        if(cardsContainer.innerHTML === '') {
-            cardsContainer.innerHTML = '<p style="color: rgba(255,255,255,0.5);">Nenhum processo fechado encontrado.</p>';
-        }
     }
 
     searchInput.oninput = renderCards;
@@ -559,7 +648,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <header>
         <h1>Setor de Andamento</h1>
         <div style="font-size: 14px; color: rgba(255,255,255,0.7);">
-            Atualização de processos dos cards fechados
+            Atualize clientes: Retornam para "Em Aberto" a cada 5 dias.
         </div>
     </header>
 
@@ -567,15 +656,22 @@ document.addEventListener('DOMContentLoaded', () => {
         <input id="searchInput" placeholder="Buscar cliente por nome..." />
     </div>
 
-    <div class="cards-container" id="cardsContainer">
-        </div>
+    <div class="kanban-container">
+        <main class="kanban" id="kanban">
+            <div class="column" id="col-aberto">
+                </div>
+
+            <div class="column" id="col-concluido">
+                </div>
+        </main>
+    </div>
 </div>
 
 <div class="modal-backdrop" id="modalBackdrop">
     <div class="modal">
         <h3 id="modalTitle">Escrever Andamento</h3>
         <p style="font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 15px;">
-            A tag <strong>{nome}</strong> será substituída automaticamente pelo nome do cliente ao enviar.
+            A tag <strong>{nome}</strong> será substituída automaticamente pelo nome do cliente. Salvar isso move o card para "Concluídos".
         </p>
         
         <textarea id="inputAndamento" placeholder="Digite o andamento do processo aqui..."></textarea>
