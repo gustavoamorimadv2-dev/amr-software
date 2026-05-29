@@ -66,6 +66,7 @@ button {
   transition:all 0.3s ease;
 }
 button:hover { background:#eaeaea; }
+button:disabled { background: #ccc; cursor: not-allowed; }
 
 .error {
   color:#ff7675;
@@ -124,14 +125,14 @@ button:hover { background:#eaeaea; }
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAFJJAqVf3ge0WDHBpmS9E6sXKvnjuFkhw",
     authDomain: "dapapp-38637.firebaseapp.com",
     projectId: "dapapp-38637",
-    storageBucket: "dapapp-38637.appspot.com",
+    storageBucket: "dapapp-38637.firebasestorage.app", // Link do storage atualizado
     messagingSenderId: "628852295313",
     appId: "1:628852295313:web:1234567890abcdef123456"
 };
@@ -147,6 +148,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const errorMsg = document.getElementById("errorMsg");
   const toast = document.getElementById("toast");
   const video = document.getElementById("bgVideo");
+  const btnSubmit = form.querySelector("button[type='submit']");
 
   // Garante que o vídeo inicie corretamente
   video.muted = true;
@@ -165,31 +167,64 @@ document.addEventListener("DOMContentLoaded", () => {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     errorMsg.style.display = "none";
+    
+    const email = emailInput.value.trim().toLowerCase();
+    const senha = passwordInput.value;
+
+    btnSubmit.innerText = "Entrando...";
+    btnSubmit.disabled = true;
 
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, emailInput.value, passwordInput.value);
+      // 1. TENTA O LOGIN NORMAL
+      const userCredential = await signInWithEmailAndPassword(auth, email, senha);
       const user = userCredential.user;
-
-      // 🔑 Verifica se já existe documento para esse usuário no Firestore
-      const userRef = doc(db, "usuarios", user.uid);
-      const userSnap = await getDoc(userRef);
-
-      if (!userSnap.exists()) {
-        // Cria documento inicial do usuário
-        await setDoc(userRef, {
-          email: user.email,
-          criadoEm: new Date().toISOString(),
-          plano: "gratuito"
-        });
-      }
 
       showToast("Login realizado com sucesso!");
       setTimeout(() => window.location.href = "crm.html", 1000);
 
     } catch (error) {
-      console.error(error);
+      console.log("Falha no login normal, verificando pré-cadastro...", error.code);
+
+      // 2. SE FALHAR, VERIFICA SE EXISTE UM PRÉ-CADASTRO NA FILA
+      if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+          try {
+              const qPre = query(collection(db, "pre_cadastros"), where("email", "==", email), where("senhaPadrao", "==", senha));
+              const preSnap = await getDocs(qPre);
+
+              if (!preSnap.empty) {
+                  const docDados = preSnap.docs[0];
+                  const dadosFunc = docDados.data();
+
+                  showToast("Configurando seu primeiro acesso...");
+
+                  // Cria o usuário oficialmente no Firebase Auth
+                  const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
+                  const novoUid = userCredential.user.uid;
+
+                  // Salva na coleção oficial 'funcionarios' (para aparecer no painel ADM)
+                  await setDoc(doc(db, "funcionarios", novoUid), {
+                      nome: dadosFunc.nome,
+                      email: email,
+                      criadoEm: new Date().toISOString()
+                  });
+
+                  // Deleta da fila de pré-cadastros
+                  await deleteDoc(doc(db, "pre_cadastros", docDados.id));
+
+                  showToast("Tudo pronto! Redirecionando...");
+                  setTimeout(() => window.location.href = "crm.html", 1500);
+                  return;
+              }
+          } catch (errDb) {
+              console.error("Erro no fluxo do primeiro acesso: ", errDb);
+          }
+      }
+
+      // Se falhar no login e não achar o pré-cadastro, mostra erro
       errorMsg.innerText = "E-mail ou senha inválidos.";
       errorMsg.style.display = "block";
+      btnSubmit.innerText = "Entrar";
+      btnSubmit.disabled = false;
     }
   });
 });
@@ -207,7 +242,6 @@ document.addEventListener("DOMContentLoaded", () => {
     </form>
   </div>
 
-  <!-- VÍDEO EM TELA CHEIA NO RESTANTE DA PÁGINA -->
   <div class="video-container">
     <video id="bgVideo" autoplay muted loop playsinline>
       <source src="videotrem.mp4" type="video/mp4">
