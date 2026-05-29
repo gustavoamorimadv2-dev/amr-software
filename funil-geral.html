@@ -380,14 +380,16 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             const docRef = doc(db, "clientes", id);
-            // Atualiza para o usuário atual, seta o nome do responsável e zera o tempo (dataUltimoResgate)
+            
+            // Atualiza o userId, responsavel e JOGA PARA A LISTA FRIA do novo dono
             await updateDoc(docRef, { 
                 userId: currentUser.uid,
                 responsavel: currentUser.displayName || currentUser.email || 'Usuário Atual',
-                dataUltimoResgate: new Date().toISOString()
+                dataUltimoResgate: new Date().toISOString(),
+                status: 'lista-fria' // Move o card direto para a Lista Fria no CRM
             });
             
-            showToast("Card resgatado com sucesso!");
+            showToast("Card resgatado e movido para sua Lista Fria!");
             fetchTodosClientes(); // Recarrega a tela
         } catch (error) {
             console.error(error);
@@ -489,7 +491,20 @@ document.addEventListener('DOMContentLoaded', () => {
     <button onclick="window.location.href='funil_geral.html'">
         <img src="https://img.icons8.com/ios-filled/50/ffffff/filter.png"/>
         <span>Funil Geral</span>
-    <button onclick="window.location.href='funil_geral.html'">
+    </button>
+    <button onclick="window.location.href='andamento.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/task.png"/>
+        <span>Andamento</span>
+    </button>
+    <button onclick="window.location.href='clientes.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/user-group-man-man.png"/>
+        <span>Clientes</span>
+    </button>
+    <button onclick="window.location.href='app.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/phone.png"/>
+        <span>App</span>
+    </button>
+    <button>
         <img src="https://img.icons8.com/ios-filled/50/ffffff/settings.png"/>
         <span>Configurações</span>
     </button>
