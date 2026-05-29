@@ -9,20 +9,36 @@
 
 <style>
 
-* {
+*{
     margin:0;
     padding:0;
     box-sizing:border-box;
     font-family:'Inter',sans-serif;
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
-::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+/* ================= SCROLL ================= */
 
-body {
+::-webkit-scrollbar{
+    width:8px;
+    height:8px;
+}
+
+::-webkit-scrollbar-track{
+    background:rgba(255,255,255,0.02);
+}
+
+::-webkit-scrollbar-thumb{
+    background:rgba(255,255,255,0.1);
+    border-radius:10px;
+}
+
+::-webkit-scrollbar-thumb:hover{
+    background:rgba(255,255,255,0.2);
+}
+
+/* ================= BODY ================= */
+
+body{
     display:flex;
     height:100vh;
     overflow:hidden;
@@ -30,11 +46,12 @@ body {
         radial-gradient(circle at top left,#2f3f73 0%,transparent 30%),
         radial-gradient(circle at bottom right,#0f766e 0%,transparent 25%),
         linear-gradient(135deg,#0f172a,#111827,#020617);
-    color: #fff;
+    color:#fff;
 }
 
 /* ================= SIDEBAR ================= */
-.sidebar {
+
+.sidebar{
     width:80px;
     display:flex;
     flex-direction:column;
@@ -50,9 +67,11 @@ body {
     box-shadow:0 0 40px rgba(0,0,0,0.25);
 }
 
-.sidebar.expanded { width:240px; }
+.sidebar.expanded{
+    width:240px;
+}
 
-.sidebar h2 {
+.sidebar h2{
     font-size:22px;
     font-weight:800;
     color:#fff;
@@ -67,9 +86,11 @@ body {
     opacity:0;
 }
 
-.sidebar.expanded h2 { opacity:1; }
+.sidebar.expanded h2{
+    opacity:1;
+}
 
-.sidebar button {
+.sidebar button{
     width:calc(100% - 20px);
     background:transparent;
     border:none;
@@ -87,7 +108,7 @@ body {
     overflow:hidden;
 }
 
-.sidebar button img {
+.sidebar button img{
     width:24px;
     height:24px;
     filter:invert(1) opacity(0.7);
@@ -95,22 +116,38 @@ body {
     transition:transform 0.3s, filter 0.3s;
 }
 
-.sidebar button span { display:inline-block; opacity:0; transition:opacity 0.3s; font-weight:600; }
-.sidebar.expanded button span { opacity:1; }
-.sidebar button:hover img { transform:scale(1.1); filter:invert(1) opacity(1); }
-.sidebar button:hover { background:rgba(255,255,255,0.1); color:#fff; }
+.sidebar button span{
+    display:inline-block;
+    opacity:0;
+    transition:opacity 0.3s;
+    font-weight:600;
+}
+
+.sidebar.expanded button span{
+    opacity:1;
+}
+
+.sidebar button:hover img{
+    transform:scale(1.1);
+    filter:invert(1) opacity(1);
+}
+
+.sidebar button:hover{
+    background:rgba(255,255,255,0.1);
+    color:#fff;
+}
 
 /* ================= MAIN ================= */
-.main {
+
+.main{
     flex:1;
     display:flex;
     flex-direction:column;
     overflow:hidden;
 }
 
-header {
+header{
     height:70px;
-    background:transparent;
     border-bottom:1px solid rgba(255,255,255,0.08);
     display:flex;
     justify-content:space-between;
@@ -119,11 +156,16 @@ header {
     flex-shrink:0;
 }
 
-header h1 { font-size:24px; color:#fff; font-weight:800; }
+header h1{
+    font-size:24px;
+    color:#fff;
+    font-weight:800;
+}
 
-.search-bar {
+/* ================= SEARCH ================= */
+
+.search-bar{
     padding:15px 30px;
-    background:transparent;
     border-bottom:1px solid rgba(255,255,255,0.08);
     display:flex;
     gap:15px;
@@ -131,48 +173,54 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     flex-shrink:0;
 }
 
-.search-bar input {
+.search-bar input{
     padding:12px 16px;
     background:rgba(255,255,255,0.08);
     border:1px solid rgba(255,255,255,0.1);
     border-radius:12px;
     color:#fff;
-    font-size: 14px;
-    outline: none;
-    transition: 0.3s;
-    backdrop-filter: blur(10px);
+    font-size:14px;
+    outline:none;
+    transition:0.3s;
+    backdrop-filter:blur(10px);
     flex:1;
 }
 
-.search-bar input:focus {
+.search-bar input:focus{
     background:rgba(255,255,255,0.15);
-    border-color: rgba(255,255,255,0.3);
+    border-color:rgba(255,255,255,0.3);
 }
 
-.search-bar input::placeholder { color: rgba(255,255,255,0.5); }
+.search-bar input::placeholder{
+    color:rgba(255,255,255,0.5);
+}
 
-/* ================= KANBAN COLUNAS ================= */
-.kanban-container {
+/* ================= KANBAN ================= */
+
+.kanban-container{
     flex:1;
     overflow-x:auto;
     padding:20px 30px;
 }
 
-.kanban {
+.kanban{
     display:flex;
     gap:20px;
     min-width:max-content;
     height:100%;
 }
 
-.column {
+.column{
     background:rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.05);
-    backdrop-filter: blur(10px);
+    border:1px solid rgba(255,255,255,0.05);
+    backdrop-filter:blur(10px);
     border-radius:20px;
     padding:15px;
-    min-width:420px; /* Aumentado um pouco para acomodar processos grandes */
-    width: 48%;
+
+    width:520px;
+    min-width:520px;
+    flex-shrink:0;
+
     max-height:100%;
     display:flex;
     flex-direction:column;
@@ -180,21 +228,22 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     overflow-y:auto;
 }
 
-.column h2 {
+.column h2{
     margin-bottom:10px;
     font-size:14px;
     color:#fff;
-    font-weight: 700;
-    letter-spacing: 1px;
-    opacity: 0.8;
+    font-weight:700;
+    letter-spacing:1px;
+    opacity:0.8;
 }
 
 /* ================= CARDS ================= */
-.card {
+
+.card{
     display:flex;
     background:rgba(255,255,255,0.07);
-    border: 1px solid rgba(255,255,255,0.08);
-    backdrop-filter: blur(15px);
+    border:1px solid rgba(255,255,255,0.08);
+    backdrop-filter:blur(15px);
     border-radius:12px;
     box-shadow:0 4px 15px rgba(0,0,0,0.2);
     overflow:hidden;
@@ -202,154 +251,182 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     position:relative;
     flex-direction:column;
     width:100%;
-    cursor: pointer;
+    cursor:pointer;
 }
 
-.card:hover {
+.card:hover{
     transform:translateY(-4px);
     background:rgba(255,255,255,0.1);
 }
 
-/* Indicadores de Cor */
-.aberto { border-top: 5px solid #ef4444; }
-.aberto:hover { border-color: #f87171; }
-
-.concluido { border-top: 5px solid #10b981; }
-.concluido:hover { border-color: #34d399; }
-
-.card-header {
-    background: rgba(0, 0, 0, 0.2); 
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    padding: 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.aberto{
+    border-top:5px solid #ef4444;
 }
 
-.card-header h3 {
+.aberto:hover{
+    border-color:#f87171;
+}
+
+.concluido{
+    border-top:5px solid #10b981;
+}
+
+.concluido:hover{
+    border-color:#34d399;
+}
+
+.card-header{
+    background:rgba(0,0,0,0.2);
+    border-bottom:1px solid rgba(255,255,255,0.05);
+    padding:16px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+}
+
+.card-header h3{
     font-size:16px;
     color:#fff;
-    font-weight: 700;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-weight:700;
+    flex:1;
+    overflow:hidden;
+    text-overflow:ellipsis;
 }
 
-.badge-tempo {
-    font-size: 11px;
-    font-weight: bold;
-    padding: 6px 10px;
-    border-radius: 6px;
-    background: rgba(255,255,255,0.1);
+.badge-tempo{
+    font-size:11px;
+    font-weight:bold;
+    padding:6px 10px;
+    border-radius:6px;
+    background:rgba(255,255,255,0.1);
+    white-space:nowrap;
 }
 
-.card-content {
-    padding: 16px;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 12px; /* Maior espaçamento interno */
+/* ================= CARD CONTENT ================= */
+
+.card-content{
+    padding:16px;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    min-width:0;
 }
 
-/* Blocos de Informação Maiores e Visíveis */
-.info-block {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    background: rgba(0,0,0,0.15);
-    padding: 10px 12px;
-    border-radius: 8px;
-    border-left: 3px solid rgba(255,255,255,0.1);
+.info-block{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    background:rgba(0,0,0,0.15);
+    padding:10px 12px;
+    border-radius:8px;
+    border-left:3px solid rgba(255,255,255,0.1);
 }
 
-.info-block.processo {
-    border-left-color: #3b82f6; /* Destaque azul para o processo */
+.info-block.processo{
+    border-left-color:#3b82f6;
 }
 
-.info-block strong {
-    font-size: 11px;
-    color: rgba(255,255,255,0.6);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+.info-block.cpf{
+    border-left-color:#8b5cf6;
 }
 
-.info-block span {
-    font-size: 15px;
-    font-weight: 600;
-    color: #fff;
-    word-break: break-all; /* Garante que processos longos quebrem a linha em vez de sumir */
+.info-block.estado{
+    border-left-color:#10b981;
 }
 
-/* O user-select: all faz com que um clique selecione o número inteiro do processo */
-.info-block span.numero-processo {
-    color: #93c5fd;
-    user-select: all; 
-    cursor: text;
+.info-block strong{
+    font-size:11px;
+    color:rgba(255,255,255,0.6);
+    text-transform:uppercase;
+    letter-spacing:0.5px;
 }
 
-/* Seção de Valor (Menor) */
-.info-row-inline {
-    display: flex;
-    justify-content: space-between;
-    font-size: 13px;
-    color: rgba(255,255,255,0.8);
-    padding: 0 4px;
+.info-block span{
+    font-size:15px;
+    font-weight:600;
+    color:#fff;
+    white-space:normal;
+    word-break:break-word;
+    overflow-wrap:break-word;
 }
 
-.info-row-inline strong { color: #fff; font-weight: 600; }
-
-/* Seção do Último Andamento */
-.ultimo-andamento {
-    margin-top: 4px;
-    padding: 12px;
-    background: rgba(0, 0, 0, 0.25);
-    border-radius: 8px;
-    border-left: 3px solid rgba(255,255,255,0.2);
+.numero-processo{
+    color:#93c5fd !important;
+    user-select:all;
+    cursor:text;
 }
 
-.ultimo-andamento strong {
-    display: block;
-    font-size: 11px;
-    color: rgba(255,255,255,0.5);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 6px;
+/* ================= VALOR ================= */
+
+.info-row-inline{
+    display:flex;
+    justify-content:space-between;
+    font-size:13px;
+    color:rgba(255,255,255,0.8);
+    padding:0 4px;
 }
 
-.ultimo-andamento p {
-    font-size: 13px;
-    color: rgba(255,255,255,0.9);
-    margin: 0;
-    display: -webkit-box;
-    -webkit-line-clamp: 3; /* Mostra até 3 linhas e depois reticências */
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    line-height: 1.4;
-    font-style: italic;
+.info-row-inline strong{
+    color:#fff;
+    font-weight:600;
 }
 
-.card-footer {
-    padding: 16px;
-    border-top: 1px solid rgba(255,255,255,0.05);
-    background: rgba(0,0,0,0.1);
+/* ================= ÚLTIMO ANDAMENTO ================= */
+
+.ultimo-andamento{
+    margin-top:4px;
+    padding:12px;
+    background:rgba(0,0,0,0.25);
+    border-radius:8px;
+    border-left:3px solid rgba(255,255,255,0.2);
+}
+
+.ultimo-andamento strong{
+    display:block;
+    font-size:11px;
+    color:rgba(255,255,255,0.5);
+    text-transform:uppercase;
+    letter-spacing:0.5px;
+    margin-bottom:6px;
+}
+
+.ultimo-andamento p{
+    font-size:13px;
+    color:rgba(255,255,255,0.9);
+    margin:0;
+    display:-webkit-box;
+    -webkit-line-clamp:3;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    line-height:1.4;
+    font-style:italic;
+}
+
+.card-footer{
+    padding:16px;
+    border-top:1px solid rgba(255,255,255,0.05);
+    background:rgba(0,0,0,0.1);
 }
 
 /* ================= MODAL ================= */
-.modal-backdrop {
+
+.modal-backdrop{
     display:none;
     position:fixed;
     inset:0;
     background:rgba(0,0,0,0.6);
-    backdrop-filter: blur(8px);
+    backdrop-filter:blur(8px);
     justify-content:center;
     align-items:center;
     z-index:50;
 }
 
-.modal {
+.modal{
     background:#0f172a;
-    border: 1px solid rgba(255,255,255,0.1);
+    border:1px solid rgba(255,255,255,0.1);
     padding:24px;
     border-radius:24px;
     min-width:320px;
@@ -358,102 +435,110 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     box-shadow:0 20px 50px rgba(0,0,0,0.5);
 }
 
-.modal h3 {
+.modal h3{
     margin-bottom:10px;
-    font-size: 20px;
-    font-weight: 700;
+    font-size:20px;
+    font-weight:700;
 }
 
-.modal textarea {
+.modal textarea{
     width:100%;
     padding:12px 16px;
     background:rgba(255,255,255,0.05);
     border:1px solid rgba(255,255,255,0.1);
     border-radius:12px;
     color:#fff;
-    font-size: 14px;
-    outline: none;
-    min-height: 150px;
-    resize: vertical;
-    margin-bottom: 15px;
+    font-size:14px;
+    outline:none;
+    min-height:150px;
+    resize:vertical;
+    margin-bottom:15px;
 }
 
-.modal textarea:focus {
+.modal textarea:focus{
     background:rgba(255,255,255,0.1);
-    border-color: rgba(255,255,255,0.3);
+    border-color:rgba(255,255,255,0.3);
 }
 
-.modal .actions {
+.modal .actions{
     display:flex;
     gap:10px;
     justify-content:flex-end;
 }
 
 /* ================= BUTTONS ================= */
-.btn {
+
+.btn{
     padding:12px 16px;
     border-radius:8px;
     border:0;
     cursor:pointer;
-    font-weight: 600;
-    font-size: 13px;
-    transition: 0.3s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    width: 100%;
+    font-weight:600;
+    font-size:13px;
+    transition:0.3s;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    width:100%;
 }
 
-.btn.primary { background:#fff; color:#111827; }
-.btn.primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255,255,255,0.2); }
-
-.btn.ghost { background:rgba(255,255,255,0.12); color:#fff; width: auto;}
-.btn.ghost:hover { background:rgba(255,255,255,0.2); }
-
-.btn-green {
-    background: #10b981;
-    color: #fff;
-    border: none;
-    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+.btn.ghost{
+    background:rgba(255,255,255,0.12);
+    color:#fff;
+    width:auto;
 }
 
-.btn-green:hover {
-    background: #059669;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4);
+.btn.ghost:hover{
+    background:rgba(255,255,255,0.2);
 }
 
-.btn-blue {
-    background: #3b82f6;
-    color: #fff;
-    border: none;
+.btn-green{
+    background:#10b981;
+    color:#fff;
+    border:none;
 }
-.btn-blue:hover {
-    background: #2563eb;
-    transform: translateY(-2px);
+
+.btn-green:hover{
+    background:#059669;
+    transform:translateY(-2px);
+}
+
+.btn-blue{
+    background:#3b82f6;
+    color:#fff;
+    border:none;
+}
+
+.btn-blue:hover{
+    background:#2563eb;
+    transform:translateY(-2px);
 }
 
 /* ================= TOAST ================= */
-.toast {
+
+.toast{
     position:fixed;
     right:30px;
     bottom:30px;
     background:rgba(255,255,255,0.1);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.1);
+    backdrop-filter:blur(20px);
+    border:1px solid rgba(255,255,255,0.1);
     color:#fff;
     padding:12px 20px;
     border-radius:12px;
     box-shadow:0 10px 30px rgba(0,0,0,.4);
     display:none;
     z-index:60;
-    font-weight: 500;
+    font-weight:500;
 }
+
 </style>
 
 <script type="module">
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+
 import {
     getFirestore,
     collection,
@@ -463,19 +548,21 @@ import {
     doc,
     updateDoc
 } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
 import {
     getAuth,
     onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
 
 /* ================= FIREBASE ================= */
+
 const firebaseConfig = {
-    apiKey: "AIzaSyAFJJAqVf3ge0WDHBpmS9E6sXKvnjuFkhw",
-    authDomain: "dapapp-38637.firebaseapp.com",
-    projectId: "dapapp-38637",
-    storageBucket: "dapapp-38637.firebasestorage.app",
-    messagingSenderId: "628852295313",
-    appId: "1:628852295313:web:1234567890abcdef123456"
+    apiKey: "SUA_API_KEY",
+    authDomain: "SEU_AUTH_DOMAIN",
+    projectId: "SEU_PROJECT_ID",
+    storageBucket: "SEU_STORAGE_BUCKET",
+    messagingSenderId: "SEU_SENDER_ID",
+    appId: "SEU_APP_ID"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -489,17 +576,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const colAberto = document.getElementById('col-aberto');
     const colConcluido = document.getElementById('col-concluido');
     const toastEl = document.getElementById('toast');
-    
-    // Elementos do Modal
+
     const modalBackdrop = document.getElementById('modalBackdrop');
     const modalTitle = document.getElementById('modalTitle');
     const inputAndamento = document.getElementById('inputAndamento');
     const btnFecharModal = document.getElementById('btnFecharModal');
     const btnEnviarAndamento = document.getElementById('btnEnviarAndamento');
 
-    let currentUser = null;
     let clientesFechados = [];
-    let clienteSelecionado = null; 
+    let clienteSelecionado = null;
 
     if(sidebar){
         sidebar.addEventListener('mouseenter', () => sidebar.classList.add('expanded'));
@@ -509,280 +594,418 @@ document.addEventListener('DOMContentLoaded', () => {
     function showToast(msg){
         toastEl.innerText = msg;
         toastEl.style.display = 'block';
+
         clearTimeout(toastEl._t);
-        toastEl._t = setTimeout(() => { toastEl.style.display = 'none'; }, 3000);
+
+        toastEl._t = setTimeout(() => {
+            toastEl.style.display = 'none';
+        },3000);
     }
 
-    // Calcula os dias passados desde o último andamento
-    function calcularDiasAndamento(dataAndamento) {
-        if (!dataAndamento) return 999; 
+    function calcularDiasAndamento(dataAndamento){
+        if(!dataAndamento) return 999;
+
         const data1 = new Date(dataAndamento);
         const data2 = new Date();
+
         const diffTempo = Math.abs(data2 - data1);
+
         return Math.floor(diffTempo / (1000 * 60 * 60 * 24));
     }
 
     async function fetchClientesFechados(){
-        try {
-            const q = query(collection(db, "clientes"), where("status", "==", "fechado"));
+
+        try{
+
+            const q = query(
+                collection(db,"clientes"),
+                where("status","==","fechado")
+            );
+
             const snapshot = await getDocs(q);
+
             clientesFechados = snapshot.docs.map(docData => ({
-                id: docData.id,
+                id:docData.id,
                 ...docData.data()
             }));
+
             renderCards();
-        } catch (error) {
-            console.error("Erro ao buscar clientes:", error);
-            showToast("Erro ao carregar os processos fechados.");
+
+        }catch(error){
+
+            console.error(error);
+            showToast("Erro ao carregar clientes.");
+
         }
     }
 
-    // Função para abrir o modal de andamento
-    function abrirModal(cliente) {
+    function abrirModal(cliente){
+
         clienteSelecionado = cliente;
+
         modalTitle.innerText = `Andamento: ${cliente.nome}`;
-        
-        inputAndamento.value = `Olá {nome}, tudo bem?\nAqui é do setor de andamento da AMR ADV. \n\nA atualização do seu processo é: \n\n`;
+
+        inputAndamento.value =
+`Olá {nome}, tudo bem?
+
+Aqui é do setor de andamento da AMR ADV.
+
+A atualização do seu processo é:
+
+`;
+
         modalBackdrop.style.display = 'flex';
     }
 
     btnFecharModal.onclick = () => {
+
         modalBackdrop.style.display = 'none';
         clienteSelecionado = null;
+
     };
 
-    // Fluxo de envio de mensagem e atualização no Firebase
     btnEnviarAndamento.onclick = async () => {
+
         if(!clienteSelecionado) return;
 
         const texto = inputAndamento.value.trim();
-        if(!texto) {
-            showToast("Escreva o andamento antes de enviar.");
+
+        if(!texto){
+            showToast("Digite o andamento.");
             return;
         }
 
-        if(!clienteSelecionado.numeros) {
-            showToast("Cliente não possui número de telefone cadastrado.");
+        if(!clienteSelecionado.numeros){
+            showToast("Cliente sem telefone.");
             return;
         }
 
-        const numeroLimpo = clienteSelecionado.numeros.split(',')[0].replace(/\D/g, '');
-        
-        if(!numeroLimpo) {
-            showToast("Número de telefone inválido.");
-            return;
-        }
+        const numeroLimpo =
+            clienteSelecionado.numeros
+            .split(',')[0]
+            .replace(/\D/g,'');
 
-        const mensagemFinal = texto.replace(/{nome}/g, clienteSelecionado.nome);
+        const mensagemFinal =
+            texto.replace(/{nome}/g,clienteSelecionado.nome);
 
-        // 1. Atualizar no Firebase a data e gravar o texto do último andamento
-        try {
+        try{
+
             btnEnviarAndamento.disabled = true;
             btnEnviarAndamento.innerText = "Salvando...";
 
-            const docRef = doc(db, "clientes", clienteSelecionado.id);
-            await updateDoc(docRef, { 
-                dataUltimoAndamento: new Date().toISOString(),
-                ultimoAndamentoTexto: mensagemFinal 
+            const docRef = doc(db,"clientes",clienteSelecionado.id);
+
+            await updateDoc(docRef,{
+                dataUltimoAndamento:new Date().toISOString(),
+                ultimoAndamentoTexto:mensagemFinal
             });
 
-            // 2. Montar e abrir WhatsApp
-            const waUrl = `https://wa.me/55${numeroLimpo}?text=${encodeURIComponent(mensagemFinal)}`;
-            window.open(waUrl, '_blank');
+            const waUrl =
+                `https://wa.me/55${numeroLimpo}?text=${encodeURIComponent(mensagemFinal)}`;
 
-            showToast("Andamento salvo e WhatsApp aberto!");
+            window.open(waUrl,'_blank');
+
             modalBackdrop.style.display = 'none';
-            
-            // 3. Recarregar os dados
+
+            showToast("Andamento enviado!");
+
             await fetchClientesFechados();
-            
-        } catch (error) {
-            console.error("Erro ao salvar andamento:", error);
-            showToast("Erro ao registrar o andamento no sistema.");
-        } finally {
+
+        }catch(error){
+
+            console.error(error);
+            showToast("Erro ao salvar.");
+
+        }finally{
+
             btnEnviarAndamento.disabled = false;
             btnEnviarAndamento.innerHTML = "↗️ Enviar via WhatsApp";
+
         }
+
     };
 
     function renderCards(){
-        colAberto.innerHTML = '<h2>ANDAMENTOS EM ABERTO (Aguardando Atualização)</h2>';
-        colConcluido.innerHTML = '<h2>ANDAMENTOS CONCLUÍDOS (Atualizados há menos de 5 dias)</h2>';
-        
+
+        colAberto.innerHTML =
+            '<h2>ANDAMENTOS EM ABERTO</h2>';
+
+        colConcluido.innerHTML =
+            '<h2>ANDAMENTOS CONCLUÍDOS</h2>';
+
         const qTexto = searchInput.value.toLowerCase();
 
         clientesFechados.forEach(cliente => {
-            if (cliente.nome && !cliente.nome.toLowerCase().includes(qTexto)) return;
 
-            const diasPassados = calcularDiasAndamento(cliente.dataUltimoAndamento);
+            if(cliente.nome &&
+               !cliente.nome.toLowerCase().includes(qTexto)) return;
+
+            const diasPassados =
+                calcularDiasAndamento(cliente.dataUltimoAndamento);
+
             const pendente = diasPassados >= 5;
 
             const card = document.createElement('div');
-            card.className = `card ${pendente ? 'aberto' : 'concluido'}`;
 
-            // Cobertura extra para variações no nome da variável no Firestore (processo, processos, numeroProcesso)
-            const primeiroProcesso = cliente.processo || cliente.processos || cliente.numeroProcesso || 'Não informado';
-            const primeiroProcessoLimpo = primeiroProcesso.split(',')[0].trim();
-            
-            const valorCausa = cliente.valor ? `R$ ${cliente.valor}` : 'Não informado';
-            const estado = cliente.estado || 'Não informado';
-            
-            const textoAndamento = cliente.ultimoAndamentoTexto ? cliente.ultimoAndamentoTexto : '';
+            card.className =
+                `card ${pendente ? 'aberto' : 'concluido'}`;
 
-            let badgeTexto = pendente ? "Pendente" : "Atualizado";
-            if (!pendente) {
-                badgeTexto += diasPassados === 0 ? " (Hoje)" : ` (${diasPassados}d atrás)`;
+            const processo =
+                cliente.processo ||
+                cliente.processos ||
+                cliente.numeroProcesso ||
+                'Não informado';
+
+            const processoLimpo =
+                processo.split(',')[0].trim();
+
+            const cpfCnpj =
+                cliente.cpf ||
+                cliente.cnpj ||
+                'Não informado';
+
+            const estado =
+                cliente.estado ||
+                'Não informado';
+
+            const valor =
+                cliente.valor
+                ? `R$ ${cliente.valor}`
+                : 'Não informado';
+
+            const textoAndamento =
+                cliente.ultimoAndamentoTexto || '';
+
+            let badgeTexto =
+                pendente ? "Pendente" : "Atualizado";
+
+            if(!pendente){
+
+                badgeTexto +=
+                    diasPassados === 0
+                    ? " (Hoje)"
+                    : ` (${diasPassados}d atrás)`;
+
             }
 
-            // Montagem do HTML do card com blocos grandes
             card.innerHTML = `
+
                 <div class="card-header">
-                    <h3 title="${cliente.nome}">${cliente.nome}</h3>
-                    <span class="badge-tempo" style="color: ${pendente ? '#fca5a5' : '#6ee7b7'};">
+
+                    <h3 title="${cliente.nome}">
+                        ${cliente.nome}
+                    </h3>
+
+                    <span
+                        class="badge-tempo"
+                        style="color:${pendente ? '#fca5a5' : '#6ee7b7'};"
+                    >
                         ${badgeTexto}
                     </span>
+
                 </div>
+
                 <div class="card-content">
-                    
-                    <div class="info-block processo" title="Clique no número para selecionar e copiar">
+
+                    <div class="info-block processo">
                         <strong>Número do Processo</strong>
-                        <span class="numero-processo">${primeiroProcessoLimpo}</span>
+
+                        <span class="numero-processo">
+                            ${processoLimpo}
+                        </span>
                     </div>
 
-                    <div class="info-block">
-                        <strong>Estado</strong>
-                        <span>${estado}</span>
+                    <div class="info-block cpf">
+                        <strong>CPF / CNPJ</strong>
+
+                        <span>
+                            ${cpfCnpj}
+                        </span>
+                    </div>
+
+                    <div class="info-block estado">
+                        <strong>Estado do Processo</strong>
+
+                        <span>
+                            ${estado}
+                        </span>
                     </div>
 
                     <div class="info-row-inline">
-                        <strong>Valor da Causa:</strong>
-                        <span>${valorCausa}</span>
+                        <strong>Valor:</strong>
+
+                        <span>${valor}</span>
                     </div>
-                    
+
                     ${textoAndamento ? `
+
                     <div class="ultimo-andamento">
-                        <strong>Último Andamento Enviado:</strong>
-                        <p title="${textoAndamento.replace(/"/g, '&quot;')}">"${textoAndamento}"</p>
-                    </div>` : ''}
-                    
+
+                        <strong>
+                            Último Andamento
+                        </strong>
+
+                        <p>
+                            "${textoAndamento}"
+                        </p>
+
+                    </div>
+
+                    ` : ''}
+
                 </div>
+
                 <div class="card-footer">
+
                     <button class="btn ${pendente ? 'btn-blue' : 'btn-green'} btn-abrir-andamento">
+
                         💬 ${pendente ? 'Escrever Andamento' : 'Novo Andamento'}
+
                     </button>
+
                 </div>
+
             `;
 
-            const btnAbrir = card.querySelector('.btn-abrir-andamento');
-            
+            const btnAbrir =
+                card.querySelector('.btn-abrir-andamento');
+
             btnAbrir.onclick = (e) => {
-                e.stopPropagation(); 
+
+                e.stopPropagation();
                 abrirModal(cliente);
+
             };
 
-            // Previne que o card inteiro abra o modal se o usuário clicar no texto do processo para copiar
-            const textoProcesso = card.querySelector('.numero-processo');
-            if (textoProcesso) {
-                textoProcesso.onclick = (e) => e.stopPropagation();
-            }
+            card.onclick = () => abrirModal(cliente);
 
-            card.onclick = () => {
-                abrirModal(cliente);
-            };
+            if(pendente){
 
-            if (pendente) {
                 colAberto.appendChild(card);
-            } else {
+
+            }else{
+
                 colConcluido.appendChild(card);
+
             }
+
         });
+
     }
 
     searchInput.oninput = renderCards;
 
-    /* ================= LOGIN ================= */
-    onAuthStateChanged(auth, user => {
+    onAuthStateChanged(auth,user => {
+
         if(user){
-            currentUser = user;
+
             fetchClientesFechados();
+
         }else{
+
             window.location.href = "login.html";
+
         }
+
     });
 
 });
+
 </script>
 
 </head>
+
 <body>
 
 <div class="sidebar">
-    <h2 onclick="window.location.href='dashboard.html'">AMR ADV</h2>
+
+    <h2 onclick="window.location.href='dashboard.html'">
+        AMR ADV
+    </h2>
+
     <button onclick="window.location.href='crm.html'">
         <img src="https://img.icons8.com/ios-filled/50/ffffff/dashboard.png"/>
         <span>CRM</span>
     </button>
+
     <button onclick="window.location.href='funil_geral.html'">
         <img src="https://img.icons8.com/ios-filled/50/ffffff/filter.png"/>
         <span>Funil Geral</span>
     </button>
+
     <button onclick="window.location.href='andamento.html'">
         <img src="https://img.icons8.com/ios-filled/50/ffffff/task.png"/>
         <span>Andamento</span>
     </button>
-    <button onclick="window.location.href='clientes.html'">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/user-group-man-man.png"/>
-        <span>Clientes</span>
-    </button>
-    <button onclick="window.location.href='app.html'">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/phone.png"/>
-        <span>App</span>
-    </button>
-    <button>
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/settings.png"/>
-        <span>Configurações</span>
-    </button>
+
 </div>
 
 <div class="main">
+
     <header>
+
         <h1>Setor de Andamento</h1>
-        <div style="font-size: 14px; color: rgba(255,255,255,0.7);">
-            Atualize clientes: Retornam para "Em Aberto" a cada 5 dias.
+
+        <div style="font-size:14px;color:rgba(255,255,255,0.7);">
+            Atualize clientes a cada 5 dias.
         </div>
+
     </header>
 
     <div class="search-bar">
-        <input id="searchInput" placeholder="Buscar cliente por nome..." />
+
+        <input
+            id="searchInput"
+            placeholder="Buscar cliente..."
+        />
+
     </div>
 
     <div class="kanban-container">
-        <main class="kanban" id="kanban">
-            <div class="column" id="col-aberto">
-                </div>
 
-            <div class="column" id="col-concluido">
-                </div>
+        <main class="kanban">
+
+            <div class="column" id="col-aberto"></div>
+
+            <div class="column" id="col-concluido"></div>
+
         </main>
+
     </div>
+
 </div>
 
 <div class="modal-backdrop" id="modalBackdrop">
+
     <div class="modal">
-        <h3 id="modalTitle">Escrever Andamento</h3>
-        <p style="font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 15px;">
-            A tag <strong>{nome}</strong> será substituída automaticamente pelo nome do cliente. Salvar isso move o card para "Concluídos".
-        </p>
-        
-        <textarea id="inputAndamento" placeholder="Digite o andamento do processo aqui..."></textarea>
-        
+
+        <h3 id="modalTitle">
+            Escrever Andamento
+        </h3>
+
+        <textarea
+            id="inputAndamento"
+            placeholder="Digite o andamento..."
+        ></textarea>
+
         <div class="actions">
-            <button class="btn ghost" id="btnFecharModal">Cancelar</button>
-            <button class="btn btn-green" id="btnEnviarAndamento" style="width: auto;">
+
+            <button class="btn ghost" id="btnFecharModal">
+                Cancelar
+            </button>
+
+            <button
+                class="btn btn-green"
+                id="btnEnviarAndamento"
+                style="width:auto;"
+            >
                 ↗️ Enviar via WhatsApp
             </button>
+
         </div>
+
     </div>
+
 </div>
 
 <div class="toast" id="toast"></div>
