@@ -172,7 +172,8 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     border-radius:20px;
     padding:15px;
     min-width:400px;
-    width: 48%;
+    flex: 1; /* Permite que as colunas preencham o espaço de forma equilibrada */
+    max-width: 50%;
     max-height:100%;
     display:flex;
     flex-direction:column;
@@ -195,13 +196,14 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     background:rgba(255,255,255,0.07);
     border: 1px solid rgba(255,255,255,0.08);
     backdrop-filter: blur(15px);
-    border-radius:12px;
-    box-shadow:0 4px 15px rgba(0,0,0,0.2);
+    border-radius:16px;
+    box-shadow:0 8px 30px rgba(0,0,0,0.2);
     overflow:hidden;
     transition:transform 0.3s, background 0.3s, border-color 0.3s;
     position:relative;
     flex-direction:column;
     width:100%;
+    min-height: 200px; /* Igual ao CRM padrão */
     cursor: pointer;
 }
 
@@ -218,21 +220,22 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 .concluido:hover { border-color: #34d399; }
 
 .card-header {
-    background: rgba(0, 0, 0, 0.2); 
+    background: rgba(0, 0, 0, 0.1); 
     border-bottom: 1px solid rgba(255,255,255,0.05);
-    padding: 12px 16px;
+    padding: 15px 20px;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
 .card-header h3 {
-    font-size:15px;
+    font-size:18px;
     color:#fff;
     font-weight: 700;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    padding-right: 15px;
 }
 
 .badge-tempo {
@@ -240,69 +243,53 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     font-weight: bold;
     padding: 4px 8px;
     border-radius: 6px;
+    white-space: nowrap;
 }
 
 .card-content {
-    padding: 16px;
+    padding: 20px;
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    justify-content: flex-start;
+    overflow: hidden;
+    min-width: 0;
 }
 
-/* Grid de Informações atualizado para não cortar textos */
-.info-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+/* Estilo do texto do CRM padrão */
+.card-content p {
+    font-size:13px;
+    color:rgba(255,255,255,0.7);
+    margin:5px 0;
 }
 
-.info-item {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    background: rgba(255, 255, 255, 0.03);
-    padding: 8px 12px;
-    border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.03);
-}
-
-.info-item strong {
-    font-size: 10px;
-    color: rgba(255,255,255,0.5);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.info-item span {
-    font-size: 14px;
+.card-content p strong {
     color: #fff;
-    font-weight: 500;
-    word-break: break-all; /* Garante que o processo não saia do card */
+    font-weight: 600;
 }
 
 /* Seção do Último Andamento */
 .ultimo-andamento {
-    margin-top: 4px;
-    padding: 10px 12px;
-    background: rgba(0, 0, 0, 0.25);
+    margin-top: 15px;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.2);
     border-radius: 8px;
     border-left: 3px solid rgba(255,255,255,0.2);
 }
 
 .ultimo-andamento strong {
     display: block;
-    font-size: 10px;
-    color: rgba(255,255,255,0.5);
+    font-size: 11px;
+    color: rgba(255,255,255,0.6);
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 6px;
 }
 
 .ultimo-andamento p {
-    font-size: 12px;
-    color: rgba(255,255,255,0.9);
-    margin: 0;
+    font-size: 12px !important;
+    color: rgba(255,255,255,0.9) !important;
+    margin: 0 !important;
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
@@ -312,7 +299,7 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 }
 
 .card-footer {
-    padding: 12px 16px;
+    padding: 15px 20px;
     border-top: 1px solid rgba(255,255,255,0.05);
     background: rgba(0,0,0,0.1);
 }
@@ -374,7 +361,7 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 /* ================= BUTTONS ================= */
 .btn {
     padding:10px 16px;
-    border-radius:8px;
+    border-radius:10px;
     border:0;
     cursor:pointer;
     font-weight: 600;
@@ -397,13 +384,12 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     background: #10b981;
     color: #fff;
     border: none;
-    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
 }
 
 .btn-green:hover {
     background: #059669;
     transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4);
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
 }
 
 .btn-blue {
@@ -414,6 +400,7 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 .btn-blue:hover {
     background: #2563eb;
     transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
 }
 
 /* ================= TOAST ================= */
@@ -595,10 +582,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const card = document.createElement('div');
             card.className = `card ${pendente ? 'aberto' : 'concluido'}`;
 
-            const primeiroProcesso = cliente.processo ? cliente.processo.split(',')[0].trim() : 'Não informado';
-            const valorCausa = cliente.valor ? `R$ ${cliente.valor}` : 'Não informado';
-            const estado = cliente.estado || 'Não informado';
-            
+            // Dados do CRM padrão
+            const primeiroProcesso = cliente.processo ? cliente.processo.split(',')[0].trim() : '-';
+            const cpf = cliente.cpf || '-';
+            const estado = cliente.estado || '-';
             const textoAndamento = cliente.ultimoAndamentoTexto ? cliente.ultimoAndamentoTexto : '';
 
             let badgeTexto = pendente ? "Pendente" : "Atualizado";
@@ -616,25 +603,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         ${badgeTexto}
                     </span>
                 </div>
+                
                 <div class="card-content">
-                    
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <strong>Nº do Processo</strong>
-                            <span>${primeiroProcesso}</span>
-                        </div>
-                        
-                        <div style="display: flex; gap: 8px;">
-                            <div class="info-item" style="flex: 1;">
-                                <strong>Estado</strong>
-                                <span>${estado}</span>
-                            </div>
-                            <div class="info-item" style="flex: 1;">
-                                <strong>Valor da Causa</strong>
-                                <span>${valorCausa}</span>
-                            </div>
-                        </div>
-                    </div>
+                    <p><strong>CPF/CNPJ:</strong> ${cpf}</p>
+                    <p><strong>Estado:</strong> ${estado}</p>
+                    <p><strong>Processo:</strong> ${primeiroProcesso}</p>
                     
                     ${textoAndamento ? `
                     <div class="ultimo-andamento">
@@ -646,8 +619,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         <p style="font-style: italic;">Nenhum andamento registrado ainda no sistema.</p>
                     </div>
                     `}
-                    
                 </div>
+                
                 <div class="card-footer">
                     <button class="btn ${pendente ? 'btn-blue' : 'btn-green'} btn-abrir-andamento">
                         💬 ${pendente ? 'Escrever Andamento' : 'Novo Andamento'}
