@@ -47,7 +47,7 @@ header h1{ font-size:24px; color:#fff; font-weight:800; }
 
 .grid-funcionarios {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 20px;
 }
 
@@ -58,35 +58,70 @@ header h1{ font-size:24px; color:#fff; font-weight:800; }
     border-radius: 16px;
     padding: 20px;
     transition: 0.3s;
+    display: flex;
+    flex-direction: column;
 }
 .func-card:hover { transform: translateY(-3px); background: rgba(255,255,255,0.08); }
 .func-card h3 { font-size: 18px; margin-bottom: 5px; color: #fff; }
-.func-card p.email { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 20px; }
+.func-card p.email { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 15px; }
 
 .stat-row {
     display: flex;
     justify-content: space-between;
-    padding: 10px 0;
+    padding: 8px 0;
     border-top: 1px solid rgba(255,255,255,0.05);
-    font-size: 14px;
+    font-size: 13px;
 }
 .stat-row span { color: rgba(255,255,255,0.7); }
 .stat-row strong { color: #fff; font-weight: 700; }
 .highlight-green { color: #10b981 !important; }
+.highlight-blue { color: #3b82f6 !important; }
+
+/* TAREFAS */
+.tarefas-container {
+    margin-top: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.tarefa-item {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.tarefa-info h4 { font-size: 15px; color: #fff; margin-bottom: 4px; }
+.tarefa-info p { font-size: 12px; color: rgba(255,255,255,0.6); }
+.tarefa-status {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+.status-pendente { background: rgba(245, 158, 11, 0.2); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.3); }
+.status-concluida { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.3); }
 
 /* MODAL E BOTÕES */
 .btn { padding:10px 18px; border-radius:12px; border:0; cursor:pointer; font-weight: 600; font-size: 14px; transition: 0.3s; }
 .btn-primary { background:#fff; color:#111827; }
-.btn-primary:hover { box-shadow: 0 5px 15px rgba(255,255,255,0.2); }
+.btn-primary:hover { box-shadow: 0 5px 15px rgba(255,255,255,0.2); transform: translateY(-2px); }
 .btn-ghost { background:rgba(255,255,255,0.12); color:#fff; }
 .btn-ghost:hover { background:rgba(255,255,255,0.2); }
+.btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 8px 14px; }
+.btn-outline:hover { background: rgba(255,255,255,0.1); }
 
 .modal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter: blur(8px); justify-content:center; align-items:center; z-index:50; }
-.modal { background:#0f172a; border: 1px solid rgba(255,255,255,0.1); padding:24px; border-radius:24px; min-width:320px; max-width:400px; width:100%; box-shadow:0 20px 50px rgba(0,0,0,0.5); }
-.modal h3 { margin-bottom:20px; font-size: 20px; }
+.modal { background:#0f172a; border: 1px solid rgba(255,255,255,0.1); padding:24px; border-radius:24px; min-width:320px; max-width:450px; width:100%; box-shadow:0 20px 50px rgba(0,0,0,0.5); }
+.modal h3 { margin-bottom:5px; font-size: 20px; }
+.modal .subtitle { font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 20px; }
 .row { margin-bottom:14px; }
-.modal input { width:100%; padding:12px 16px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); border-radius:12px; color:#fff; font-size: 14px; outline: none; }
-.modal input:focus { background:rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); }
+.modal input, .modal textarea { width:100%; padding:12px 16px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); border-radius:12px; color:#fff; font-size: 14px; outline: none; }
+.modal textarea { min-height: 80px; resize: vertical; }
+.modal input:focus, .modal textarea:focus { background:rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); }
 .actions { display:flex; gap:10px; justify-content:flex-end; margin-top:20px; }
 
 .toast { position:fixed; right:30px; bottom:30px; background:rgba(255,255,255,0.1); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); color:#fff; padding:12px 20px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.4); display:none; z-index:60; font-weight: 500; }
@@ -94,7 +129,7 @@ header h1{ font-size:24px; color:#fff; font-weight:800; }
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-import { getFirestore, collection, getDocs, setDoc, doc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, setDoc, doc, addDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -106,18 +141,15 @@ const firebaseConfig = {
     appId: "1:628852295313:web:1234567890abcdef123456"
 };
 
-// Conexão Principal (Para ler dados e ver quem está logado)
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// Conexão Secundária (Exclusiva para CRIAR usuários sem deslogar o Admin)
 const appSecundaria = initializeApp(firebaseConfig, "AppSecundaria");
 const authSecundario = getAuth(appSecundaria);
 
 document.addEventListener('DOMContentLoaded', () => {
     
-    // Sidebar Efeito
     const sidebar = document.querySelector(".sidebar");
     if(sidebar){
         sidebar.addEventListener('mouseenter', () => sidebar.classList.add('expanded'));
@@ -133,72 +165,107 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     let currentUser = null;
+    let mapaFuncionarios = {}; // Para facilitar a busca de nomes nas tarefas
 
-    // Elementos da interface
+    // Elementos Funcionário
     const gridFuncionarios = document.getElementById('gridFuncionarios');
-    const modalBackdrop = document.getElementById('modalFuncionario');
+    const modalFunc = document.getElementById('modalFuncionario');
     const btnNovo = document.getElementById('btnNovoFuncionario');
-    const btnCancel = document.getElementById('btnCancel');
+    const btnCancelFunc = document.getElementById('btnCancelFunc');
     const formFunc = document.getElementById('formFuncionario');
 
-    // Abre e fecha Modal
-    btnNovo.onclick = () => {
-        document.getElementById('inputNome').value = '';
-        document.getElementById('inputEmail').value = '';
-        document.getElementById('inputSenha').value = '';
-        modalBackdrop.style.display = 'flex';
-    }
-    btnCancel.onclick = () => modalBackdrop.style.display = 'none';
+    // Elementos Tarefas
+    const listaTarefas = document.getElementById('listaTarefas');
+    const modalTarefa = document.getElementById('modalTarefa');
+    const formTarefa = document.getElementById('formTarefa');
+    const btnCancelTarefa = document.getElementById('btnCancelTarefa');
+    const subtituloTarefa = document.getElementById('subtituloTarefa');
+    const inputTarefaFuncId = document.getElementById('inputTarefaFuncId');
 
-    // Carregar Dados da Equipe
+    // Abre Modal Funcionário
+    btnNovo.onclick = () => {
+        formFunc.reset();
+        modalFunc.style.display = 'flex';
+    }
+    btnCancelFunc.onclick = () => modalFunc.style.display = 'none';
+
+    // Abre Modal Tarefa (Global no window para ser chamado pelos cards)
+    window.abrirModalTarefa = (funcId, funcNome) => {
+        formTarefa.reset();
+        inputTarefaFuncId.value = funcId;
+        subtituloTarefa.innerText = `Delegar para: ${funcNome}`;
+        
+        // Define a data de hoje como mínimo para o prazo
+        const hoje = new Date().toISOString().split('T')[0];
+        document.getElementById('inputTarefaPrazo').min = hoje;
+        
+        modalTarefa.style.display = 'flex';
+    };
+    btnCancelTarefa.onclick = () => modalTarefa.style.display = 'none';
+
+    // Carregar Dashboard (Funcionários + Métricas)
     async function carregarDashboard() {
         gridFuncionarios.innerHTML = '<p style="color: rgba(255,255,255,0.5);">Carregando dados da equipe...</p>';
 
         try {
-            // 1. Puxa todos os funcionários registrados
             const funcSnap = await getDocs(collection(db, "funcionarios"));
             const funcionarios = funcSnap.docs.map(d => ({ id: d.id, ...d.data() }));
 
-            // 2. Puxa TODOS os clientes (Só funciona se você for Admin nas regras)
             const clientesSnap = await getDocs(collection(db, "clientes"));
             const clientes = clientesSnap.docs.map(d => d.data());
 
-            // Data de Hoje formato "YYYY-MM-DD"
             const dataHoje = new Date().toISOString().split('T')[0];
 
             gridFuncionarios.innerHTML = '';
+            mapaFuncionarios = {};
 
             if (funcionarios.length === 0) {
                 gridFuncionarios.innerHTML = '<p style="color: rgba(255,255,255,0.5);">Nenhum funcionário cadastrado ainda.</p>';
-                return;
+            } else {
+                funcionarios.forEach(func => {
+                    mapaFuncionarios[func.id] = func.nome; // Salva para o painel de tarefas
+
+                    const clientesDoFunc = clientes.filter(c => c.userId === func.id);
+                    
+                    const cadastrosHoje = clientesDoFunc.filter(c => c.dataCadastro && c.dataCadastro.startsWith(dataHoje)).length;
+                    const naListaFria = clientesDoFunc.filter(c => c.status === 'lista-fria').length;
+                    const fechados = clientesDoFunc.filter(c => c.status === 'fechado').length;
+
+                    const card = document.createElement('div');
+                    card.className = 'func-card';
+                    card.innerHTML = `
+                        <h3>${func.nome}</h3>
+                        <p class="email">${func.email}</p>
+
+                        <div style="flex:1;">
+                            <div class="stat-row">
+                                <span>Cadastros Hoje</span>
+                                <strong class="highlight-green">${cadastrosHoje}</strong>
+                            </div>
+                            <div class="stat-row">
+                                <span>Lista Fria (Abertos)</span>
+                                <strong>${naListaFria}</strong>
+                            </div>
+                            <div class="stat-row">
+                                <span>Fechados (Sucesso)</span>
+                                <strong class="highlight-blue">${fechados}</strong>
+                            </div>
+                            <div class="stat-row">
+                                <span>Total Histórico</span>
+                                <strong>${clientesDoFunc.length}</strong>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-outline" style="width: 100%; margin-top: 15px; font-size: 12px;" onclick="window.abrirModalTarefa('${func.id}', '${func.nome}')">
+                            + Criar Tarefa
+                        </button>
+                    `;
+                    gridFuncionarios.appendChild(card);
+                });
             }
 
-            funcionarios.forEach(func => {
-                // Filtra clientes que pertencem a este funcionário
-                const clientesDoFunc = clientes.filter(c => c.userId === func.id);
-                
-                // Filtra clientes cadastrados HOJE
-                const cadastrosHoje = clientesDoFunc.filter(c => 
-                    c.dataCadastro && c.dataCadastro.startsWith(dataHoje)
-                ).length;
-
-                const card = document.createElement('div');
-                card.className = 'func-card';
-                card.innerHTML = `
-                    <h3>${func.nome}</h3>
-                    <p class="email">${func.email}</p>
-
-                    <div class="stat-row">
-                        <span>Cadastros Hoje</span>
-                        <strong class="highlight-green">${cadastrosHoje}</strong>
-                    </div>
-                    <div class="stat-row">
-                        <span>Total de Clientes</span>
-                        <strong>${clientesDoFunc.length}</strong>
-                    </div>
-                `;
-                gridFuncionarios.appendChild(card);
-            });
+            // Depois de carregar a equipe, carrega as tarefas gerais
+            carregarTarefas();
 
         } catch (error) {
             console.error(error);
@@ -206,53 +273,127 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Criar Novo Funcionário
+    // Carregar Tarefas
+    async function carregarTarefas() {
+        listaTarefas.innerHTML = '<p style="color: rgba(255,255,255,0.5); font-size: 13px;">Carregando tarefas...</p>';
+        
+        try {
+            const tarefasSnap = await getDocs(collection(db, "tarefas"));
+            const tarefas = tarefasSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+            // Ordena pela data mais recente (básico)
+            tarefas.sort((a, b) => new Date(b.dataCriacao) - new Date(a.dataCriacao));
+
+            listaTarefas.innerHTML = '';
+
+            if(tarefas.length === 0) {
+                listaTarefas.innerHTML = '<p style="color: rgba(255,255,255,0.5); font-size: 13px;">Nenhuma tarefa pendente na equipe.</p>';
+                return;
+            }
+
+            tarefas.forEach(t => {
+                const nomeFunc = mapaFuncionarios[t.funcionarioId] || 'Funcionário Desconhecido';
+                // Converte a data do formato YYYY-MM-DD para DD/MM/YYYY
+                const prazoFormatado = t.prazo.split('-').reverse().join('/');
+                const statusClasse = t.status === 'concluida' ? 'status-concluida' : 'status-pendente';
+                const statusTexto = t.status === 'concluida' ? 'Concluída' : 'Pendente';
+
+                const div = document.createElement('div');
+                div.className = 'tarefa-item';
+                div.innerHTML = `
+                    <div class="tarefa-info">
+                        <h4>${t.titulo}</h4>
+                        <p><strong>Para:</strong> ${nomeFunc} • <strong>Prazo:</strong> ${prazoFormatado}</p>
+                        ${t.descricao ? `<p style="margin-top: 5px; font-style: italic;">"${t.descricao}"</p>` : ''}
+                    </div>
+                    <div>
+                        <span class="tarefa-status ${statusClasse}">${statusTexto}</span>
+                    </div>
+                `;
+                listaTarefas.appendChild(div);
+            });
+
+        } catch (error) {
+            console.error(error);
+            listaTarefas.innerHTML = '<p style="color: #ef4444; font-size: 13px;">Erro ao carregar tarefas.</p>';
+        }
+    }
+
+    // Salvar Novo Funcionário
     formFunc.onsubmit = async (e) => {
         e.preventDefault();
         
         const nome = document.getElementById('inputNome').value.trim();
         const email = document.getElementById('inputEmail').value.trim();
         const senha = document.getElementById('inputSenha').value;
-
         const btnSalvar = formFunc.querySelector('button[type="submit"]');
+        
         btnSalvar.innerText = 'Criando...';
         btnSalvar.disabled = true;
 
         try {
-            // Cria a conta usando a conexão secundária (não desloga o Admin)
             const userCredential = await createUserWithEmailAndPassword(authSecundario, email, senha);
             const novoUid = userCredential.user.uid;
 
-            // Salva o perfil no banco de dados principal
             await setDoc(doc(db, "funcionarios", novoUid), {
                 nome: nome,
                 email: email,
                 criadoEm: new Date().toISOString()
             });
 
-            // Desloga o usuário secundário para evitar cache cruzado
             await signOut(authSecundario);
-
             showToast("Funcionário adicionado com sucesso!");
-            modalBackdrop.style.display = 'none';
+            modalFunc.style.display = 'none';
             carregarDashboard();
-
         } catch (error) {
             console.error(error);
-            if (error.code === 'auth/email-already-in-use') {
-                showToast("Este e-mail já está em uso!");
-            } else if (error.code === 'auth/weak-password') {
-                showToast("A senha deve ter pelo menos 6 caracteres.");
-            } else {
-                showToast("Erro ao criar funcionário.");
-            }
+            showToast(error.code === 'auth/email-already-in-use' ? "Este e-mail já está em uso!" : "Erro ao criar funcionário.");
         } finally {
             btnSalvar.innerText = 'Salvar';
             btnSalvar.disabled = false;
         }
     }
 
-    // Verifica Login
+    // Salvar Nova Tarefa
+    formTarefa.onsubmit = async (e) => {
+        e.preventDefault();
+        
+        const titulo = document.getElementById('inputTarefaTitulo').value.trim();
+        const descricao = document.getElementById('inputTarefaDesc').value.trim();
+        const prazo = document.getElementById('inputTarefaPrazo').value;
+        const funcionarioId = inputTarefaFuncId.value;
+        const btnSalvar = formTarefa.querySelector('button[type="submit"]');
+
+        if(!funcionarioId) return showToast("Erro: Funcionário não identificado.");
+
+        btnSalvar.innerText = 'Salvando...';
+        btnSalvar.disabled = true;
+
+        try {
+            await addDoc(collection(db, "tarefas"), {
+                titulo: titulo,
+                descricao: descricao,
+                prazo: prazo,
+                funcionarioId: funcionarioId,
+                adminId: currentUser.uid,
+                dataCriacao: new Date().toISOString(),
+                status: 'pendente'
+            });
+
+            showToast("Tarefa enviada para o funcionário!");
+            modalTarefa.style.display = 'none';
+            carregarTarefas(); // Atualiza a lista na tela
+
+        } catch (error) {
+            console.error("Erro ao salvar tarefa: ", error);
+            showToast("Erro ao delegar tarefa.");
+        } finally {
+            btnSalvar.innerText = 'Salvar Tarefa';
+            btnSalvar.disabled = false;
+        }
+    }
+
+    // Verifica Login Inicial
     onAuthStateChanged(auth, user => {
         if(user){
             currentUser = user;
@@ -299,7 +440,15 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         
         <div id="gridFuncionarios" class="grid-funcionarios">
-            <!-- Cards gerados via JS -->
+            <!-- Cards de funcionários injetados aqui -->
+        </div>
+
+        <div class="adm-header" style="margin-top: 50px; margin-bottom: 15px;">
+            <h2>Tarefas Ativas da Equipe</h2>
+        </div>
+        
+        <div id="listaTarefas" class="tarefas-container">
+            <!-- Lista de tarefas injetada aqui -->
         </div>
     </div>
 </div>
@@ -308,6 +457,7 @@ document.addEventListener('DOMContentLoaded', () => {
 <div class="modal-backdrop" id="modalFuncionario">
     <div class="modal">
         <h3>Adicionar Funcionário</h3>
+        <p class="subtitle">O funcionário usará este e-mail e senha para logar no próprio CRM isolado.</p>
         <form id="formFuncionario">
             <div class="row">
                 <input id="inputNome" type="text" placeholder="Nome Completo" required />
@@ -320,7 +470,32 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div class="actions">
                 <button type="submit" class="btn btn-primary">Salvar</button>
-                <button type="button" class="btn btn-ghost" id="btnCancel">Cancelar</button>
+                <button type="button" class="btn btn-ghost" id="btnCancelFunc">Cancelar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL NOVA TAREFA -->
+<div class="modal-backdrop" id="modalTarefa">
+    <div class="modal">
+        <h3 id="tituloModalTarefa">Delegar Tarefa</h3>
+        <p id="subtituloTarefa" class="subtitle">Delegar para: ...</p>
+        <form id="formTarefa">
+            <input type="hidden" id="inputTarefaFuncId" />
+            <div class="row">
+                <input id="inputTarefaTitulo" type="text" placeholder="Ex: Ligar para os clientes atrasados" required />
+            </div>
+            <div class="row">
+                <textarea id="inputTarefaDesc" placeholder="Descreva os detalhes ou instruções da tarefa..."></textarea>
+            </div>
+            <div class="row">
+                <label style="font-size: 12px; color: rgba(255,255,255,0.7); margin-bottom: 5px; display: block;">Prazo de Entrega:</label>
+                <input id="inputTarefaPrazo" type="date" required />
+            </div>
+            <div class="actions">
+                <button type="submit" class="btn btn-primary">Salvar Tarefa</button>
+                <button type="button" class="btn btn-ghost" id="btnCancelTarefa">Cancelar</button>
             </div>
         </form>
     </div>
