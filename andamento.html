@@ -171,7 +171,7 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     backdrop-filter: blur(10px);
     border-radius:20px;
     padding:15px;
-    min-width:400px;
+    min-width:420px; /* Aumentado um pouco para acomodar processos grandes */
     width: 48%;
     max-height:100%;
     display:flex;
@@ -211,23 +211,23 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 }
 
 /* Indicadores de Cor */
-.aberto { border-top: 4px solid #ef4444; }
+.aberto { border-top: 5px solid #ef4444; }
 .aberto:hover { border-color: #f87171; }
 
-.concluido { border-top: 4px solid #10b981; }
+.concluido { border-top: 5px solid #10b981; }
 .concluido:hover { border-color: #34d399; }
 
 .card-header {
     background: rgba(0, 0, 0, 0.2); 
     border-bottom: 1px solid rgba(255,255,255,0.05);
-    padding: 12px 16px;
+    padding: 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
 .card-header h3 {
-    font-size:15px;
+    font-size:16px;
     color:#fff;
     font-weight: 700;
     white-space: nowrap;
@@ -238,7 +238,7 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 .badge-tempo {
     font-size: 11px;
     font-weight: bold;
-    padding: 4px 8px;
+    padding: 6px 10px;
     border-radius: 6px;
     background: rgba(255,255,255,0.1);
 }
@@ -248,40 +248,60 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     flex: 1;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 12px; /* Maior espaçamento interno */
 }
 
-.info-row {
+/* Blocos de Informação Maiores e Visíveis */
+.info-block {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: rgba(0,0,0,0.15);
+    padding: 10px 12px;
+    border-radius: 8px;
+    border-left: 3px solid rgba(255,255,255,0.1);
+}
+
+.info-block.processo {
+    border-left-color: #3b82f6; /* Destaque azul para o processo */
+}
+
+.info-block strong {
+    font-size: 11px;
+    color: rgba(255,255,255,0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.info-block span {
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    word-break: break-all; /* Garante que processos longos quebrem a linha em vez de sumir */
+}
+
+/* O user-select: all faz com que um clique selecione o número inteiro do processo */
+.info-block span.numero-processo {
+    color: #93c5fd;
+    user-select: all; 
+    cursor: text;
+}
+
+/* Seção de Valor (Menor) */
+.info-row-inline {
     display: flex;
     justify-content: space-between;
     font-size: 13px;
     color: rgba(255,255,255,0.8);
-    border-bottom: 1px dashed rgba(255,255,255,0.1);
-    padding-bottom: 6px;
+    padding: 0 4px;
 }
 
-.info-row:last-of-type {
-    border-bottom: none;
-    padding-bottom: 0;
-}
-
-.info-row strong { 
-    color: #fff; 
-    font-weight: 600; 
-}
-
-.info-row span {
-    text-align: right;
-    max-width: 60%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
+.info-row-inline strong { color: #fff; font-weight: 600; }
 
 /* Seção do Último Andamento */
 .ultimo-andamento {
-    margin-top: 10px;
-    padding: 10px 12px;
+    margin-top: 4px;
+    padding: 12px;
     background: rgba(0, 0, 0, 0.25);
     border-radius: 8px;
     border-left: 3px solid rgba(255,255,255,0.2);
@@ -293,23 +313,24 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     color: rgba(255,255,255,0.5);
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
 }
 
 .ultimo-andamento p {
-    font-size: 12px;
+    font-size: 13px;
     color: rgba(255,255,255,0.9);
     margin: 0;
     display: -webkit-box;
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 3; /* Mostra até 3 linhas e depois reticências */
     -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
     line-height: 1.4;
+    font-style: italic;
 }
 
 .card-footer {
-    padding: 12px 16px;
+    padding: 16px;
     border-top: 1px solid rgba(255,255,255,0.05);
     background: rgba(0,0,0,0.1);
 }
@@ -370,7 +391,7 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 
 /* ================= BUTTONS ================= */
 .btn {
-    padding:10px 16px;
+    padding:12px 16px;
     border-radius:8px;
     border:0;
     cursor:pointer;
@@ -521,7 +542,6 @@ document.addEventListener('DOMContentLoaded', () => {
         clienteSelecionado = cliente;
         modalTitle.innerText = `Andamento: ${cliente.nome}`;
         
-        // Se já tiver um andamento gravado, podemos trazer como base, se não, usamos o padrão
         inputAndamento.value = `Olá {nome}, tudo bem?\nAqui é do setor de andamento da AMR ADV. \n\nA atualização do seu processo é: \n\n`;
         modalBackdrop.style.display = 'flex';
     }
@@ -563,7 +583,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const docRef = doc(db, "clientes", clienteSelecionado.id);
             await updateDoc(docRef, { 
                 dataUltimoAndamento: new Date().toISOString(),
-                ultimoAndamentoTexto: mensagemFinal // Gravando o texto do andamento
+                ultimoAndamentoTexto: mensagemFinal 
             });
 
             // 2. Montar e abrir WhatsApp
@@ -573,7 +593,7 @@ document.addEventListener('DOMContentLoaded', () => {
             showToast("Andamento salvo e WhatsApp aberto!");
             modalBackdrop.style.display = 'none';
             
-            // 3. Recarregar os dados para atualizar o texto do card e mover a coluna
+            // 3. Recarregar os dados
             await fetchClientesFechados();
             
         } catch (error) {
@@ -600,11 +620,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const card = document.createElement('div');
             card.className = `card ${pendente ? 'aberto' : 'concluido'}`;
 
-            const primeiroProcesso = cliente.processo ? cliente.processo.split(',')[0].trim() : 'Não informado';
+            // Cobertura extra para variações no nome da variável no Firestore (processo, processos, numeroProcesso)
+            const primeiroProcesso = cliente.processo || cliente.processos || cliente.numeroProcesso || 'Não informado';
+            const primeiroProcessoLimpo = primeiroProcesso.split(',')[0].trim();
+            
             const valorCausa = cliente.valor ? `R$ ${cliente.valor}` : 'Não informado';
             const estado = cliente.estado || 'Não informado';
             
-            // Verifica se existe o último andamento salvo
             const textoAndamento = cliente.ultimoAndamentoTexto ? cliente.ultimoAndamentoTexto : '';
 
             let badgeTexto = pendente ? "Pendente" : "Atualizado";
@@ -612,7 +634,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 badgeTexto += diasPassados === 0 ? " (Hoje)" : ` (${diasPassados}d atrás)`;
             }
 
-            // Montagem do HTML do card com o layout retangular e exibição do andamento
+            // Montagem do HTML do card com blocos grandes
             card.innerHTML = `
                 <div class="card-header">
                     <h3 title="${cliente.nome}">${cliente.nome}</h3>
@@ -621,23 +643,26 @@ document.addEventListener('DOMContentLoaded', () => {
                     </span>
                 </div>
                 <div class="card-content">
-                    <div class="info-row">
-                        <strong>Processo:</strong>
-                        <span title="${primeiroProcesso}">${primeiroProcesso}</span>
+                    
+                    <div class="info-block processo" title="Clique no número para selecionar e copiar">
+                        <strong>Número do Processo</strong>
+                        <span class="numero-processo">${primeiroProcessoLimpo}</span>
                     </div>
-                    <div class="info-row">
+
+                    <div class="info-block">
+                        <strong>Estado</strong>
+                        <span>${estado}</span>
+                    </div>
+
+                    <div class="info-row-inline">
                         <strong>Valor da Causa:</strong>
                         <span>${valorCausa}</span>
-                    </div>
-                    <div class="info-row">
-                        <strong>Estado:</strong>
-                        <span>${estado}</span>
                     </div>
                     
                     ${textoAndamento ? `
                     <div class="ultimo-andamento">
-                        <strong>Último Andamento Enviado</strong>
-                        <p title="${textoAndamento.replace(/"/g, '&quot;')}">${textoAndamento}</p>
+                        <strong>Último Andamento Enviado:</strong>
+                        <p title="${textoAndamento.replace(/"/g, '&quot;')}">"${textoAndamento}"</p>
                     </div>` : ''}
                     
                 </div>
@@ -654,6 +679,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.stopPropagation(); 
                 abrirModal(cliente);
             };
+
+            // Previne que o card inteiro abra o modal se o usuário clicar no texto do processo para copiar
+            const textoProcesso = card.querySelector('.numero-processo');
+            if (textoProcesso) {
+                textoProcesso.onclick = (e) => e.stopPropagation();
+            }
 
             card.onclick = () => {
                 abrirModal(cliente);
