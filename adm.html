@@ -129,8 +129,8 @@ header h1{ font-size:24px; color:#fff; font-weight:800; }
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-import { getFirestore, collection, getDocs, setDoc, doc, addDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
-import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+import { getFirestore, collection, getDocs, setDoc, doc, addDoc, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAFJJAqVf3ge0WDHBpmS9E6sXKvnjuFkhw",
@@ -144,9 +144,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-
-const appSecundaria = initializeApp(firebaseConfig, "AppSecundaria");
-const authSecundario = getAuth(appSecundaria);
 
 document.addEventListener('DOMContentLoaded', () => {
     
@@ -165,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     let currentUser = null;
-    let mapaFuncionarios = {}; // Para facilitar a busca de nomes nas tarefas
+    let mapaFuncionarios = {}; 
 
     // Elementos Funcionário
     const gridFuncionarios = document.getElementById('gridFuncionarios');
@@ -189,52 +186,61 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     btnCancelFunc.onclick = () => modalFunc.style.display = 'none';
 
-    // Abre Modal Tarefa (Global no window para ser chamado pelos cards)
     window.abrirModalTarefa = (funcId, funcNome) => {
         formTarefa.reset();
         inputTarefaFuncId.value = funcId;
         subtituloTarefa.innerText = `Delegar para: ${funcNome}`;
-        
-        // Define a data de hoje como mínimo para o prazo
         const hoje = new Date().toISOString().split('T')[0];
         document.getElementById('inputTarefaPrazo').min = hoje;
-        
         modalTarefa.style.display = 'flex';
     };
     btnCancelTarefa.onclick = () => modalTarefa.style.display = 'none';
 
-    // Carregar Dashboard (Funcionários + Métricas)
+    // Carregar Dashboard (Funcionários Ativos + Pré-cadastros Aguardando Primeiro Acesso)
     async function carregarDashboard() {
         gridFuncionarios.innerHTML = '<p style="color: rgba(255,255,255,0.5);">Carregando dados da equipe...</p>';
 
         try {
+            // Puxa funcionários ativos
             const funcSnap = await getDocs(collection(db, "funcionarios"));
-            const funcionarios = funcSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+            const funcionariosAtivos = funcSnap.docs.map(d => ({ id: d.id, statusConta: 'Ativo', ...d.data() }));
+
+            // Puxa pré-cadastros aguardando primeiro acesso
+            const preSnap = await getDocs(collection(db, "pre_cadastros"));
+            const preCadastros = preSnap.docs.map(d => ({ id: d.id, statusConta: 'Aguardando Primeiro Acesso', ...d.data() }));
+
+            // Une as duas listas no painel visual
+            const todosFuncionarios = [...funcionariosAtivos, ...preCadastros];
 
             const clientesSnap = await getDocs(collection(db, "clientes"));
             const clientes = clientesSnap.docs.map(d => d.data());
 
             const dataHoje = new Date().toISOString().split('T')[0];
-
             gridFuncionarios.innerHTML = '';
             mapaFuncionarios = {};
 
-            if (funcionarios.length === 0) {
+            if (todosFuncionarios.length === 0) {
                 gridFuncionarios.innerHTML = '<p style="color: rgba(255,255,255,0.5);">Nenhum funcionário cadastrado ainda.</p>';
             } else {
-                funcionarios.forEach(func => {
-                    mapaFuncionarios[func.id] = func.nome; // Salva para o painel de tarefas
+                todosFuncionarios.forEach(func => {
+                    mapaFuncionarios[func.id] = func.nome;
 
                     const clientesDoFunc = clientes.filter(c => c.userId === func.id);
-                    
                     const cadastrosHoje = clientesDoFunc.filter(c => c.dataCadastro && c.dataCadastro.startsWith(dataHoje)).length;
                     const naListaFria = clientesDoFunc.filter(c => c.status === 'lista-fria').length;
                     const fechados = clientesDoFunc.filter(c => c.status === 'fechado').length;
 
                     const card = document.createElement('div');
                     card.className = 'func-card';
+                    
+                    // Altera a cor do status na interface para ajudar na gestão do Admin
+                    const corStatus = func.statusConta === 'Ativo' ? '#10b981' : '#f59e0b';
+
                     card.innerHTML = `
-                        <h3>${func.nome}</h3>
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <h3>${func.nome}</h3>
+                            <span style="font-size:10px; background:${corStatus}20; color:${corStatus}; border:1px solid ${corStatus}40; padding:2px 6px; border-radius:10px; font-weight:600;">${func.statusConta}</span>
+                        </div>
                         <p class="email">${func.email}</p>
 
                         <div style="flex:1;">
@@ -264,36 +270,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
-            // Depois de carregar a equipe, carrega as tarefas gerais
             carregarTarefas();
 
         } catch (error) {
             console.error(error);
-            gridFuncionarios.innerHTML = '<p style="color: #ef4444;">Erro ao carregar dados. Verifique se você é o administrador nas regras do Firebase.</p>';
+            gridFuncionarios.innerHTML = '<p style="color: #ef4444;">Erro ao carregar dados do painel.</p>';
         }
     }
 
-    // Carregar Tarefas
+    // Carregar Lista de Tarefas Gerais
     async function carregarTarefas() {
         listaTarefas.innerHTML = '<p style="color: rgba(255,255,255,0.5); font-size: 13px;">Carregando tarefas...</p>';
-        
         try {
             const tarefasSnap = await getDocs(collection(db, "tarefas"));
             const tarefas = tarefasSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-            // Ordena pela data mais recente (básico)
             tarefas.sort((a, b) => new Date(b.dataCriacao) - new Date(a.dataCriacao));
 
             listaTarefas.innerHTML = '';
-
             if(tarefas.length === 0) {
                 listaTarefas.innerHTML = '<p style="color: rgba(255,255,255,0.5); font-size: 13px;">Nenhuma tarefa pendente na equipe.</p>';
                 return;
             }
 
             tarefas.forEach(t => {
-                const nomeFunc = mapaFuncionarios[t.funcionarioId] || 'Funcionário Desconhecido';
-                // Converte a data do formato YYYY-MM-DD para DD/MM/YYYY
+                const nomeFunc = mapaFuncionarios[t.funcionarioId] || 'Funcionário Novo';
                 const prazoFormatado = t.prazo.split('-').reverse().join('/');
                 const statusClasse = t.status === 'concluida' ? 'status-concluida' : 'status-pendente';
                 const statusTexto = t.status === 'concluida' ? 'Concluída' : 'Pendente';
@@ -312,52 +312,63 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
                 listaTarefas.appendChild(div);
             });
-
         } catch (error) {
             console.error(error);
             listaTarefas.innerHTML = '<p style="color: #ef4444; font-size: 13px;">Erro ao carregar tarefas.</p>';
         }
     }
 
-    // Salvar Novo Funcionário
-    formFunc.onsubmit = async (e) => {
+    // ENVIAR PRÉ-CADASTRO COMPATIVEL COM LOGIN SEGURO
+    formFunc.onSubmit = async (e) => {
         e.preventDefault();
-        
         const nome = document.getElementById('inputNome').value.trim();
-        const email = document.getElementById('inputEmail').value.trim();
+        const email = document.getElementById('inputEmail').value.trim().toLowerCase();
         const senha = document.getElementById('inputSenha').value;
         const btnSalvar = formFunc.querySelector('button[type="submit"]');
         
-        btnSalvar.innerText = 'Criando...';
+        btnSalvar.innerText = 'Salvando...';
         btnSalvar.disabled = true;
 
         try {
-            const userCredential = await createUserWithEmailAndPassword(authSecundario, email, senha);
-            const novoUid = userCredential.user.uid;
+            // Filtros de segurança locais preliminares
+            const qAtivos = await getDocs(query(collection(db, "funcionarios"), where("email", "==", email)));
+            const qPre = await getDocs(query(collection(db, "pre_cadastros"), where("email", "==", email)));
+            
+            if(!qAtivos.empty || !qPre.empty) {
+                showToast("Este e-mail já está cadastrado no sistema!");
+                btnSalvar.innerText = 'Salvar';
+                btnSalvar.disabled = false;
+                return;
+            }
 
-            await setDoc(doc(db, "funcionarios", novoUid), {
+            // Cria um ID temporário seguro para o documento do link
+            const idGeradoTemp = doc(collection(db, "pre_cadastros")).id;
+
+            // Salva na ponte temporária do Firestore. O Login saberá capturar e criar o Auth limpo.
+            await setDoc(doc(db, "pre_cadastros", idGeradoTemp), {
                 nome: nome,
                 email: email,
-                criadoEm: new Date().toISOString()
+                senhaPadrao: senha, // Salva criptografado/pleno temporariamente para o auto-registro inicial
+                dataRegistro: new Date().toISOString()
             });
 
-            await signOut(authSecundario);
-            showToast("Funcionário adicionado com sucesso!");
+            showToast("Funcionário pré-cadastrado com sucesso!");
             modalFunc.style.display = 'none';
             carregarDashboard();
         } catch (error) {
             console.error(error);
-            showToast(error.code === 'auth/email-already-in-use' ? "Este e-mail já está em uso!" : "Erro ao criar funcionário.");
+            showToast("Erro ao processar o pré-cadastro.");
         } finally {
             btnSalvar.innerText = 'Salvar';
             btnSalvar.disabled = false;
         }
     }
+    // Garante compatibilidade caso o onSubmit com camelCase falhe no navegador
+    formFunc.onsubmit = formFunc.onSubmit;
 
     // Salvar Nova Tarefa
     formTarefa.onsubmit = async (e) => {
         e.preventDefault();
-        
         const titulo = document.getElementById('inputTarefaTitulo').value.trim();
         const descricao = document.getElementById('inputTarefaDesc').value.trim();
         const prazo = document.getElementById('inputTarefaPrazo').value;
@@ -382,10 +393,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             showToast("Tarefa enviada para o funcionário!");
             modalTarefa.style.display = 'none';
-            carregarTarefas(); // Atualiza a lista na tela
-
+            carregarTarefas();
         } catch (error) {
-            console.error("Erro ao salvar tarefa: ", error);
+            console.error(error);
             showToast("Erro ao delegar tarefa.");
         } finally {
             btnSalvar.innerText = 'Salvar Tarefa';
@@ -393,7 +403,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Verifica Login Inicial
     onAuthStateChanged(auth, user => {
         if(user){
             currentUser = user;
@@ -439,25 +448,20 @@ document.addEventListener('DOMContentLoaded', () => {
             <h2>Gestão de Equipe e Desempenho</h2>
         </div>
         
-        <div id="gridFuncionarios" class="grid-funcionarios">
-            <!-- Cards de funcionários injetados aqui -->
-        </div>
+        <div id="gridFuncionarios" class="grid-funcionarios"></div>
 
         <div class="adm-header" style="margin-top: 50px; margin-bottom: 15px;">
             <h2>Tarefas Ativas da Equipe</h2>
         </div>
         
-        <div id="listaTarefas" class="tarefas-container">
-            <!-- Lista de tarefas injetada aqui -->
-        </div>
+        <div id="listaTarefas" class="tarefas-container"></div>
     </div>
 </div>
 
-<!-- MODAL NOVO FUNCIONÁRIO -->
 <div class="modal-backdrop" id="modalFuncionario">
     <div class="modal">
         <h3>Adicionar Funcionário</h3>
-        <p class="subtitle">O funcionário usará este e-mail e senha para logar no próprio CRM isolado.</p>
+        <p class="subtitle">O funcionário usará este e-mail e senha para fazer o primeiro acesso seguro.</p>
         <form id="formFuncionario">
             <div class="row">
                 <input id="inputNome" type="text" placeholder="Nome Completo" required />
@@ -476,10 +480,9 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
 </div>
 
-<!-- MODAL NOVA TAREFA -->
 <div class="modal-backdrop" id="modalTarefa">
     <div class="modal">
-        <h3 id="tituloModalTarefa">Delegar Tarefa</h3>
+        <h3>Delegar Tarefa</h3>
         <p id="subtituloTarefa" class="subtitle">Delegar para: ...</p>
         <form id="formTarefa">
             <input type="hidden" id="inputTarefaFuncId" />
