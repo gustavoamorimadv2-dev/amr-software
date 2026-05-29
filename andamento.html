@@ -171,19 +171,21 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     border-radius:16px;
     box-shadow:0 8px 30px rgba(0,0,0,0.2);
     overflow:hidden;
-    transition:transform 0.3s, background 0.3s;
+    transition:transform 0.3s, background 0.3s, border-color 0.3s;
     position:relative;
     flex-direction:column;
     width:100%;
+    cursor: pointer; /* Indica que o card é clicável */
 }
 
 .card:hover {
     transform:translateY(-4px);
     background:rgba(255,255,255,0.1);
+    border-color: rgba(16, 185, 129, 0.5); /* Destaque verde no hover */
 }
 
 .card-header {
-    background: rgba(16, 185, 129, 0.2); /* Verde para indicar "Fechado" */
+    background: rgba(16, 185, 129, 0.2); 
     border-bottom: 1px solid rgba(255,255,255,0.05);
     padding: 15px 20px;
     display: flex;
@@ -219,8 +221,8 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 
 .card-content p {
     font-size:13px;
-    color:rgba(255,255,255,0.7);
-    margin:5px 0;
+    color:rgba(255,255,255,0.8);
+    margin:6px 0;
 }
 
 .card-content p strong { color: #fff; font-weight: 600; }
@@ -382,7 +384,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let currentUser = null;
     let clientesFechados = [];
-    let clienteSelecionado = null; // Guarda o cliente que vai receber a mensagem
+    let clienteSelecionado = null; 
 
     if(sidebar){
         sidebar.addEventListener('mouseenter', () => sidebar.classList.add('expanded'));
@@ -396,7 +398,6 @@ document.addEventListener('DOMContentLoaded', () => {
         toastEl._t = setTimeout(() => { toastEl.style.display = 'none'; }, 3000);
     }
 
-    // Busca apenas os clientes com status 'fechado' de todos os usuários
     async function fetchClientesFechados(){
         try {
             const q = query(collection(db, "clientes"), where("status", "==", "fechado"));
@@ -412,25 +413,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Lógica do Modal de Envio
-    window.abrirModal = function(id) {
-        clienteSelecionado = clientesFechados.find(c => c.id === id);
-        if(!clienteSelecionado) return;
-
-        modalTitle.innerText = `Andamento: ${clienteSelecionado.nome}`;
-        
-        // Template padrão estilo disparador
+    // Função interna que abre o modal recebendo o objeto do cliente
+    function abrirModal(cliente) {
+        clienteSelecionado = cliente;
+        modalTitle.innerText = `Andamento: ${cliente.nome}`;
         inputAndamento.value = `Olá {nome}, tudo bem?\nAqui é do setor de andamento da AMR ADV. \n\nA atualização do seu processo é: \n\n`;
-        
         modalBackdrop.style.display = 'flex';
-    };
+    }
 
     btnFecharModal.onclick = () => {
         modalBackdrop.style.display = 'none';
         clienteSelecionado = null;
     };
 
-    // Botão que abre o WhatsApp
     btnEnviarAndamento.onclick = () => {
         if(!clienteSelecionado) return;
 
@@ -445,7 +440,6 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Pega o primeiro número e limpa a formatação
         const numeroLimpo = clienteSelecionado.numeros.split(',')[0].replace(/\D/g, '');
         
         if(!numeroLimpo) {
@@ -453,50 +447,59 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Substitui a tag {nome} pelo nome do cliente
         const mensagemFinal = texto.replace(/{nome}/g, clienteSelecionado.nome);
-        
-        // Monta o link do WhatsApp e abre
         const waUrl = `https://wa.me/55${numeroLimpo}?text=${encodeURIComponent(mensagemFinal)}`;
+        
         window.open(waUrl, '_blank');
-
         showToast("WhatsApp aberto para envio!");
         modalBackdrop.style.display = 'none';
     };
 
-    // Renderiza os Cards na tela
     function renderCards(){
         cardsContainer.innerHTML = '';
         const qTexto = searchInput.value.toLowerCase();
 
         clientesFechados.forEach(cliente => {
-            // Filtro de pesquisa
             if (cliente.nome && !cliente.nome.toLowerCase().includes(qTexto)) return;
 
             const card = document.createElement('div');
             card.className = 'card';
 
             const primeiroProcesso = cliente.processo ? cliente.processo.split(',')[0].trim() : 'Não informado';
-            const primeiroNumero = cliente.numeros ? cliente.numeros.split(',')[0].trim() : 'Não informado';
-            const responsavelTexto = cliente.responsavel || 'Desconhecido';
+            const valorCausa = cliente.valor ? `R$ ${cliente.valor}` : 'Não informado';
+            const estado = cliente.estado || 'Não informado';
 
+            // Montagem do HTML do Card
             card.innerHTML = `
                 <div class="card-header">
                     <h3 title="${cliente.nome}">${cliente.nome}</h3>
                     <span class="badge-fechado">Fechado</span>
                 </div>
                 <div class="card-content">
-                    <p><strong>Responsável do Card:</strong> ${responsavelTexto}</p>
-                    <p><strong>Telefone:</strong> ${primeiroNumero}</p>
                     <p><strong>Processo:</strong> ${primeiroProcesso}</p>
-                    <p><strong>Estado:</strong> ${cliente.estado || '-'}</p>
+                    <p><strong>Valor da Causa:</strong> ${valorCausa}</p>
+                    <p><strong>Estado:</strong> ${estado}</p>
                 </div>
                 <div class="card-footer">
-                    <button class="btn btn-green" onclick="abrirModal('${cliente.id}')">
+                    <button class="btn btn-green btn-abrir-andamento">
                         💬 Escrever Andamento
                     </button>
                 </div>
             `;
+
+            // Adiciona o evento de clique via JavaScript diretamente nos elementos
+            const btnAbrir = card.querySelector('.btn-abrir-andamento');
+            
+            // Se clicar no botão
+            btnAbrir.onclick = (e) => {
+                e.stopPropagation(); // Evita que clique duas vezes
+                abrirModal(cliente);
+            };
+
+            // Se clicar em qualquer outra área do card
+            card.onclick = () => {
+                abrirModal(cliente);
+            };
 
             cardsContainer.appendChild(card);
         });
