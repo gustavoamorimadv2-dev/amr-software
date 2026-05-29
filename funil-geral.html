@@ -1,188 +1,533 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Funil Geral - Escritório</title>
-    <!-- Utilizando Tailwind CSS para estilização rápida e moderna -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Estilos adicionais para transições suaves */
-        .card-hover { transition: transform 0.2s, box-shadow 0.2s; }
-        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Funil Geral - AMR ADV</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+
+* {
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Inter',sans-serif;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+
+body {
+    display:flex;
+    height:100vh;
+    overflow:hidden;
+    background:
+        radial-gradient(circle at top left,#2f3f73 0%,transparent 30%),
+        radial-gradient(circle at bottom right,#0f766e 0%,transparent 25%),
+        linear-gradient(135deg,#0f172a,#111827,#020617);
+    color: #fff;
+}
+
+/* ================= SIDEBAR ================= */
+.sidebar {
+    width:80px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:20px 0;
+    flex-shrink:0;
+    transition:width 0.4s ease;
+    position:relative;
+    z-index:10;
+    backdrop-filter:blur(30px);
+    background:rgba(255,255,255,0.06);
+    border-right:1px solid rgba(255,255,255,0.08);
+    box-shadow:0 0 40px rgba(0,0,0,0.25);
+}
+
+.sidebar.expanded { width:240px; }
+
+.sidebar h2 {
+    font-size:22px;
+    font-weight:800;
+    color:#fff;
+    letter-spacing:1px;
+    margin-bottom:30px;
+    text-align:center;
+    cursor:pointer;
+    width:100%;
+    white-space:nowrap;
+    overflow:hidden;
+    transition:opacity 0.3s;
+    opacity:0;
+}
+
+.sidebar.expanded h2 { opacity:1; }
+
+.sidebar button {
+    width:calc(100% - 20px);
+    background:transparent;
+    border:none;
+    color:rgba(255,255,255,0.7);
+    display:flex;
+    align-items:center;
+    gap:15px;
+    padding:12px 15px;
+    margin:5px 10px;
+    cursor:pointer;
+    border-radius:14px;
+    transition:all 0.3s;
+    font-size:14px;
+    white-space:nowrap;
+    overflow:hidden;
+}
+
+.sidebar button img {
+    width:24px;
+    height:24px;
+    filter:invert(1) opacity(0.7);
+    flex-shrink:0;
+    transition:transform 0.3s, filter 0.3s;
+}
+
+.sidebar button span { display:inline-block; opacity:0; transition:opacity 0.3s; font-weight:600; }
+.sidebar.expanded button span { opacity:1; }
+.sidebar button:hover img { transform:scale(1.1); filter:invert(1) opacity(1); }
+.sidebar button:hover { background:rgba(255,255,255,0.1); color:#fff; }
+
+/* ================= MAIN ================= */
+.main {
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+}
+
+header {
+    height:70px;
+    background:transparent;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:0 30px;
+    flex-shrink:0;
+}
+
+header h1 { font-size:24px; color:#fff; font-weight:800; }
+
+.search-bar {
+    padding:15px 30px;
+    background:transparent;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+    display:flex;
+    gap:15px;
+    align-items:center;
+    flex-shrink:0;
+}
+
+.search-bar input {
+    padding:12px 16px;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:12px;
+    color:#fff;
+    font-size: 14px;
+    outline: none;
+    transition: 0.3s;
+    backdrop-filter: blur(10px);
+    flex:1;
+}
+
+.search-bar input:focus {
+    background:rgba(255,255,255,0.15);
+    border-color: rgba(255,255,255,0.3);
+}
+
+.search-bar input::placeholder { color: rgba(255,255,255,0.5); }
+
+/* ================= COLUNAS FUNIL GERAL ================= */
+.kanban-container {
+    flex:1;
+    overflow-x:auto;
+    padding:20px 30px;
+}
+
+.kanban {
+    display:flex;
+    gap:20px;
+    min-width:max-content;
+    height:100%;
+}
+
+.column {
+    background:rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px);
+    border-radius:20px;
+    padding:15px;
+    min-width:400px;
+    width: 48%;
+    max-height:100%;
+    display:flex;
+    flex-direction:column;
+    gap:15px;
+    overflow-y:auto;
+}
+
+.column h2 {
+    margin-bottom:10px;
+    font-size:14px;
+    color:#fff;
+    font-weight: 700;
+    letter-spacing: 1px;
+    opacity: 0.8;
+}
+
+/* ================= CARDS ================= */
+.card {
+    display:flex;
+    background:rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(15px);
+    border-radius:16px;
+    box-shadow:0 8px 30px rgba(0,0,0,0.2);
+    overflow:hidden;
+    transition:transform 0.3s, background 0.3s;
+    position:relative;
+    flex-direction:row;
+    width:100%;
+    min-height:180px;
+}
+
+.card:hover {
+    transform:translateY(-4px);
+    background:rgba(255,255,255,0.1);
+}
+
+.card .color-bar {
+    width:8px;
+    height:100%;
+}
+
+/* Cores de Status de Resgate */
+.disponivel .color-bar { background: #10b981; } /* Verde */
+.indisponivel .color-bar { background: #ef4444; } /* Vermelho */
+
+.card-content {
+    padding:20px;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-start;
+    overflow:hidden;
+    min-width: 0;
+}
+
+.card h3 {
+    font-size:18px;
+    margin-bottom:12px;
+    color:#fff;
+    font-weight: 700;
+    padding-right: 120px; 
+    word-break: break-word; 
+}
+
+.card p {
+    font-size:13px;
+    color:rgba(255,255,255,0.7);
+    margin:5px 0;
+}
+
+.card p strong { color: #fff; font-weight: 600; }
+
+.badge-responsavel {
+    margin-top: 10px;
+    padding: 8px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.card-actions {
+    position:absolute;
+    top:15px;
+    right:15px;
+    display:flex;
+    gap:10px;
+}
+
+/* ================= BUTTONS ================= */
+.btn {
+    padding:8px 14px;
+    border-radius:8px;
+    border:0;
+    cursor:pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.btn-green {
+    background: #10b981;
+    color: #fff;
+    border: none;
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+}
+
+.btn-green:hover {
+    background: #059669;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4);
+}
+
+/* ================= TOAST ================= */
+.toast {
+    position:fixed;
+    right:30px;
+    bottom:30px;
+    background:rgba(255,255,255,0.1);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.1);
+    color:#fff;
+    padding:12px 20px;
+    border-radius:12px;
+    box-shadow:0 10px 30px rgba(0,0,0,.4);
+    display:none;
+    z-index:60;
+    font-weight: 500;
+}
+</style>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+import {
+    getFirestore,
+    collection,
+    getDocs,
+    doc,
+    updateDoc
+} from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+import {
+    getAuth,
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+
+/* ================= FIREBASE ================= */
+const firebaseConfig = {
+    apiKey: "AIzaSyAFJJAqVf3ge0WDHBpmS9E6sXKvnjuFkhw",
+    authDomain: "dapapp-38637.firebaseapp.com",
+    projectId: "dapapp-38637",
+    storageBucket: "dapapp-38637.firebasestorage.app",
+    messagingSenderId: "628852295313",
+    appId: "1:628852295313:web:1234567890abcdef123456"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    const sidebar = document.querySelector(".sidebar");
+    const searchInput = document.getElementById('searchInput');
+    const toastEl = document.getElementById('toast');
+    let currentUser = null;
+    let todosClientes = [];
+
+    if(sidebar){
+        sidebar.addEventListener('mouseenter', () => sidebar.classList.add('expanded'));
+        sidebar.addEventListener('mouseleave', () => sidebar.classList.remove('expanded'));
+    }
+
+    function showToast(msg){
+        toastEl.innerText = msg;
+        toastEl.style.display = 'block';
+        clearTimeout(toastEl._t);
+        toastEl._t = setTimeout(() => { toastEl.style.display = 'none'; }, 3000);
+    }
+
+    // Função para calcular dias passados
+    function calcularDias(dataAlvo) {
+        if (!dataAlvo) return 999; // Se não tem data, libera.
+        const data1 = new Date(dataAlvo);
+        const data2 = new Date();
+        const diffTempo = Math.abs(data2 - data1);
+        return Math.floor(diffTempo / (1000 * 60 * 60 * 24));
+    }
+
+    // Busca TODOS os clientes do banco (Sem filtro de userId)
+    async function fetchTodosClientes(){
+        const snapshot = await getDocs(collection(db, "clientes"));
+        todosClientes = snapshot.docs.map(docData => ({
+            id: docData.id,
+            ...docData.data()
+        }));
+        renderCards();
+    }
+
+    // Ação de Resgatar Cliente
+    window.resgatarCliente = async function(id) {
+        if(!currentUser) return;
+        
+        try {
+            const docRef = doc(db, "clientes", id);
+            // Atualiza para o usuário atual, seta o nome do responsável e zera o tempo (dataUltimoResgate)
+            await updateDoc(docRef, { 
+                userId: currentUser.uid,
+                responsavel: currentUser.displayName || currentUser.email || 'Usuário Atual',
+                dataUltimoResgate: new Date().toISOString()
+            });
+            
+            showToast("Card resgatado com sucesso!");
+            fetchTodosClientes(); // Recarrega a tela
+        } catch (error) {
+            console.error(error);
+            showToast("Erro ao resgatar o card.");
+        }
+    };
+
+    function renderCards(){
+        const colFunilGeral = document.getElementById('col-funil-geral');
+        const colResgatados = document.getElementById('col-resgatados');
+        
+        // Limpa colunas mantendo apenas o título (h2)
+        colFunilGeral.innerHTML = '<h2>FUNIL GERAL (Disponíveis)</h2>';
+        colResgatados.innerHTML = '<h2>CARDS RESGATADOS (Em posse)</h2>';
+
+        const q = searchInput.value.toLowerCase();
+
+        todosClientes.forEach(cliente => {
+            // Filtro de pesquisa
+            if (cliente.nome && !cliente.nome.toLowerCase().includes(q)) return;
+
+            // Determina a data base para o cálculo (prioridade para último resgate)
+            const dataBase = cliente.dataUltimoResgate || cliente.dataCadastro;
+            const diasPassados = calcularDias(dataBase);
+            const disponivel = diasPassados >= 5;
+
+            const card = document.createElement('div');
+            card.className = `card ${disponivel ? 'disponivel' : 'indisponivel'}`;
+
+            // Processos e Telefones
+            const primeiroProcesso = cliente.processo ? cliente.processo.split(',')[0].trim() : '-';
+            const primeiroNumero = cliente.numeros ? cliente.numeros.split(',')[0].trim() : '-';
+
+            // Dados do Responsável
+            const responsavelTexto = cliente.responsavel || 'Sem responsável';
+            const dataTexto = dataBase ? new Date(dataBase).toLocaleDateString('pt-BR') : 'Sem registro';
+
+            // Monta o visual do card
+            card.innerHTML = `
+                <div class="color-bar"></div>
+                <div class="card-content">
+                    <h3>${cliente.nome}</h3>
+                    <p><strong>CPF:</strong> ${cliente.cpf || '-'}</p>
+                    <p><strong>Telefone:</strong> ${primeiroNumero}</p>
+                    <p><strong>Processo:</strong> ${primeiroProcesso}</p>
+                    <p><strong>Valor:</strong> R$ ${cliente.valor || 0}</p>
+
+                    <div class="badge-responsavel">
+                        <p style="margin: 0;"><strong>Responsável:</strong> ${responsavelTexto}</p>
+                        <p style="margin: 0; font-size: 11px; color: #9ca3af;">Última ação: ${dataTexto} (${diasPassados} dias atrás)</p>
+                    </div>
+                </div>
+            `;
+
+            // Adiciona o botão APENAS se estiver disponível (Verde)
+            if (disponivel) {
+                const actionsDiv = document.createElement('div');
+                actionsDiv.className = 'card-actions';
+                
+                const btnResgatar = document.createElement('button');
+                btnResgatar.className = 'btn btn-green';
+                btnResgatar.innerHTML = '🎯 Resgatar';
+                btnResgatar.onclick = () => window.resgatarCliente(cliente.id);
+                
+                actionsDiv.appendChild(btnResgatar);
+                card.appendChild(actionsDiv);
+                
+                colFunilGeral.appendChild(card);
+            } else {
+                colResgatados.appendChild(card);
+            }
+        });
+    }
+
+    searchInput.oninput = renderCards;
+
+    /* ================= LOGIN ================= */
+    onAuthStateChanged(auth, user => {
+        if(user){
+            currentUser = user;
+            fetchTodosClientes();
+        }else{
+            window.location.href = "login.html";
+        }
+    });
+
+});
+</script>
+
 </head>
-<body class="bg-gray-100 min-h-screen p-8">
+<body>
 
-    <div class="max-w-7xl mx-auto">
-        <header class="mb-8 flex justify-between items-center">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-800">Funil Geral do Escritório</h1>
-                <p class="text-gray-500 mt-1">Cards disponíveis para resgate após 5 dias de inatividade.</p>
-            </div>
-            <!-- Simulação de usuário logado -->
-            <div class="bg-white px-4 py-2 rounded shadow-sm text-sm font-medium text-gray-700">
-                👤 Logado como: <span id="currentUser" class="text-blue-600">João Silva</span>
-            </div>
-        </header>
+<div class="sidebar">
+    <h2 onclick="window.location.href='dashboard.html'">AMR ADV</h2>
+    <button onclick="window.location.href='crm.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/dashboard.png"/>
+        <span>CRM</span>
+    </button>
+    <button onclick="window.location.href='funil_geral.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/filter.png"/>
+        <span>Funil Geral</span>
+    </button>
+    <button onclick="window.location.href='clientes.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/user-group-man-man.png"/>
+        <span>Clientes</span>
+    </button>
+    <button onclick="window.location.href='app.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/phone.png"/>
+        <span>App</span>
+    </button>
+    <button>
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/settings.png"/>
+        <span>Configurações</span>
+    </button>
+</div>
 
-        <!-- Container onde os cards serão renderizados via JavaScript -->
-        <div id="cardsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Os cards entrarão aqui -->
+<div class="main">
+    <header>
+        <h1>Funil Geral - Resgate de Cards</h1>
+        <div style="font-size: 14px; color: rgba(255,255,255,0.7);">
+            Cards inativos há 5 dias ficam disponíveis para captura.
         </div>
+    </header>
+
+    <div class="search-bar">
+        <input id="searchInput" placeholder="Buscar cliente por nome..." />
     </div>
 
-    <script>
-        // Usuário atual simulado (quem está clicando em "Resgatar")
-        const usuarioLogado = "João Silva";
+    <div class="kanban-container">
+        <main class="kanban" id="kanban">
+            <div class="column" id="col-funil-geral">
+                </div>
 
-        // Gerar datas para simulação
-        const hoje = new Date();
-        const dataOntem = new Date(hoje); dataOntem.setDate(hoje.getDate() - 1);
-        const dataAntiga = new Date(hoje); dataAntiga.setDate(hoje.getDate() - 6);
-        const dataMuitoAntiga = new Date(hoje); dataMuitoAntiga.setDate(hoje.getDate() - 10);
+            <div class="column" id="col-resgatados">
+                </div>
+        </main>
+    </div>
+</div>
 
-        // Banco de dados simulado dos clientes
-        let clientes = [
-            {
-                id: 1,
-                nome: "Carlos Eduardo Oliveira",
-                telefone: "(11) 98765-4321",
-                email: "carlos.edu@email.com",
-                servico: "Consultoria Financeira",
-                dataUltimoResgate: dataAntiga.toISOString(), // Mais de 5 dias
-                responsavel: "Maria Souza"
-            },
-            {
-                id: 2,
-                nome: "Ana Pereira Santos",
-                telefone: "(21) 99999-1111",
-                email: "ana.pereira@email.com",
-                servico: "Assessoria Jurídica",
-                dataUltimoResgate: dataOntem.toISOString(), // Menos de 5 dias (Bloqueado)
-                responsavel: "Pedro Alves"
-            },
-            {
-                id: 3,
-                nome: "Roberto Mendes",
-                telefone: "(31) 97777-2222",
-                email: "roberto.mendes@email.com",
-                servico: "Planejamento Tributário",
-                dataUltimoResgate: dataMuitoAntiga.toISOString(), // Mais de 5 dias
-                responsavel: "João Silva"
-            },
-            {
-                id: 4,
-                nome: "Empresa XPTO Ltda",
-                telefone: "(41) 3333-4444",
-                email: "contato@xpto.com.br",
-                servico: "Auditoria Contábil",
-                dataUltimoResgate: hoje.toISOString(), // Novo cadastro/resgate
-                responsavel: "Marcos Fernandes"
-            }
-        ];
+<div class="toast" id="toast"></div>
 
-        // Função para calcular a diferença em dias entre duas datas
-        function calcularDiferencaDias(dataInicio, dataFim) {
-            const data1 = new Date(dataInicio);
-            const data2 = new Date(dataFim);
-            const diffTempo = Math.abs(data2 - data1);
-            return Math.floor(diffTempo / (1000 * 60 * 60 * 24));
-        }
-
-        // Função para formatar data (DD/MM/AAAA)
-        function formatarData(dataISO) {
-            const data = new Date(dataISO);
-            return data.toLocaleDateString('pt-BR');
-        }
-
-        // Função principal para renderizar os cards na tela
-        function renderizarCards() {
-            const container = document.getElementById('cardsContainer');
-            container.innerHTML = ''; // Limpa o container
-
-            clientes.forEach(cliente => {
-                const diasPassados = calcularDiferencaDias(cliente.dataUltimoResgate, new Date());
-                const disponivel = diasPassados >= 5;
-
-                // Definir cores e textos com base na disponibilidade
-                const corBorda = disponivel ? 'border-green-500' : 'border-red-500';
-                const corBadge = disponivel ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
-                const textoStatus = disponivel ? 'Disponível para Resgate' : 'Em posse de um colaborador';
-                const iconeStatus = disponivel ? '🟢' : '🔴';
-
-                // Construção do HTML do card
-                const cardHTML = `
-                    <div class="bg-white rounded-lg shadow-sm border-t-4 ${corBorda} card-hover flex flex-col h-full">
-                        <!-- Cabeçalho do Card -->
-                        <div class="p-5 border-b border-gray-100 flex-grow">
-                            <div class="flex justify-between items-start mb-4">
-                                <h2 class="text-lg font-semibold text-gray-800 truncate" title="${cliente.nome}">${cliente.nome}</h2>
-                                <span class="text-xs font-semibold px-2.5 py-0.5 rounded ${corBadge} whitespace-nowrap">
-                                    ${iconeStatus} ${textoStatus}
-                                </span>
-                            </div>
-                            
-                            <!-- Informações do Cliente -->
-                            <div class="space-y-2 text-sm text-gray-600">
-                                <p class="flex items-center">
-                                    <span class="mr-2">📞</span> ${cliente.telefone}
-                                </p>
-                                <p class="flex items-center">
-                                    <span class="mr-2">✉️</span> <span class="truncate" title="${cliente.email}">${cliente.email}</span>
-                                </p>
-                                <p class="flex items-center">
-                                    <span class="mr-2">💼</span> ${cliente.servico}
-                                </p>
-                                <p class="flex items-center mt-4 text-xs text-gray-400">
-                                    ⏱️ Última ação: ${formatarData(cliente.dataUltimoResgate)} (${diasPassados} dias atrás)
-                                </p>
-                            </div>
-                        </div>
-
-                        <!-- Rodapé do Card: Responsável e Ação -->
-                        <div class="bg-gray-50 p-4 rounded-b-lg flex flex-col sm:flex-row justify-between items-center gap-3">
-                            <div class="text-sm">
-                                <span class="text-gray-500">Responsável atual:</span><br>
-                                <span class="font-semibold text-gray-700">${cliente.responsavel || 'Nenhum'}</span>
-                            </div>
-                            
-                            <button 
-                                onclick="resgatarCard(${cliente.id})" 
-                                ${!disponivel ? 'disabled' : ''}
-                                class="w-full sm:w-auto px-4 py-2 rounded font-medium text-sm transition-colors
-                                ${disponivel 
-                                    ? 'bg-green-600 text-white hover:bg-green-700 cursor-pointer' 
-                                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'}"
-                            >
-                                ${disponivel ? 'Resgatar Card' : 'Indisponível'}
-                            </button>
-                        </div>
-                    </div>
-                `;
-                
-                container.innerHTML += cardHTML;
-            });
-        }
-
-        // Função ativada ao clicar no botão "Resgatar Card"
-        window.resgatarCard = function(id) {
-            // Encontra o cliente no array
-            const index = clientes.findIndex(c => c.id === id);
-            
-            if (index !== -1) {
-                // Atualiza o responsável e a data para o momento atual
-                clientes[index].responsavel = usuarioLogado;
-                clientes[index].dataUltimoResgate = new Date().toISOString();
-                
-                // Re-renderiza a tela para mostrar a atualização
-                renderizarCards();
-            }
-        };
-
-        // Renderiza os cards assim que a página carrega
-        document.addEventListener('DOMContentLoaded', renderizarCards);
-
-    </script>
 </body>
 </html>
