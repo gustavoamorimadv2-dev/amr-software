@@ -357,14 +357,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Função para calcular dias passados
     function calcularDias(dataAlvo) {
-        if (!dataAlvo) return 999; // Se não tem data, libera.
+        if (!dataAlvo) return 999; 
         const data1 = new Date(dataAlvo);
         const data2 = new Date();
         const diffTempo = Math.abs(data2 - data1);
         return Math.floor(diffTempo / (1000 * 60 * 60 * 24));
     }
 
-    // Busca TODOS os clientes do banco (Sem filtro de userId)
+    // Busca TODOS os clientes do banco
     async function fetchTodosClientes(){
         const snapshot = await getDocs(collection(db, "clientes"));
         todosClientes = snapshot.docs.map(docData => ({
@@ -381,16 +381,16 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const docRef = doc(db, "clientes", id);
             
-            // Atualiza o userId, responsavel e JOGA PARA A LISTA FRIA do novo dono
+            // Força a gravação do e-mail do usuário atual como o responsável
             await updateDoc(docRef, { 
                 userId: currentUser.uid,
-                responsavel: currentUser.displayName || currentUser.email || 'Usuário Atual',
+                responsavel: currentUser.email || currentUser.displayName || 'Usuário Autenticado',
                 dataUltimoResgate: new Date().toISOString(),
-                status: 'lista-fria' // Move o card direto para a Lista Fria no CRM
+                status: 'lista-fria' 
             });
             
             showToast("Card resgatado e movido para sua Lista Fria!");
-            fetchTodosClientes(); // Recarrega a tela
+            fetchTodosClientes(); 
         } catch (error) {
             console.error(error);
             showToast("Erro ao resgatar o card.");
@@ -401,17 +401,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const colFunilGeral = document.getElementById('col-funil-geral');
         const colResgatados = document.getElementById('col-resgatados');
         
-        // Limpa colunas mantendo apenas o título (h2)
         colFunilGeral.innerHTML = '<h2>FUNIL GERAL (Disponíveis)</h2>';
         colResgatados.innerHTML = '<h2>CARDS RESGATADOS (Em posse)</h2>';
 
         const q = searchInput.value.toLowerCase();
 
         todosClientes.forEach(cliente => {
-            // Filtro de pesquisa
             if (cliente.nome && !cliente.nome.toLowerCase().includes(q)) return;
 
-            // Determina a data base para o cálculo (prioridade para último resgate)
             const dataBase = cliente.dataUltimoResgate || cliente.dataCadastro;
             const diasPassados = calcularDias(dataBase);
             const disponivel = diasPassados >= 5;
@@ -419,15 +416,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const card = document.createElement('div');
             card.className = `card ${disponivel ? 'disponivel' : 'indisponivel'}`;
 
-            // Processos e Telefones
             const primeiroProcesso = cliente.processo ? cliente.processo.split(',')[0].trim() : '-';
             const primeiroNumero = cliente.numeros ? cliente.numeros.split(',')[0].trim() : '-';
 
-            // Dados do Responsável
+            // Garante a exibição do e-mail/identificação do responsável diretamente no card
             const responsavelTexto = cliente.responsavel || 'Sem responsável';
             const dataTexto = dataBase ? new Date(dataBase).toLocaleDateString('pt-BR') : 'Sem registro';
 
-            // Monta o visual do card
             card.innerHTML = `
                 <div class="color-bar"></div>
                 <div class="card-content">
@@ -438,13 +433,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p><strong>Valor:</strong> R$ ${cliente.valor || 0}</p>
 
                     <div class="badge-responsavel">
-                        <p style="margin: 0;"><strong>Responsável:</strong> ${responsavelTexto}</p>
+                        <p style="margin: 0;"><strong>Responsável (E-mail):</strong> <span style="color: #60a5fa; font-weight: 500;">${responsavelTexto}</span></p>
                         <p style="margin: 0; font-size: 11px; color: #9ca3af;">Última ação: ${dataTexto} (${diasPassados} dias atrás)</p>
                     </div>
                 </div>
             `;
 
-            // Adiciona o botão APENAS se estiver disponível (Verde)
             if (disponivel) {
                 const actionsDiv = document.createElement('div');
                 actionsDiv.className = 'card-actions';
