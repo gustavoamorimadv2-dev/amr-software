@@ -195,8 +195,8 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     background:rgba(255,255,255,0.07);
     border: 1px solid rgba(255,255,255,0.08);
     backdrop-filter: blur(15px);
-    border-radius:16px;
-    box-shadow:0 8px 30px rgba(0,0,0,0.2);
+    border-radius:12px;
+    box-shadow:0 4px 15px rgba(0,0,0,0.2);
     overflow:hidden;
     transition:transform 0.3s, background 0.3s, border-color 0.3s;
     position:relative;
@@ -211,23 +211,23 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 }
 
 /* Indicadores de Cor */
-.aberto { border-left: 6px solid #ef4444; } /* Vermelho para pendente */
+.aberto { border-top: 4px solid #ef4444; }
 .aberto:hover { border-color: #f87171; }
 
-.concluido { border-left: 6px solid #10b981; } /* Verde para concluído */
+.concluido { border-top: 4px solid #10b981; }
 .concluido:hover { border-color: #34d399; }
 
 .card-header {
     background: rgba(0, 0, 0, 0.2); 
     border-bottom: 1px solid rgba(255,255,255,0.05);
-    padding: 15px 20px;
+    padding: 12px 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
 .card-header h3 {
-    font-size:16px;
+    font-size:15px;
     color:#fff;
     font-weight: 700;
     white-space: nowrap;
@@ -244,23 +244,72 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 }
 
 .card-content {
-    padding:20px;
-    flex:1;
-    display:flex;
-    flex-direction:column;
-    justify-content:flex-start;
+    padding: 16px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
 
-.card-content p {
-    font-size:13px;
-    color:rgba(255,255,255,0.8);
-    margin:6px 0;
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: rgba(255,255,255,0.8);
+    border-bottom: 1px dashed rgba(255,255,255,0.1);
+    padding-bottom: 6px;
 }
 
-.card-content p strong { color: #fff; font-weight: 600; }
+.info-row:last-of-type {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.info-row strong { 
+    color: #fff; 
+    font-weight: 600; 
+}
+
+.info-row span {
+    text-align: right;
+    max-width: 60%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Seção do Último Andamento */
+.ultimo-andamento {
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 8px;
+    border-left: 3px solid rgba(255,255,255,0.2);
+}
+
+.ultimo-andamento strong {
+    display: block;
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.ultimo-andamento p {
+    font-size: 12px;
+    color: rgba(255,255,255,0.9);
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.4;
+}
 
 .card-footer {
-    padding: 15px 20px;
+    padding: 12px 16px;
     border-top: 1px solid rgba(255,255,255,0.05);
     background: rgba(0,0,0,0.1);
 }
@@ -445,7 +494,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Calcula os dias passados desde o último andamento
     function calcularDiasAndamento(dataAndamento) {
-        if (!dataAndamento) return 999; // Retorna número alto se não tiver andamento, forçando a ir para "Aberto"
+        if (!dataAndamento) return 999; 
         const data1 = new Date(dataAndamento);
         const data2 = new Date();
         const diffTempo = Math.abs(data2 - data1);
@@ -471,6 +520,8 @@ document.addEventListener('DOMContentLoaded', () => {
     function abrirModal(cliente) {
         clienteSelecionado = cliente;
         modalTitle.innerText = `Andamento: ${cliente.nome}`;
+        
+        // Se já tiver um andamento gravado, podemos trazer como base, se não, usamos o padrão
         inputAndamento.value = `Olá {nome}, tudo bem?\nAqui é do setor de andamento da AMR ADV. \n\nA atualização do seu processo é: \n\n`;
         modalBackdrop.style.display = 'flex';
     }
@@ -502,25 +553,27 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // 1. Atualizar no Firebase a data do último andamento
+        const mensagemFinal = texto.replace(/{nome}/g, clienteSelecionado.nome);
+
+        // 1. Atualizar no Firebase a data e gravar o texto do último andamento
         try {
             btnEnviarAndamento.disabled = true;
             btnEnviarAndamento.innerText = "Salvando...";
 
             const docRef = doc(db, "clientes", clienteSelecionado.id);
             await updateDoc(docRef, { 
-                dataUltimoAndamento: new Date().toISOString() 
+                dataUltimoAndamento: new Date().toISOString(),
+                ultimoAndamentoTexto: mensagemFinal // Gravando o texto do andamento
             });
 
             // 2. Montar e abrir WhatsApp
-            const mensagemFinal = texto.replace(/{nome}/g, clienteSelecionado.nome);
             const waUrl = `https://wa.me/55${numeroLimpo}?text=${encodeURIComponent(mensagemFinal)}`;
             window.open(waUrl, '_blank');
 
             showToast("Andamento salvo e WhatsApp aberto!");
             modalBackdrop.style.display = 'none';
             
-            // 3. Recarregar os dados para mover o card de coluna
+            // 3. Recarregar os dados para atualizar o texto do card e mover a coluna
             await fetchClientesFechados();
             
         } catch (error) {
@@ -533,7 +586,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     function renderCards(){
-        // Preserva os títulos das colunas e limpa os cards
         colAberto.innerHTML = '<h2>ANDAMENTOS EM ABERTO (Aguardando Atualização)</h2>';
         colConcluido.innerHTML = '<h2>ANDAMENTOS CONCLUÍDOS (Atualizados há menos de 5 dias)</h2>';
         
@@ -542,7 +594,6 @@ document.addEventListener('DOMContentLoaded', () => {
         clientesFechados.forEach(cliente => {
             if (cliente.nome && !cliente.nome.toLowerCase().includes(qTexto)) return;
 
-            // Logica de separação de coluna
             const diasPassados = calcularDiasAndamento(cliente.dataUltimoAndamento);
             const pendente = diasPassados >= 5;
 
@@ -553,12 +604,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const valorCausa = cliente.valor ? `R$ ${cliente.valor}` : 'Não informado';
             const estado = cliente.estado || 'Não informado';
             
-            // Texto da Badge
+            // Verifica se existe o último andamento salvo
+            const textoAndamento = cliente.ultimoAndamentoTexto ? cliente.ultimoAndamentoTexto : '';
+
             let badgeTexto = pendente ? "Pendente" : "Atualizado";
             if (!pendente) {
                 badgeTexto += diasPassados === 0 ? " (Hoje)" : ` (${diasPassados}d atrás)`;
             }
 
+            // Montagem do HTML do card com o layout retangular e exibição do andamento
             card.innerHTML = `
                 <div class="card-header">
                     <h3 title="${cliente.nome}">${cliente.nome}</h3>
@@ -567,13 +621,29 @@ document.addEventListener('DOMContentLoaded', () => {
                     </span>
                 </div>
                 <div class="card-content">
-                    <p><strong>Processo:</strong> ${primeiroProcesso}</p>
-                    <p><strong>Valor da Causa:</strong> ${valorCausa}</p>
-                    <p><strong>Estado:</strong> ${estado}</p>
+                    <div class="info-row">
+                        <strong>Processo:</strong>
+                        <span title="${primeiroProcesso}">${primeiroProcesso}</span>
+                    </div>
+                    <div class="info-row">
+                        <strong>Valor da Causa:</strong>
+                        <span>${valorCausa}</span>
+                    </div>
+                    <div class="info-row">
+                        <strong>Estado:</strong>
+                        <span>${estado}</span>
+                    </div>
+                    
+                    ${textoAndamento ? `
+                    <div class="ultimo-andamento">
+                        <strong>Último Andamento Enviado</strong>
+                        <p title="${textoAndamento.replace(/"/g, '&quot;')}">${textoAndamento}</p>
+                    </div>` : ''}
+                    
                 </div>
                 <div class="card-footer">
                     <button class="btn ${pendente ? 'btn-blue' : 'btn-green'} btn-abrir-andamento">
-                        💬 Escrever Andamento
+                        💬 ${pendente ? 'Escrever Andamento' : 'Novo Andamento'}
                     </button>
                 </div>
             `;
@@ -589,7 +659,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 abrirModal(cliente);
             };
 
-            // Insere na coluna correta
             if (pendente) {
                 colAberto.appendChild(card);
             } else {
