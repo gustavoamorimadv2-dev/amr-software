@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meu Perfil - CRM AMR ADV</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+* { margin:0; padding:0; box-sizing:border-box; font-family:'Inter',sans-serif; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+
+body {
+    display:flex;
+    height:100vh;
+    overflow:hidden;
+    background: radial-gradient(circle at top left,#2f3f73 0%,transparent 30%),
+                radial-gradient(circle at bottom right,#0f766e 0%,transparent 25%),
+                linear-gradient(135deg,#0f172a,#111827,#020617);
+    color: #fff;
+}
+
+/* SIDEBAR PADRÃO */
+.sidebar{ width:80px; display:flex; flex-direction:column; align-items:center; padding:20px 0; flex-shrink:0; transition:width 0.4s ease; position:relative; z-index:10; backdrop-filter:blur(30px); background:rgba(255,255,255,0.06); border-right:1px solid rgba(255,255,255,0.08); box-shadow:0 0 40px rgba(0,0,0,0.25); }
+.sidebar.expanded{ width:240px; }
+.sidebar h2{ font-size:22px; font-weight:800; color:#fff; letter-spacing:1px; margin-bottom:30px; text-align:center; cursor:pointer; width:100%; white-space:nowrap; overflow:hidden; transition:opacity 0.3s; opacity:0; }
+.sidebar.expanded h2{ opacity:1; }
+.sidebar button{ width:calc(100% - 20px); background:transparent; border:none; color:rgba(255,255,255,0.7); display:flex; align-items:center; gap:15px; padding:12px 15px; margin:5px 10px; cursor:pointer; border-radius:14px; transition:all 0.3s; font-size:14px; white-space:nowrap; overflow:hidden; }
+.sidebar button img{ width:24px; height:24px; filter:invert(1) opacity(0.7); flex-shrink:0; transition:transform 0.3s, filter 0.3s; }
+.sidebar button span{ display:inline-block; opacity:0; transition:opacity 0.3s; font-weight:600; }
+.sidebar.expanded button span{ opacity:1; }
+.sidebar button:hover img{ transform:scale(1.1); filter:invert(1) opacity(1); }
+.sidebar button:hover{ background:rgba(255,255,255,0.1); color:#fff; }
+.active-menu { background: rgba(255,255,255,0.15) !important; color: #fff !important; }
+
+/* MAIN */
+.main{ flex:1; display:flex; flex-direction:column; overflow:hidden; }
+header{ height:70px; background:transparent; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; justify-content:space-between; align-items:center; padding:0 30px; flex-shrink:0; }
+header h1{ font-size:24px; color:#fff; font-weight:800; }
+
+.content-area { padding: 30px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 30px; }
+.top-section { display: flex; gap: 30px; flex-wrap: wrap; align-items: flex-start; }
+
+/* PERFIL CARD */
+.perfil-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 30px;
+    width: 350px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+.foto-container {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    margin-bottom: 20px;
+    background: rgba(255,255,255,0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    border: 3px solid rgba(255,255,255,0.2);
+}
+.foto-container img { width: 100%; height: 100%; object-fit: cover; }
+.foto-container .placeholder { font-size: 40px; color: rgba(255,255,255,0.3); }
+.btn-foto {
+    margin-top: -35px;
+    margin-bottom: 20px;
+    z-index: 2;
+    background: #3b82f6;
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    transition: 0.3s;
+}
+.btn-foto:hover { background: #2563eb; transform: translateY(-2px); }
+.perfil-card h2 { font-size: 22px; margin-bottom: 5px; }
+.perfil-card p { font-size: 14px; color: rgba(255,255,255,0.6); margin-bottom: 20px; }
+.btn-logout { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: 0.3s; font-weight: 600; }
+.btn-logout:hover { background: rgba(239, 68, 68, 0.4); }
+
+/* TAREFAS CARD */
+.tarefas-section {
+    flex: 1;
+    min-width: 350px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 30px;
+}
+.tarefas-section h3 { font-size: 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+.tarefas-list { display: flex; flex-direction: column; gap: 15px; }
+.tarefa-item {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: 0.3s;
+}
+.tarefa-item:hover { background: rgba(255,255,255,0.08); }
+.tarefa-info h4 { font-size: 16px; margin-bottom: 5px; color: #fff; }
+.tarefa-info p { font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 8px; }
+.tarefa-info .prazo { font-size: 12px; font-weight: 600; color: #fcd34d; }
+
+.btn-concluir { background: #10b981; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 13px; transition: 0.3s; }
+.btn-concluir:hover { background: #059669; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3); }
+
+.tarefa-item.concluida { opacity: 0.6; border-color: rgba(16, 185, 129, 0.3); }
+.tarefa-item.concluida h4 { text-decoration: line-through; color: #10b981; }
+.tag-concluida { background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; }
+
+/* GRÁFICOS SECTION */
+.charts-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 20px;
+}
+.chart-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 20px;
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+}
+.chart-card h3 {
+    font-size: 18px;
+    margin-bottom: 20px;
+    color: #fff;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 10px;
+}
+.chart-container {
+    position: relative;
+    height: 300px;
+    width: 100%;
+}
+.empty-charts {
+    color: rgba(255,255,255,0.5);
+    font-size: 14px;
+    text-align: center;
+    margin-top: 50px;
+}
+
+/* TOAST */
+.toast { position:fixed; right:30px; bottom:30px; background:rgba(255,255,255,0.1); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); color:#fff; padding:12px 20px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.4); display:none; z-index:60; font-weight: 500; }
+</style>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+import { getFirestore, doc, getDoc, updateDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAFJJAqVf3ge0WDHBpmS9E6sXKvnjuFkhw",
+    authDomain: "dapapp-38637.firebaseapp.com",
+    projectId: "dapapp-38637",
+    storageBucket: "dapapp-38637.firebasestorage.app",
+    messagingSenderId: "628852295313",
+    appId: "1:628852295313:web:1234567890abcdef123456"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+const storage = getStorage(app);
+
+// Configuração Global do Tema Escuro para os Gráficos
+Chart.defaults.color = 'rgba(255, 255, 255, 0.7)';
+Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
+
+document.addEventListener('DOMContentLoaded', () => {
+    
+    const sidebar = document.querySelector(".sidebar");
+    if(sidebar){
+        sidebar.addEventListener('mouseenter', () => sidebar.classList.add('expanded'));
+        sidebar.addEventListener('mouseleave', () => sidebar.classList.remove('expanded'));
+    }
+
+    const toastEl = document.getElementById('toast');
+    function showToast(msg){
+        toastEl.innerText = msg;
+        toastEl.style.display = 'block';
+        clearTimeout(toastEl._t);
+        toastEl._t = setTimeout(() => { toastEl.style.display = 'none'; }, 3000);
+    }
+
+    let currentUser = null;
+
+    const profilePic = document.getElementById('profilePic');
+    const profileInitial = document.getElementById('profileInitial');
+    const funcNome = document.getElementById('funcNome');
+    const funcEmail = document.getElementById('funcEmail');
+    const uploadFotoInput = document.getElementById('uploadFotoInput');
+    const btnUploadFoto = document.getElementById('btnUploadFoto');
+    const btnLogout = document.getElementById('btnLogout');
+    const listaTarefas = document.getElementById('listaTarefas');
+
+    // CARREGAR DADOS DO PERFIL
+    async function carregarPerfil() {
+        try {
+            const funcRef = doc(db, "funcionarios", currentUser.uid);
+            const funcSnap = await getDoc(funcRef);
+            funcEmail.innerText = currentUser.email;
+
+            if (funcSnap.exists()) {
+                const dados = funcSnap.data();
+                funcNome.innerText = dados.nome || "Usuário AMR";
+                if (dados.fotoUrl) {
+                    profilePic.src = dados.fotoUrl;
+                    profilePic.style.display = 'block';
+                    profileInitial.style.display = 'none';
+                }
+            } else {
+                funcNome.innerText = "Administrador";
+            }
+        } catch (error) {
+            console.error("Erro ao carregar perfil:", error);
+        }
+    }
+
+    // UPLOAD DA FOTO DE PERFIL
+    btnUploadFoto.onclick = () => uploadFotoInput.click();
+    uploadFotoInput.onchange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        btnUploadFoto.innerText = "Enviando...";
+        try {
+            const storageRef = ref(storage, `documentos/${currentUser.uid}/foto_perfil_${Date.now()}`);
+            await uploadBytes(storageRef, file);
+            const url = await getDownloadURL(storageRef);
+
+            const funcRef = doc(db, "funcionarios", currentUser.uid);
+            await updateDoc(funcRef, { fotoUrl: url });
+
+            profilePic.src = url;
+            profilePic.style.display = 'block';
+            profileInitial.style.display = 'none';
+            showToast("Foto atualizada com sucesso!");
+        } catch (error) {
+            console.error("Erro ao enviar foto:", error);
+            showToast("Erro ao atualizar a foto.");
+        } finally {
+            btnUploadFoto.innerText = "Alterar Foto";
+            uploadFotoInput.value = "";
+        }
+    };
+
+    // CARREGAR TAREFAS
+    async function carregarTarefas() {
+        listaTarefas.innerHTML = '<p style="color: rgba(255,255,255,0.5);">Buscando suas tarefas...</p>';
+        try {
+            const q = query(collection(db, "tarefas"), where("funcionarioId", "==", currentUser.uid));
+            const tarefasSnap = await getDocs(q);
+            const tarefas = tarefasSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+            
+            tarefas.sort((a, b) => {
+                if (a.status === 'pendente' && b.status === 'concluida') return -1;
+                if (a.status === 'concluida' && b.status === 'pendente') return 1;
+                return new Date(b.dataCriacao) - new Date(a.dataCriacao);
+            });
+
+            listaTarefas.innerHTML = '';
+
+            if(tarefas.length === 0) {
+                listaTarefas.innerHTML = '<p style="color: rgba(255,255,255,0.5);">Oba! Nenhuma tarefa pendente no momento.</p>';
+                return;
+            }
+
+            tarefas.forEach(t => {
+                const prazoFormatado = t.prazo.split('-').reverse().join('/');
+                const isConcluida = t.status === 'concluida';
+
+                const div = document.createElement('div');
+                div.className = `tarefa-item ${isConcluida ? 'concluida' : ''}`;
+                div.innerHTML = `
+                    <div class="tarefa-info">
+                        <h4>${t.titulo}</h4>
+                        ${t.descricao ? `<p>"${t.descricao}"</p>` : ''}
+                        <span class="prazo">Prazo final: ${prazoFormatado}</span>
+                    </div>
+                    <div class="tarefa-acao">
+                        ${isConcluida 
+                            ? `<span class="tag-concluida">✓ Concluída</span>` 
+                            : `<button class="btn-concluir" id="btn-tarefa-${t.id}">Marcar Concluída</button>`
+                        }
+                    </div>
+                `;
+                listaTarefas.appendChild(div);
+
+                if (!isConcluida) {
+                    document.getElementById(`btn-tarefa-${t.id}`).onclick = async () => {
+                        try {
+                            await updateDoc(doc(db, "tarefas", t.id), { status: 'concluida', dataConclusao: new Date().toISOString() });
+                            showToast("Excelente! Tarefa concluída.");
+                            carregarTarefas();
+                        } catch (err) {
+                            showToast("Erro ao concluir a tarefa.");
+                        }
+                    };
+                }
+            });
+        } catch (error) {
+            listaTarefas.innerHTML = '<p style="color: #ef4444;">Erro ao carregar tarefas.</p>';
+        }
+    }
+
+    // CARREGAR ESTATÍSTICAS E GERAR GRÁFICOS
+    async function carregarEstatisticas() {
+        try {
+            // Busca apenas os clientes registrados por este usuário
+            const q = query(collection(db, "clientes"), where("userId", "==", currentUser.uid));
+            const clientesSnap = await getDocs(q);
+            const clientes = clientesSnap.docs.map(d => d.data());
+
+            if (clientes.length === 0) {
+                document.getElementById('chartsContainer').innerHTML = '<p class="empty-charts">Você ainda não possui clientes cadastrados para gerar estatísticas.</p>';
+                return;
+            }
+
+            // Variáveis para contagem
+            const contagemEstados = {};
+            const contagemEstadosFechados = {};
+            const contagemClasses = {};
+            const contagemClassesFechadas = {};
+
+            clientes.forEach(c => {
+                const estado = c.estado || 'Não Informado';
+                const classe = c.classe || 'Outros';
+                
+                // Contagem Geral (Cadastros)
+                contagemEstados[estado] = (contagemEstados[estado] || 0) + 1;
+                contagemClasses[classe] = (contagemClasses[classe] || 0) + 1;
+
+                // Contagem apenas dos Fechados
+                if (c.status === 'fechado') {
+                    contagemEstadosFechados[estado] = (contagemEstadosFechados[estado] || 0) + 1;
+                    contagemClassesFechadas[classe] = (contagemClassesFechadas[classe] || 0) + 1;
+                }
+            });
+
+            // Preparando Dados para o Gráfico de Barras (Estados)
+            // Vamos usar os estados que tiveram qualquer tipo de cadastro
+            const labelsEstados = Object.keys(contagemEstados).sort((a,b) => contagemEstados[b] - contagemEstados[a]);
+            const dadosCadastros = labelsEstados.map(est => contagemEstados[est]);
+            const dadosFechados = labelsEstados.map(est => contagemEstadosFechados[est] || 0);
+
+            // Preparando Dados para Gráficos de Classe (Rosca/Doughnut)
+            const labelsClasses = Object.keys(contagemClasses);
+            const dadosClassesCadastros = Object.values(contagemClasses);
+            
+            const labelsClassesFechadas = Object.keys(contagemClassesFechadas);
+            const dadosClassesFechadas = Object.values(contagemClassesFechadas);
+
+            // Renderizar Gráfico 1: Desempenho por Estado
+            const ctxEstados = document.getElementById('chartEstados').getContext('2d');
+            new Chart(ctxEstados, {
+                type: 'bar',
+                data: {
+                    labels: labelsEstados,
+                    datasets: [
+                        {
+                            label: 'Cadastros Realizados',
+                            data: dadosCadastros,
+                            backgroundColor: 'rgba(59, 130, 246, 0.7)', // Azul
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Contratos Fechados',
+                            data: dadosFechados,
+                            backgroundColor: 'rgba(16, 185, 129, 0.8)', // Verde
+                            borderColor: 'rgba(16, 185, 129, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                    }
+                }
+            });
+
+            // Renderizar Gráfico 2: Causas mais cadastradas
+            const ctxClasses = document.getElementById('chartClasses').getContext('2d');
+            new Chart(ctxClasses, {
+                type: 'doughnut',
+                data: {
+                    labels: labelsClasses,
+                    datasets: [{
+                        data: dadosClassesCadastros,
+                        backgroundColor: ['#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899', '#10b981'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom' }
+                    }
+                }
+            });
+
+            // Renderizar Gráfico 3: Causas mais Fechadas (Taxa de Conversão Real)
+            const ctxClassesFechadas = document.getElementById('chartClassesFechadas').getContext('2d');
+            if(labelsClassesFechadas.length > 0) {
+                new Chart(ctxClassesFechadas, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labelsClassesFechadas,
+                        datasets: [{
+                            data: dadosClassesFechadas,
+                            backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6', '#ec4899'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom' }
+                        }
+                    }
+                });
+            } else {
+                // Caso ele não tenha fechado nada ainda
+                document.getElementById('chartClassesFechadas').style.display = 'none';
+                const msg = document.createElement('p');
+                msg.innerHTML = "Nenhum fechamento registrado ainda.";
+                msg.style.textAlign = 'center';
+                msg.style.marginTop = '100px';
+                msg.style.color = 'rgba(255,255,255,0.5)';
+                document.getElementById('chartClassesFechadas').parentNode.appendChild(msg);
+            }
+
+        } catch (error) {
+            console.error("Erro ao gerar estatísticas", error);
+        }
+    }
+
+    // LOGOUT
+    btnLogout.onclick = async () => {
+        await signOut(auth);
+        window.location.href = "login.html";
+    };
+
+    // VERIFICA LOGIN E INICIALIZA TUDO
+    onAuthStateChanged(auth, user => {
+        if(user){
+            currentUser = user;
+            carregarPerfil();
+            carregarTarefas();
+            carregarEstatisticas(); // Inicializa os Gráficos
+        }else{
+            window.location.href = "login.html";
+        }
+    });
+
+});
+</script>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2 onclick="window.location.href='dashboard.html'">AMR ADV</h2>
+    <button onclick="window.location.href='crm.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/dashboard.png"/>
+        <span>CRM</span>
+    </button>
+    <button onclick="window.location.href='relatorios.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/combo-chart.png"/>
+        <span>Relatórios</span>
+    </button>
+    <button onclick="window.location.href='agenda.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/calendar.png"/>
+        <span>Agenda</span>
+    </button>
+    <button onclick="window.location.href='discador.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/contacts.png"/>
+        <span>Contatos</span>
+    </button>
+    <button onclick="window.location.href='clientes.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/user-group-man-man.png"/>
+        <span>Clientes</span>
+    </button>
+    <button onclick="window.location.href='processos.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/file.png"/>
+        <span>Processos</span>
+    </button>
+    <button onclick="window.location.href='app.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/phone.png"/>
+        <span>App</span>
+    </button>
+    
+    <button class="active-menu" onclick="window.location.href='perfil.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/user-male-circle.png"/>
+        <span>Meu Perfil</span>
+    </button>
+</div>
+
+<div class="main">
+    <header>
+        <h1>Meu Perfil</h1>
+    </header>
+
+    <div class="content-area">
+        
+        <div class="top-section">
+            <div class="perfil-card">
+                <div class="foto-container">
+                    <span id="profileInitial" class="placeholder">👤</span>
+                    <img id="profilePic" src="" alt="Foto de Perfil" style="display: none;">
+                </div>
+                
+                <input type="file" id="uploadFotoInput" accept="image/png, image/jpeg" style="display: none;" />
+                <button id="btnUploadFoto" class="btn-foto">Alterar Foto</button>
+
+                <h2 id="funcNome">Carregando...</h2>
+                <p id="funcEmail">carregando@amradv.com.br</p>
+
+                <button id="btnLogout" class="btn-logout">Sair do Sistema (Logout)</button>
+            </div>
+
+            <div class="tarefas-section">
+                <h3>📝 Minhas Tarefas Recebidas</h3>
+                <div id="listaTarefas" class="tarefas-list">
+                    </div>
+            </div>
+        </div>
+
+        <div id="chartsContainer" class="charts-grid">
+            
+            <div class="chart-card">
+                <h3>Desempenho por Estado (Cadastros vs. Fechados)</h3>
+                <div class="chart-container">
+                    <canvas id="chartEstados"></canvas>
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+                <div class="chart-card" style="flex: 1;">
+                    <h3 style="font-size: 15px;">Volume de Cadastro por Tipo de Causa</h3>
+                    <div class="chart-container" style="height: 180px;">
+                        <canvas id="chartClasses"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card" style="flex: 1;">
+                    <h3 style="font-size: 15px;">Conversão (Fechados) por Tipo de Causa</h3>
+                    <div class="chart-container" style="height: 180px;">
+                        <canvas id="chartClassesFechadas"></canvas>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+</body>
+</html>
