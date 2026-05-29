@@ -1,5 +1,4 @@
-
-       <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -165,6 +164,18 @@ header h1{
     font-weight:800;
 }
 
+.user-info {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.8);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 /* ================= SEARCH ================= */
 
 .search-bar{
@@ -244,6 +255,15 @@ select option {
     flex-direction:column;
     gap:15px;
     overflow-y:auto;
+    /* Transições suaves para a interação de drag and drop */
+    transition: background-color 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+}
+
+/* Feedback visual quando arrastar um card por cima da coluna */
+.column.drag-over {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: scale(1.02);
 }
 
 .column h2{
@@ -253,6 +273,7 @@ select option {
     font-weight: 700;
     letter-spacing: 1px;
     opacity: 0.8;
+    pointer-events: none; /* Previne bug visual no drag and drop */
 }
 
 /* ================= CARDS ================= */
@@ -266,7 +287,7 @@ select option {
     box-shadow:0 8px 30px rgba(0,0,0,0.2);
     cursor:pointer;
     overflow:hidden;
-    transition:transform 0.3s, background 0.3s;
+    transition:transform 0.2s, background 0.2s;
     position:relative;
     flex-direction:row;
     width:100%;
@@ -276,6 +297,12 @@ select option {
 .card:hover{
     transform:translateY(-4px);
     background:rgba(255,255,255,0.1);
+}
+
+/* Feedback visual do card sendo arrastado */
+.card.dragging {
+    opacity: 0.4;
+    transform: scale(0.95);
 }
 
 .card .color-bar{
@@ -1204,24 +1231,19 @@ document.addEventListener('DOMContentLoaded', () => {
     /* ================= TELEFONE ================= */
 
     function ligar(numero){
-
         if(!numero){
             showToast("Número não informado");
             return;
         }
-
         window.open(`tel:${numero.replace(/\D/g,'')}`);
     }
 
     function whatsapp(numero){
-
         if(!numero){
             showToast("Número não informado");
             return;
         }
-
         const num = numero.replace(/\D/g,'');
-
         window.open(`https://wa.me/55${num}`,'_blank');
     }
 
@@ -1284,7 +1306,6 @@ document.addEventListener('DOMContentLoaded', () => {
         .map(input => input.value.trim())
         .filter(valor => valor);
 
-        // AQUI ESTÁ A CHAVE DE TUDO: dataCadastro perfeitamente incluído
         const novo = {
             nome: nome,
             cpf: inputCPF.value.trim(),
@@ -1320,28 +1341,50 @@ document.addEventListener('DOMContentLoaded', () => {
         closeModal();
     };
 
-    /* ================= DRAG ================= */
+    /* ================= DRAG AND DROP MELHORADO ================= */
 
     let draggedCard = null;
 
     function addDragEvents(card){
         card.addEventListener('dragstart', () => {
             draggedCard = card;
-            card.style.opacity = '.5';
+            // Delay para o visual do fantasma nativo não quebrar
+            setTimeout(() => card.classList.add('dragging'), 0);
         });
 
         card.addEventListener('dragend', () => {
             draggedCard = null;
-            card.style.opacity = '1';
+            card.classList.remove('dragging');
+            
+            // Remove o efeito de hover de todas as colunas
+            document.querySelectorAll('.column').forEach(c => {
+                c.classList.remove('drag-over');
+            });
         });
     }
 
     document.querySelectorAll('.column').forEach(col => {
-        col.addEventListener('dragover', e => {
+        
+        // Efeito visual quando entra na coluna
+        col.addEventListener('dragenter', e => {
             e.preventDefault();
+            if (draggedCard) {
+                col.classList.add('drag-over');
+            }
+        });
+
+        col.addEventListener('dragover', e => {
+            e.preventDefault(); // Necessário para o evento de 'drop' disparar
+        });
+
+        // Tira o efeito quando sai da coluna
+        col.addEventListener('dragleave', e => {
+            col.classList.remove('drag-over');
         });
 
         col.addEventListener('drop', async () => {
+            col.classList.remove('drag-over');
+
             if(!draggedCard){
                 return;
             }
@@ -1387,6 +1430,13 @@ document.addEventListener('DOMContentLoaded', () => {
     onAuthStateChanged(auth, user => {
         if(user){
             currentUser = user;
+            
+            // EXIBE O EMAIL DO USUÁRIO LOGADO NO TOPO
+            const emailDisplay = document.getElementById('userEmailDisplay');
+            if (emailDisplay) {
+                emailDisplay.innerHTML = `👤 ${user.email}`;
+            }
+
             render();
         }else{
             window.location.href = "login.html";
@@ -1467,7 +1517,10 @@ document.addEventListener('DOMContentLoaded', () => {
 <div class="main">
 
 <header>
-    <h1>CRM</h1>
+    <div style="display: flex; align-items: center; gap: 20px;">
+        <h1>CRM</h1>
+        <div id="userEmailDisplay" class="user-info"></div>
+    </div>
 
     <div style="display: flex; gap: 12px; align-items: center;">
         <button id="btnAgente" class="btn btn-green" style="padding: 10px 18px; border-radius: 12px; font-weight: 600;">
