@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Setor de Andamento - AMR ADV</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+
+* {
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Inter',sans-serif;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+
+body {
+    display:flex;
+    height:100vh;
+    overflow:hidden;
+    background:
+        radial-gradient(circle at top left,#2f3f73 0%,transparent 30%),
+        radial-gradient(circle at bottom right,#0f766e 0%,transparent 25%),
+        linear-gradient(135deg,#0f172a,#111827,#020617);
+    color: #fff;
+}
+
+/* ================= SIDEBAR ================= */
+.sidebar {
+    width:80px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:20px 0;
+    flex-shrink:0;
+    transition:width 0.4s ease;
+    position:relative;
+    z-index:10;
+    backdrop-filter:blur(30px);
+    background:rgba(255,255,255,0.06);
+    border-right:1px solid rgba(255,255,255,0.08);
+    box-shadow:0 0 40px rgba(0,0,0,0.25);
+}
+
+.sidebar.expanded { width:240px; }
+
+.sidebar h2 {
+    font-size:22px;
+    font-weight:800;
+    color:#fff;
+    letter-spacing:1px;
+    margin-bottom:30px;
+    text-align:center;
+    cursor:pointer;
+    width:100%;
+    white-space:nowrap;
+    overflow:hidden;
+    transition:opacity 0.3s;
+    opacity:0;
+}
+
+.sidebar.expanded h2 { opacity:1; }
+
+.sidebar button {
+    width:calc(100% - 20px);
+    background:transparent;
+    border:none;
+    color:rgba(255,255,255,0.7);
+    display:flex;
+    align-items:center;
+    gap:15px;
+    padding:12px 15px;
+    margin:5px 10px;
+    cursor:pointer;
+    border-radius:14px;
+    transition:all 0.3s;
+    font-size:14px;
+    white-space:nowrap;
+    overflow:hidden;
+}
+
+.sidebar button img {
+    width:24px;
+    height:24px;
+    filter:invert(1) opacity(0.7);
+    flex-shrink:0;
+    transition:transform 0.3s, filter 0.3s;
+}
+
+.sidebar button span { display:inline-block; opacity:0; transition:opacity 0.3s; font-weight:600; }
+.sidebar.expanded button span { opacity:1; }
+.sidebar button:hover img { transform:scale(1.1); filter:invert(1) opacity(1); }
+.sidebar button:hover { background:rgba(255,255,255,0.1); color:#fff; }
+
+/* ================= MAIN ================= */
+.main {
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+}
+
+header {
+    height:70px;
+    background:transparent;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:0 30px;
+    flex-shrink:0;
+}
+
+header h1 { font-size:24px; color:#fff; font-weight:800; }
+
+.search-bar {
+    padding:15px 30px;
+    background:transparent;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+    display:flex;
+    gap:15px;
+    align-items:center;
+    flex-shrink:0;
+}
+
+.search-bar input {
+    padding:12px 16px;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:12px;
+    color:#fff;
+    font-size: 14px;
+    outline: none;
+    transition: 0.3s;
+    backdrop-filter: blur(10px);
+    flex:1;
+}
+
+.search-bar input:focus {
+    background:rgba(255,255,255,0.15);
+    border-color: rgba(255,255,255,0.3);
+}
+
+.search-bar input::placeholder { color: rgba(255,255,255,0.5); }
+
+/* ================= GRID DE CARDS ================= */
+.cards-container {
+    flex:1;
+    overflow-y:auto;
+    padding:20px 30px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+    align-content: start;
+}
+
+/* ================= CARDS ================= */
+.card {
+    display:flex;
+    background:rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(15px);
+    border-radius:16px;
+    box-shadow:0 8px 30px rgba(0,0,0,0.2);
+    overflow:hidden;
+    transition:transform 0.3s, background 0.3s;
+    position:relative;
+    flex-direction:column;
+    width:100%;
+}
+
+.card:hover {
+    transform:translateY(-4px);
+    background:rgba(255,255,255,0.1);
+}
+
+.card-header {
+    background: rgba(16, 185, 129, 0.2); /* Verde para indicar "Fechado" */
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-header h3 {
+    font-size:16px;
+    color:#fff;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.badge-fechado {
+    background: #10b981;
+    color: #fff;
+    font-size: 11px;
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+.card-content {
+    padding:20px;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-start;
+}
+
+.card-content p {
+    font-size:13px;
+    color:rgba(255,255,255,0.7);
+    margin:5px 0;
+}
+
+.card-content p strong { color: #fff; font-weight: 600; }
+
+.card-footer {
+    padding: 15px 20px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+    background: rgba(0,0,0,0.1);
+}
+
+/* ================= MODAL ================= */
+.modal-backdrop {
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.6);
+    backdrop-filter: blur(8px);
+    justify-content:center;
+    align-items:center;
+    z-index:50;
+}
+
+.modal {
+    background:#0f172a;
+    border: 1px solid rgba(255,255,255,0.1);
+    padding:24px;
+    border-radius:24px;
+    min-width:320px;
+    max-width:500px;
+    width:100%;
+    box-shadow:0 20px 50px rgba(0,0,0,0.5);
+}
+
+.modal h3 {
+    margin-bottom:10px;
+    font-size: 20px;
+    font-weight: 700;
+}
+
+.modal textarea {
+    width:100%;
+    padding:12px 16px;
+    background:rgba(255,255,255,0.05);
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:12px;
+    color:#fff;
+    font-size: 14px;
+    outline: none;
+    min-height: 150px;
+    resize: vertical;
+    margin-bottom: 15px;
+}
+
+.modal textarea:focus {
+    background:rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.3);
+}
+
+.modal .actions {
+    display:flex;
+    gap:10px;
+    justify-content:flex-end;
+}
+
+/* ================= BUTTONS ================= */
+.btn {
+    padding:10px 16px;
+    border-radius:8px;
+    border:0;
+    cursor:pointer;
+    font-weight: 600;
+    font-size: 13px;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+}
+
+.btn.primary { background:#fff; color:#111827; }
+.btn.primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255,255,255,0.2); }
+
+.btn.ghost { background:rgba(255,255,255,0.12); color:#fff; width: auto;}
+.btn.ghost:hover { background:rgba(255,255,255,0.2); }
+
+.btn-green {
+    background: #10b981;
+    color: #fff;
+    border: none;
+    box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+}
+
+.btn-green:hover {
+    background: #059669;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4);
+}
+
+/* ================= TOAST ================= */
+.toast {
+    position:fixed;
+    right:30px;
+    bottom:30px;
+    background:rgba(255,255,255,0.1);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.1);
+    color:#fff;
+    padding:12px 20px;
+    border-radius:12px;
+    box-shadow:0 10px 30px rgba(0,0,0,.4);
+    display:none;
+    z-index:60;
+    font-weight: 500;
+}
+</style>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+import {
+    getFirestore,
+    collection,
+    getDocs,
+    query,
+    where
+} from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+import {
+    getAuth,
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+
+/* ================= FIREBASE ================= */
+const firebaseConfig = {
+    apiKey: "AIzaSyAFJJAqVf3ge0WDHBpmS9E6sXKvnjuFkhw",
+    authDomain: "dapapp-38637.firebaseapp.com",
+    projectId: "dapapp-38637",
+    storageBucket: "dapapp-38637.firebasestorage.app",
+    messagingSenderId: "628852295313",
+    appId: "1:628852295313:web:1234567890abcdef123456"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    const sidebar = document.querySelector(".sidebar");
+    const searchInput = document.getElementById('searchInput');
+    const cardsContainer = document.getElementById('cardsContainer');
+    const toastEl = document.getElementById('toast');
+    
+    // Elementos do Modal
+    const modalBackdrop = document.getElementById('modalBackdrop');
+    const modalTitle = document.getElementById('modalTitle');
+    const inputAndamento = document.getElementById('inputAndamento');
+    const btnFecharModal = document.getElementById('btnFecharModal');
+    const btnEnviarAndamento = document.getElementById('btnEnviarAndamento');
+
+    let currentUser = null;
+    let clientesFechados = [];
+    let clienteSelecionado = null; // Guarda o cliente que vai receber a mensagem
+
+    if(sidebar){
+        sidebar.addEventListener('mouseenter', () => sidebar.classList.add('expanded'));
+        sidebar.addEventListener('mouseleave', () => sidebar.classList.remove('expanded'));
+    }
+
+    function showToast(msg){
+        toastEl.innerText = msg;
+        toastEl.style.display = 'block';
+        clearTimeout(toastEl._t);
+        toastEl._t = setTimeout(() => { toastEl.style.display = 'none'; }, 3000);
+    }
+
+    // Busca apenas os clientes com status 'fechado' de todos os usuários
+    async function fetchClientesFechados(){
+        try {
+            const q = query(collection(db, "clientes"), where("status", "==", "fechado"));
+            const snapshot = await getDocs(q);
+            clientesFechados = snapshot.docs.map(docData => ({
+                id: docData.id,
+                ...docData.data()
+            }));
+            renderCards();
+        } catch (error) {
+            console.error("Erro ao buscar clientes:", error);
+            showToast("Erro ao carregar os processos fechados.");
+        }
+    }
+
+    // Lógica do Modal de Envio
+    window.abrirModal = function(id) {
+        clienteSelecionado = clientesFechados.find(c => c.id === id);
+        if(!clienteSelecionado) return;
+
+        modalTitle.innerText = `Andamento: ${clienteSelecionado.nome}`;
+        
+        // Template padrão estilo disparador
+        inputAndamento.value = `Olá {nome}, tudo bem?\nAqui é do setor de andamento da AMR ADV. \n\nA atualização do seu processo é: \n\n`;
+        
+        modalBackdrop.style.display = 'flex';
+    };
+
+    btnFecharModal.onclick = () => {
+        modalBackdrop.style.display = 'none';
+        clienteSelecionado = null;
+    };
+
+    // Botão que abre o WhatsApp
+    btnEnviarAndamento.onclick = () => {
+        if(!clienteSelecionado) return;
+
+        const texto = inputAndamento.value.trim();
+        if(!texto) {
+            showToast("Escreva o andamento antes de enviar.");
+            return;
+        }
+
+        if(!clienteSelecionado.numeros) {
+            showToast("Cliente não possui número de telefone cadastrado.");
+            return;
+        }
+
+        // Pega o primeiro número e limpa a formatação
+        const numeroLimpo = clienteSelecionado.numeros.split(',')[0].replace(/\D/g, '');
+        
+        if(!numeroLimpo) {
+            showToast("Número de telefone inválido.");
+            return;
+        }
+
+        // Substitui a tag {nome} pelo nome do cliente
+        const mensagemFinal = texto.replace(/{nome}/g, clienteSelecionado.nome);
+        
+        // Monta o link do WhatsApp e abre
+        const waUrl = `https://wa.me/55${numeroLimpo}?text=${encodeURIComponent(mensagemFinal)}`;
+        window.open(waUrl, '_blank');
+
+        showToast("WhatsApp aberto para envio!");
+        modalBackdrop.style.display = 'none';
+    };
+
+    // Renderiza os Cards na tela
+    function renderCards(){
+        cardsContainer.innerHTML = '';
+        const qTexto = searchInput.value.toLowerCase();
+
+        clientesFechados.forEach(cliente => {
+            // Filtro de pesquisa
+            if (cliente.nome && !cliente.nome.toLowerCase().includes(qTexto)) return;
+
+            const card = document.createElement('div');
+            card.className = 'card';
+
+            const primeiroProcesso = cliente.processo ? cliente.processo.split(',')[0].trim() : 'Não informado';
+            const primeiroNumero = cliente.numeros ? cliente.numeros.split(',')[0].trim() : 'Não informado';
+            const responsavelTexto = cliente.responsavel || 'Desconhecido';
+
+            card.innerHTML = `
+                <div class="card-header">
+                    <h3 title="${cliente.nome}">${cliente.nome}</h3>
+                    <span class="badge-fechado">Fechado</span>
+                </div>
+                <div class="card-content">
+                    <p><strong>Responsável do Card:</strong> ${responsavelTexto}</p>
+                    <p><strong>Telefone:</strong> ${primeiroNumero}</p>
+                    <p><strong>Processo:</strong> ${primeiroProcesso}</p>
+                    <p><strong>Estado:</strong> ${cliente.estado || '-'}</p>
+                </div>
+                <div class="card-footer">
+                    <button class="btn btn-green" onclick="abrirModal('${cliente.id}')">
+                        💬 Escrever Andamento
+                    </button>
+                </div>
+            `;
+
+            cardsContainer.appendChild(card);
+        });
+
+        if(cardsContainer.innerHTML === '') {
+            cardsContainer.innerHTML = '<p style="color: rgba(255,255,255,0.5);">Nenhum processo fechado encontrado.</p>';
+        }
+    }
+
+    searchInput.oninput = renderCards;
+
+    /* ================= LOGIN ================= */
+    onAuthStateChanged(auth, user => {
+        if(user){
+            currentUser = user;
+            fetchClientesFechados();
+        }else{
+            window.location.href = "login.html";
+        }
+    });
+
+});
+</script>
+
+</head>
+<body>
+
+<div class="sidebar">
+    <h2 onclick="window.location.href='dashboard.html'">AMR ADV</h2>
+    <button onclick="window.location.href='crm.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/dashboard.png"/>
+        <span>CRM</span>
+    </button>
+    <button onclick="window.location.href='funil_geral.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/filter.png"/>
+        <span>Funil Geral</span>
+    </button>
+    <button onclick="window.location.href='andamento.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/task.png"/>
+        <span>Andamento</span>
+    </button>
+    <button onclick="window.location.href='clientes.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/user-group-man-man.png"/>
+        <span>Clientes</span>
+    </button>
+    <button onclick="window.location.href='app.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/phone.png"/>
+        <span>App</span>
+    </button>
+    <button>
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/settings.png"/>
+        <span>Configurações</span>
+    </button>
+</div>
+
+<div class="main">
+    <header>
+        <h1>Setor de Andamento</h1>
+        <div style="font-size: 14px; color: rgba(255,255,255,0.7);">
+            Atualização de processos dos cards fechados
+        </div>
+    </header>
+
+    <div class="search-bar">
+        <input id="searchInput" placeholder="Buscar cliente por nome..." />
+    </div>
+
+    <div class="cards-container" id="cardsContainer">
+        </div>
+</div>
+
+<div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal">
+        <h3 id="modalTitle">Escrever Andamento</h3>
+        <p style="font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 15px;">
+            A tag <strong>{nome}</strong> será substituída automaticamente pelo nome do cliente ao enviar.
+        </p>
+        
+        <textarea id="inputAndamento" placeholder="Digite o andamento do processo aqui..."></textarea>
+        
+        <div class="actions">
+            <button class="btn ghost" id="btnFecharModal">Cancelar</button>
+            <button class="btn btn-green" id="btnEnviarAndamento" style="width: auto;">
+                ↗️ Enviar via WhatsApp
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+</body>
+</html>
