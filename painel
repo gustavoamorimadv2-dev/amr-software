@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel do App - AMR ADV</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+    /* ================= ESTILOS BASE (MANTIDOS DO SEU CRM) ================= */
+    *{ margin:0; padding:0; box-sizing:border-box; font-family:'Inter',sans-serif; }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
+    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+
+    body {
+        display:flex; height:100vh; overflow:hidden;
+        background: radial-gradient(circle at top left,#2f3f73 0%,transparent 30%),
+                    radial-gradient(circle at bottom right,#0f766e 0%,transparent 25%),
+                    linear-gradient(135deg,#0f172a,#111827,#020617);
+        color: #fff;
+    }
+
+    /* ================= SIDEBAR ================= */
+    .sidebar {
+        width:80px; display:flex; flex-direction:column; align-items:center;
+        padding:20px 0; flex-shrink:0; transition:width 0.4s ease;
+        position:relative; z-index:10; backdrop-filter:blur(30px);
+        background:rgba(255,255,255,0.06); border-right:1px solid rgba(255,255,255,0.08);
+        box-shadow:0 0 40px rgba(0,0,0,0.25);
+    }
+    .sidebar.expanded { width:240px; }
+    .sidebar h2 { font-size:22px; font-weight:800; color:#fff; letter-spacing:1px; margin-bottom:30px; text-align:center; cursor:pointer; width:100%; white-space:nowrap; overflow:hidden; transition:opacity 0.3s; opacity:0; }
+    .sidebar.expanded h2 { opacity:1; }
+    .sidebar button { width:calc(100% - 20px); background:transparent; border:none; color:rgba(255,255,255,0.7); display:flex; align-items:center; gap:15px; padding:12px 15px; margin:5px 10px; cursor:pointer; border-radius:14px; transition:all 0.3s; font-size:14px; white-space:nowrap; overflow:hidden; }
+    .sidebar button img { width:24px; height:24px; filter:invert(1) opacity(0.7); flex-shrink:0; transition:transform 0.3s, filter 0.3s; }
+    .sidebar button span { display:inline-block; opacity:0; transition:opacity 0.3s; font-weight:600; }
+    .sidebar.expanded button span { opacity:1; }
+    .sidebar button:hover img { transform:scale(1.1); filter:invert(1) opacity(1); }
+    .sidebar button:hover, .sidebar button.active { background:rgba(255,255,255,0.1); color:#fff; }
+
+    /* ================= MAIN ================= */
+    .main { flex:1; display:flex; flex-direction:column; overflow:hidden; transition:filter 0.3s; }
+    .main.blur { filter:blur(5px) brightness(0.7); }
+    header { height:70px; background:transparent; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; justify-content:space-between; align-items:center; padding:0 30px; flex-shrink:0; }
+    header h1 { font-size:24px; color:#fff; font-weight:800; }
+
+    /* ================= APP DASHBOARD (NOVO) ================= */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 25px;
+        padding: 30px;
+        overflow-y: auto;
+        flex: 1;
+    }
+    .panel-card {
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.05);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 25px;
+        display: flex;
+        flex-direction: column;
+    }
+    .panel-card h2 {
+        font-size: 18px;
+        margin-bottom: 20px;
+        color: #fff;
+        font-weight: 700;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        padding-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    /* Formulários e Inputs */
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; font-size: 13px; color: rgba(255,255,255,0.7); margin-bottom: 6px; font-weight: 500; }
+    .panel-card input, .panel-card select, .panel-card textarea {
+        width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff;
+        font-size: 14px; outline: none; transition: 0.3s;
+    }
+    .panel-card input:focus, .panel-card select:focus, .panel-card textarea:focus {
+        background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3);
+    }
+    .panel-card select option { background: #111827; color: #fff; }
+    
+    /* Botões */
+    .btn { padding:12px 20px; border-radius:12px; border:0; cursor:pointer; font-weight: 600; font-size: 14px; transition: 0.3s; width: 100%; margin-top: 10px; }
+    .btn.primary { background:#fff; color:#111827; }
+    .btn.primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(255,255,255,0.2); }
+    .btn-green { background: #10b981; color: #fff; }
+    .btn-green:hover { background: #059669; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3); }
+
+    /* Tabelas */
+    table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    th, td { padding: 12px; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 13px; }
+    th { color: rgba(255,255,255,0.5); font-weight: 600; }
+    .status-badge { padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: bold; }
+    .status-pendente { background: rgba(245, 158, 11, 0.2); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.3); }
+
+    /* Toast */
+    .toast { position:fixed; right:30px; bottom:30px; background:rgba(255,255,255,0.1); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); color:#fff; padding:12px 20px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.4); display:none; z-index:60; font-weight: 500; }
+</style>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, query, where, orderBy } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+// SUAS CREDENCIAIS DO FIREBASE
+const firebaseConfig = {
+    apiKey: "AIzaSyAFJJAqVf3ge0WDHBpmS9E6sXKvnjuFkhw",
+    authDomain: "dapapp-38637.firebaseapp.com",
+    projectId: "dapapp-38637",
+    storageBucket: "dapapp-38637.firebasestorage.app",
+    messagingSenderId: "628852295313",
+    appId: "1:628852295313:web:1234567890abcdef123456"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+document.addEventListener('DOMContentLoaded', () => {
+
+    /* ================= SIDEBAR EFEITOS ================= */
+    const sidebar = document.querySelector(".sidebar");
+    const mainContent = document.querySelector(".main");
+    if(sidebar && mainContent){
+        sidebar.addEventListener('mouseenter', () => { sidebar.classList.add('expanded'); mainContent.classList.add('blur'); });
+        sidebar.addEventListener('mouseleave', () => { sidebar.classList.remove('expanded'); mainContent.classList.remove('blur'); });
+    }
+
+    const toastEl = document.getElementById('toast');
+    function showToast(msg){
+        toastEl.innerText = msg;
+        toastEl.style.display = 'block';
+        clearTimeout(toastEl._t);
+        toastEl._t = setTimeout(() => { toastEl.style.display = 'none'; }, 3000);
+    }
+
+    /* ================= CARREGAR DADOS INICIAIS ================= */
+    async function loadClientes() {
+        const selectProgresso = document.getElementById('selClienteAndamento');
+        const selectAlerta = document.getElementById('selClienteAlerta');
+        
+        try {
+            // Buscando da coleção 'clientes' (visto no seu print 2)
+            const snapshot = await getDocs(collection(db, "clientes"));
+            let options = '<option value="">Selecione o Cliente...</option>';
+            
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                options += `<option value="${doc.id}">${data.nome} ${data.cpf ? `(${data.cpf})` : ''}</option>`;
+            });
+
+            selectProgresso.innerHTML = options;
+            selectAlerta.innerHTML = '<option value="todos">Todos os Clientes</option>' + options;
+        } catch (error) {
+            console.error("Erro ao carregar clientes: ", error);
+        }
+    }
+
+    async function loadNegociacoes() {
+        const tbody = document.getElementById('tbodyNegociacoes');
+        try {
+            // Buscando da coleção 'negociacoes' (visto no seu print 2)
+            const snapshot = await getDocs(collection(db, "negociacoes"));
+            if(snapshot.empty) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhuma proposta no momento.</td></tr>';
+                return;
+            }
+
+            let html = '';
+            snapshot.forEach(docSnap => {
+                const data = docSnap.data();
+                html += `
+                    <tr>
+                        <td>${data.nomeCliente || 'Cliente'}</td>
+                        <td>${data.proposta || 'Sem detalhes'}</td>
+                        <td><span class="status-badge status-pendente">A Revisar</span></td>
+                        <td>
+                            <button class="btn primary" style="padding: 6px 12px; margin:0; width: auto;" onclick="alert('Visualizar ${docSnap.id}')">Ver</button>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        } catch (error) {
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Erro ao carregar negociações.</td></tr>';
+        }
+    }
+
+    // Inicializa as listas
+    loadClientes();
+    loadNegociacoes();
+
+    /* ================= 1. ADICIONAR CLIENTE (CRIA STRING FECHADO) ================= */
+    document.getElementById('formAddCliente').onsubmit = async (e) => {
+        e.preventDefault();
+        const btn = e.target.querySelector('button');
+        btn.innerText = "Salvando...";
+        
+        const novoCliente = {
+            nome: document.getElementById('appNome').value.trim(),
+            cpf: document.getElementById('appCpf').value.trim(),
+            processo: document.getElementById('appProcesso').value.trim(),
+            classe: document.getElementById('appClasse').value,
+            dataCadastro: new Date().toISOString(),
+            status: "fechado" // <-- A STRING EXATA QUE VOCÊ PEDIU
+        };
+
+        try {
+            await addDoc(collection(db, "clientes"), novoCliente);
+            showToast("✅ Cliente salvo com status 'fechado' e liberado no App!");
+            e.target.reset();
+            loadClientes(); // Recarrega os selects
+        } catch (error) {
+            showToast("❌ Erro ao salvar cliente.");
+            console.error(error);
+        }
+        btn.innerText = "+ Liberar Acesso ao App";
+    };
+
+    /* ================= 2. PASSAR ANDAMENTO ================= */
+    document.getElementById('formAndamento').onsubmit = async (e) => {
+        e.preventDefault();
+        const idCliente = document.getElementById('selClienteAndamento').value;
+        const descricao = document.getElementById('descAndamento').value;
+
+        if(!idCliente) return showToast("Selecione um cliente!");
+
+        const btn = e.target.querySelector('button');
+        btn.innerText = "Atualizando...";
+
+        try {
+            // Atualiza o documento principal com a data (campo visto no seu print 2)
+            await updateDoc(doc(db, "clientes", idCliente), {
+                dataUltimoAndamento: new Date().toISOString()
+            });
+
+            // Opcional: Adiciona à uma subcoleção se você guardar histórico
+            await addDoc(collection(db, `clientes/${idCliente}/andamentos`), {
+                data: new Date().toISOString(),
+                descricao: descricao
+            });
+
+            showToast("✅ Andamento enviado para o App!");
+            e.target.reset();
+        } catch (error) {
+            showToast("❌ Erro ao atualizar andamento.");
+        }
+        btn.innerText = "Atualizar Andamento";
+    };
+
+    /* ================= 3. EMITIR ALERTA ================= */
+    document.getElementById('formAlerta').onsubmit = async (e) => {
+        e.preventDefault();
+        const idCliente = document.getElementById('selClienteAlerta').value;
+        const titulo = document.getElementById('alertaTitulo').value;
+        const mensagem = document.getElementById('alertaMsg').value;
+        
+        const btn = e.target.querySelector('button');
+        btn.innerText = "Enviando...";
+
+        try {
+            // Adiciona na coleção 'avisos' (visto no seu print 2 do Firebase)
+            await addDoc(collection(db, "avisos"), {
+                destino: idCliente, // Pode ser 'todos' ou o ID específico
+                titulo: titulo,
+                mensagem: mensagem,
+                dataCriacao: new Date().toISOString()
+            });
+
+            showToast("🔔 Alerta emitido com sucesso!");
+            e.target.reset();
+        } catch (error) {
+            showToast("❌ Erro ao emitir alerta.");
+        }
+        btn.innerText = "Emitir Alerta";
+    };
+
+});
+</script>
+</head>
+
+<body>
+
+<div class="sidebar">
+    <h2 onclick="window.location.href='dashboard.html'">AMR ADV</h2>
+    <button onclick="window.location.href='crm.html'"><img src="https://img.icons8.com/ios-filled/50/ffffff/dashboard.png"/><span>CRM</span></button>
+    <button onclick="window.location.href='relatorios.html'"><img src="https://img.icons8.com/ios-filled/50/ffffff/combo-chart.png"/><span>Relatórios</span></button>
+    <button onclick="window.location.href='agenda.html'"><img src="https://img.icons8.com/ios-filled/50/ffffff/calendar.png"/><span>Agenda</span></button>
+    <button onclick="window.location.href='discador.html'"><img src="https://img.icons8.com/ios-filled/50/ffffff/contacts.png"/><span>Contatos</span></button>
+    <button onclick="window.location.href='clientes.html'"><img src="https://img.icons8.com/ios-filled/50/ffffff/user-group-man-man.png"/><span>Clientes</span></button>
+    <button onclick="window.location.href='processos.html'"><img src="https://img.icons8.com/ios-filled/50/ffffff/file.png"/><span>Processos</span></button>
+    <button onclick="window.location.href='funil-geral.html'"><img src="https://img.icons8.com/ios-filled/50/ffffff/filter.png"/><span>Funil Geral</span></button>
+    <button onclick="window.location.href='andamento.html'"><img src="https://img.icons8.com/ios-filled/50/ffffff/task.png"/><span>Andamento</span></button>
+    <button onclick="window.location.href='adm.html'"><img src="https://img.icons8.com/ios-filled/50/ffffff/admin-settings-male.png"/><span>ADM</span></button>
+    
+    <button class="active" onclick="window.location.href='app.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/phone.png"/>
+        <span>App</span>
+    </button>
+    
+    <button><img src="https://img.icons8.com/ios-filled/50/ffffff/settings.png"/><span>Configurações</span></button>
+</div>
+
+<div class="main">
+
+    <header>
+        <div style="display: flex; align-items: center; gap: 20px;">
+            <h1>📱 Gestão do App do Cliente</h1>
+        </div>
+    </header>
+
+    <div class="dashboard-grid">
+        
+        <div class="panel-card">
+            <h2><img src="https://img.icons8.com/ios-filled/24/ffffff/add-user-male.png"/> Novo Acesso ao App</h2>
+            <form id="formAddCliente">
+                <div class="form-group">
+                    <label>Nome do Cliente</label>
+                    <input type="text" id="appNome" required placeholder="Ex: Johnatan Machado">
+                </div>
+                <div class="form-group">
+                    <label>CPF</label>
+                    <input type="text" id="appCpf" required placeholder="000.000.000-00">
+                </div>
+                <div class="form-group">
+                    <label>Classe (Assunto)</label>
+                    <select id="appClasse" required>
+                        <option value="Execução">Execução</option>
+                        <option value="Busca e Apreensão">Busca e Apreensão</option>
+                        <option value="Revisional">Revisional</option>
+                        <option value="Outros">Outros</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Nº do Processo Base</label>
+                    <input type="text" id="appProcesso" placeholder="0000000-00.0000.0.00.0000">
+                </div>
+                <button type="submit" class="btn btn-green">+ Liberar Acesso ao App</button>
+            </form>
+        </div>
+
+        <div class="panel-card">
+            <h2><img src="https://img.icons8.com/ios-filled/24/ffffff/task.png"/> Passar Andamento</h2>
+            <form id="formAndamento">
+                <div class="form-group">
+                    <label>Selecione o Cliente</label>
+                    <select id="selClienteAndamento" required>
+                        <option value="">Carregando...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Descrição do Andamento</label>
+                    <textarea id="descAndamento" rows="4" required placeholder="Ex: Petição inicial protocolada na 6ª Vara Cível..."></textarea>
+                </div>
+                <button type="submit" class="btn primary" style="margin-top: auto;">Atualizar Andamento</button>
+            </form>
+        </div>
+
+        <div class="panel-card">
+            <h2><img src="https://img.icons8.com/ios-filled/24/ffffff/bell.png"/> Emitir Alertas (Push)</h2>
+            <form id="formAlerta">
+                <div class="form-group">
+                    <label>Destinatário</label>
+                    <select id="selClienteAlerta" required>
+                        <option value="todos">Todos os Clientes</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Título do Alerta</label>
+                    <input type="text" id="alertaTitulo" required placeholder="Ex: Documento Pendente">
+                </div>
+                <div class="form-group">
+                    <label>Mensagem</label>
+                    <textarea id="alertaMsg" rows="3" required placeholder="Digite o que aparecerá na aba 'Alerta' do aplicativo..."></textarea>
+                </div>
+                <button type="submit" class="btn primary">Emitir Alerta</button>
+            </form>
+        </div>
+
+        <div class="panel-card">
+            <h2><img src="https://img.icons8.com/ios-filled/24/ffffff/handshake.png"/> Propostas de Negociação</h2>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Cliente</th>
+                            <th>Proposta</th>
+                            <th>Status</th>
+                            <th>Ação</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbodyNegociacoes">
+                        <tr>
+                            <td colspan="4" style="text-align: center;">Carregando dados...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+</body>
+</html>
