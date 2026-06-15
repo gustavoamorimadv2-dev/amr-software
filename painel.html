@@ -3,73 +3,103 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Painel de Controle do App</title>
+<title>Painel de Controle - App AMR ADV</title>
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        background-color: #f4f7f6;
-        color: #333;
-        margin: 0;
-        padding: 20px;
-        display: flex;
-        justify-content: center;
+    :root {
+        --primary: #b89754;
+        --bg: #f8fafc;
+        --surface: #ffffff;
+        --text: #334155;
+        --border: #e2e8f0;
     }
-    .container {
-        max-width: 900px;
-        width: 100%;
+    body {
+        font-family: 'Segoe UI', system-ui, sans-serif;
+        background-color: var(--bg);
+        color: var(--text);
+        margin: 0;
+        padding: 30px;
+    }
+    .header {
+        max-width: 1200px;
+        margin: 0 auto 20px auto;
+        border-bottom: 2px solid var(--primary);
+        padding-bottom: 10px;
+    }
+    .header h1 { margin: 0; font-size: 24px; color: #0f172a; }
+    
+    .grid {
+        max-width: 1200px;
+        margin: 0 auto;
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
         gap: 20px;
     }
     .card {
-        background: #fff;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        background: var(--surface);
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        border: 1px solid var(--border);
     }
-    h2 {
+    .card h2 {
         font-size: 18px;
         margin-top: 0;
-        border-bottom: 2px solid #b89754;
-        padding-bottom: 10px;
+        margin-bottom: 20px;
+        color: #0f172a;
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
-    .form-group {
-        margin-bottom: 15px;
-    }
+    .form-group { margin-bottom: 15px; }
+    .form-row { display: flex; gap: 10px; }
+    .form-row .form-group { flex: 1; }
+    
     label {
         display: block;
-        font-size: 14px;
-        margin-bottom: 5px;
-        font-weight: bold;
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 6px;
+        color: #64748b;
     }
     input, select, textarea {
         width: 100%;
-        padding: 10px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
+        padding: 10px 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
         box-sizing: border-box;
+        font-size: 14px;
+        transition: border-color 0.2s;
     }
+    input:focus, select:focus, textarea:focus {
+        outline: none;
+        border-color: var(--primary);
+    }
+    .hint {
+        font-size: 11px;
+        color: #94a3b8;
+        margin-top: 4px;
+        display: block;
+    }
+    
     button {
-        background-color: #b89754;
+        background-color: var(--primary);
         color: white;
         border: none;
-        padding: 10px 15px;
-        border-radius: 4px;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-weight: 600;
         cursor: pointer;
         width: 100%;
-        font-weight: bold;
+        font-size: 14px;
+        transition: opacity 0.2s;
     }
-    button:hover { background-color: #9c7f45; }
+    button:hover { opacity: 0.9; }
     
-    /* Tabela Simples */
-    table { width: 100%; border-collapse: collapse; font-size: 14px; }
-    th, td { padding: 8px; text-align: left; border-bottom: 1px solid #eee; }
-    
-    /* Alerta na tela */
     #toast {
-        position: fixed; top: 20px; right: 20px;
-        background: #333; color: #fff; padding: 15px;
-        border-radius: 5px; display: none; z-index: 1000;
+        position: fixed; bottom: 20px; right: 20px;
+        background: #1e293b; color: white; padding: 16px 24px;
+        border-radius: 8px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        display: none; z-index: 1000; font-weight: 500;
     }
 </style>
 
@@ -77,7 +107,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
 import { getFirestore, collection, addDoc, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
-// Suas Credenciais
+// SUAS CREDENCIAIS AQUI
 const firebaseConfig = {
     apiKey: "AIzaSyAFJJAqVf3ge0WDHBpmS9E6sXKvnjuFkhw",
     authDomain: "dapapp-38637.firebaseapp.com",
@@ -92,80 +122,102 @@ const db = getFirestore(app);
 
 document.addEventListener('DOMContentLoaded', () => {
 
-    const toast = document.getElementById('toast');
     function showToast(msg) {
+        const toast = document.getElementById('toast');
         toast.innerText = msg;
         toast.style.display = 'block';
         setTimeout(() => toast.style.display = 'none', 3000);
     }
 
-    // Carregar clientes nos selects
-   // Carregar clientes nos selects
+    // Carregar clientes para os selects de Andamento e Oferta
     async function carregarClientes() {
-        const selectAndamento = document.getElementById('clienteAndamento');
-        const selectAlerta = document.getElementById('clienteAlerta');
+        const selAndamento = document.getElementById('selAndamento');
+        const selOferta = document.getElementById('selOferta');
         
         try {
             const snapshot = await getDocs(collection(db, "clientes"));
-            let options = '<option value="" data-cpf="">Selecione...</option>';
+            let options = '<option value="">Selecione o Cliente...</option>';
             snapshot.forEach(doc => {
-                const data = doc.data();
-                // Agora salvamos o CPF escondido no data-cpf
-                options += `<option value="${doc.id}" data-cpf="${data.cpf || ''}">${data.nome}</option>`;
+                options += `<option value="${doc.id}">${doc.data().nome} (${doc.data().cpf})</option>`;
             });
-            selectAndamento.innerHTML = options;
-            selectAlerta.innerHTML = '<option value="todos" data-cpf="todos">Todos os Clientes</option>' + options;
+            selAndamento.innerHTML = options;
+            selOferta.innerHTML = options;
         } catch (error) {
             console.error("Erro ao buscar clientes:", error);
         }
     }
-
-    // Carregar Negociações (Visualização Simples)
-    async function carregarNegociacoes() {
-        const tbody = document.getElementById('listaNegociacoes');
-        try {
-            const snapshot = await getDocs(collection(db, "negociacoes")); // Ajuste o nome da coleção se necessário
-            let html = '';
-            snapshot.forEach(doc => {
-                const data = doc.data();
-                html += `<tr><td>${data.nomeCliente || 'Desconhecido'}</td><td>${data.proposta || '-'}</td></tr>`;
-            });
-            tbody.innerHTML = html || '<tr><td colspan="2">Nenhuma proposta.</td></tr>';
-        } catch (error) {
-            tbody.innerHTML = '<tr><td colspan="2">Erro ao carregar.</td></tr>';
-        }
-    }
-
     carregarClientes();
-    carregarNegociacoes();
 
-    // 1. ADICIONAR CLIENTE (Cria a string 'fechado')
-    document.getElementById('formAddCliente').onsubmit = async (e) => {
+    // 1. ADICIONAR CLIENTE (Baseado na struct enviada)
+    document.getElementById('formAdd').onsubmit = async (e) => {
         e.preventDefault();
         const btn = e.target.querySelector('button');
         btn.innerText = "Salvando...";
 
+        const payloadCliente = {
+            nome: document.getElementById('cadNome').value,
+            cpf: document.getElementById('cadCpf').value,
+            processo: document.getElementById('cadProcesso').value,
+            classe: document.getElementById('cadClasse').value,
+            valor: document.getElementById('cadValor').value,
+            numeros: document.getElementById('cadNumeros').value,
+            responsavel: document.getElementById('cadResp').value,
+            obs: document.getElementById('cadObs').value,
+            status: "fechado", // Exigência mantida
+            userId: "", // Preenchido no App durante o login/vinculação
+            andamento: "Aguardando atualizações...",
+            ultimoAndamentoTexto: "Cadastro inicial realizado.",
+            dataUltimoAndamento: new Date().toISOString(),
+            ultimaOferta: "0",
+            dataUltimoResgate: "",
+            iaTituloAmigavel: "Bem-vindo ao App!",
+            iaExplicacao: "Seu processo já está sendo monitorado pela nossa equipe. Em breve você receberá atualizações por aqui.",
+            iaIcone: "doc.text.fill"
+        };
+
         try {
-            await addDoc(collection(db, "clientes"), {
-                nome: document.getElementById('cliNome').value,
-                cpf: document.getElementById('cliCpf').value,
-                processo: document.getElementById('cliProcesso').value,
-                status: "fechado", // Mecânica exigida
-                dataCadastro: new Date().toISOString()
-            });
-            showToast("Cliente adicionado com status 'fechado'!");
+            await addDoc(collection(db, "clientes"), payloadCliente);
+            showToast("✅ Cliente salvo com a estrutura completa!");
             e.target.reset();
             carregarClientes();
         } catch (error) {
-            showToast("Erro ao salvar cliente.");
+            showToast("❌ Erro ao salvar cliente.");
+            console.error(error);
         }
-        btn.innerText = "Adicionar Cliente";
+        btn.innerText = "Criar Cliente no App";
     };
 
-    // 2. ANDAMENTO DE PROCESSO
+    // 2. PASSAR ANDAMENTO (Focado na tela do App / IA)
     document.getElementById('formAndamento').onsubmit = async (e) => {
         e.preventDefault();
-        const idCliente = document.getElementById('clienteAndamento').value;
+        const idCliente = document.getElementById('selAndamento').value;
+        if (!idCliente) return showToast("Selecione um cliente.");
+
+        const btn = e.target.querySelector('button');
+        btn.innerText = "Atualizando App...";
+
+        const payloadAndamento = {
+            ultimoAndamentoTexto: document.getElementById('andTextoTecnico').value,
+            iaTituloAmigavel: document.getElementById('andTituloAmigavel').value,
+            iaExplicacao: document.getElementById('andExplicacao').value,
+            iaIcone: document.getElementById('andIcone').value,
+            dataUltimoAndamento: new Date().toISOString()
+        };
+
+        try {
+            await updateDoc(doc(db, "clientes", idCliente), payloadAndamento);
+            showToast("✅ Andamento (IA) atualizado no App!");
+            e.target.reset();
+        } catch (error) {
+            showToast("❌ Erro ao atualizar andamento.");
+        }
+        btn.innerText = "Atualizar App do Cliente";
+    };
+
+    // 3. ATUALIZAR OFERTA / FINANCEIRO
+    document.getElementById('formOferta').onsubmit = async (e) => {
+        e.preventDefault();
+        const idCliente = document.getElementById('selOferta').value;
         if (!idCliente) return showToast("Selecione um cliente.");
 
         const btn = e.target.querySelector('button');
@@ -173,120 +225,125 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             await updateDoc(doc(db, "clientes", idCliente), {
-                dataUltimoAndamento: new Date().toISOString(),
-                andamentoAtual: document.getElementById('descAndamento').value // Ajuste conforme seu DB
+                ultimaOferta: document.getElementById('ofValor').value
             });
-            showToast("Andamento atualizado!");
+            showToast("💰 Oferta atualizada com sucesso!");
             e.target.reset();
         } catch (error) {
-            showToast("Erro ao atualizar andamento.");
+            showToast("❌ Erro ao atualizar oferta.");
         }
-        btn.innerText = "Atualizar Andamento";
-    };
-
-    // 3. EMITIR ALERTA (Baseado no Swift enviado)
-    // 3. EMITIR ALERTA (Baseado no Swift enviado)
-    document.getElementById('formAlerta').onsubmit = async (e) => {
-        e.preventDefault();
-        const btn = e.target.querySelector('button');
-        btn.innerText = "Enviando...";
-
-        const selectAlerta = document.getElementById('clienteAlerta');
-        const opcaoSelecionada = selectAlerta.options[selectAlerta.selectedIndex];
-        const cpfDoCliente = opcaoSelecionada.getAttribute('data-cpf'); // Pega o CPF
-
-        // Objeto formatado EXATAMENTE como o init() do seu App iOS espera
-        const payloadAlerta = {
-            titulo: document.getElementById('alertaTitulo').value,
-            mensagem: document.getElementById('alertaMsg').value,
-            data: new Date().toISOString(), 
-            gravidade: document.getElementById('alertaGravidade').value.toLowerCase(), 
-            destinoId: selectAlerta.value, 
-            cpf: cpfDoCliente // <--- AQUI ESTÁ A MÁGICA! O App agora vai achar.
-        };
-
-        try {
-            await addDoc(collection(db, "alertas"), payloadAlerta); 
-            showToast("Alerta disparado para o App!");
-            e.target.reset();
-        } catch (error) {
-            showToast("Erro ao enviar alerta.");
-            console.error(error);
-        }
-        btn.innerText = "Emitir Alerta";
-    };
-
-        try {
-            await addDoc(collection(db, "alertas"), payloadAlerta); // Coleção "alertas"
-            showToast("Alerta disparado para o App!");
-            e.target.reset();
-        } catch (error) {
-            showToast("Erro ao enviar alerta.");
-            console.error(error);
-        }
-        btn.innerText = "Emitir Alerta";
+        btn.innerText = "Atualizar Oferta";
     };
 });
 </script>
 </head>
 <body>
 
-<div id="toast"></div>
+<div class="header">
+    <h1>📱 Controle do App (Estrutura Nativa)</h1>
+</div>
 
-<div class="container">
+<div class="grid">
+    
     <div class="card">
-        <h2>Adicionar Cliente</h2>
-        <form id="formAddCliente">
-            <div class="form-group"><label>Nome</label><input type="text" id="cliNome" required></div>
-            <div class="form-group"><label>CPF</label><input type="text" id="cliCpf" required></div>
-            <div class="form-group"><label>Nº Processo</label><input type="text" id="cliProcesso"></div>
-            <button type="submit">Adicionar Cliente</button>
+        <h2>1. Dados Base do Cliente</h2>
+        <form id="formAdd">
+            <div class="form-group">
+                <label>Nome Completo</label>
+                <input type="text" id="cadNome" required placeholder="Ex: Gustavo Amorim Araujo">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>CPF</label>
+                    <input type="text" id="cadCpf" required placeholder="173.276.517-05">
+                </div>
+                <div class="form-group">
+                    <label>Telefones (numeros)</label>
+                    <input type="text" id="cadNumeros" placeholder="21999999999">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Nº do Processo</label>
+                <input type="text" id="cadProcesso" placeholder="5007385-34.2025.8.13.0701">
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Classe</label>
+                    <input type="text" id="cadClasse" placeholder="Ex: Outros" value="Outros">
+                </div>
+                <div class="form-group">
+                    <label>Valor da Causa</label>
+                    <input type="text" id="cadValor" placeholder="50,00">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Responsável (E-mail)</label>
+                <input type="email" id="cadResp" placeholder="gb@gmail.com">
+            </div>
+            <div class="form-group">
+                <label>Observações</label>
+                <textarea id="cadObs" rows="2"></textarea>
+            </div>
+            <button type="submit">Criar Cliente no App</button>
         </form>
     </div>
 
     <div class="card">
-        <h2>Passar Andamento</h2>
+        <h2>2. Alimentar IA do App (Andamento)</h2>
         <form id="formAndamento">
             <div class="form-group">
                 <label>Cliente</label>
-                <select id="clienteAndamento"></select>
+                <select id="selAndamento"></select>
             </div>
             <div class="form-group">
-                <label>Descrição</label>
-                <textarea id="descAndamento" rows="3" required></textarea>
+                <label>Andamento Técnico (Tribunal)</label>
+                <input type="text" id="andTextoTecnico" required placeholder="Ex: Documento - Aviso de recebimento (AR)">
+                <span class="hint">Campo: ultimoAndamentoTexto</span>
             </div>
-            <button type="submit">Atualizar Andamento</button>
+            
+            <div style="background: #f1f5f9; padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px dashed #cbd5e1;">
+                <h3 style="margin: 0 0 10px 0; font-size: 13px; color: #334155;">Visualização do App (Cliente)</h3>
+                
+                <div class="form-group">
+                    <label>Título Amigável (iaTituloAmigavel)</label>
+                    <input type="text" id="andTituloAmigavel" required placeholder="Ex: O processo recebeu um aviso de recebimento">
+                </div>
+                
+                <div class="form-group">
+                    <label>Explicação Detalhada (iaExplicacao)</label>
+                    <textarea id="andExplicacao" rows="4" required placeholder="Ex: Isso significa que um documento foi oficialmente registrado..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Ícone do iOS (SF Symbols)</label>
+                    <input type="text" id="andIcone" required placeholder="Ex: envelope.fill" value="envelope.fill">
+                    <span class="hint">Exemplos: envelope.fill, doc.text, checkmark.seal.fill</span>
+                </div>
+            </div>
+            
+            <button type="submit">Atualizar App do Cliente</button>
         </form>
     </div>
 
     <div class="card">
-        <h2>Emitir Alerta</h2>
-        <form id="formAlerta">
-            <div class="form-group"><label>Destino</label><select id="clienteAlerta"></select></div>
-            <div class="form-group"><label>Título</label><input type="text" id="alertaTitulo" required></div>
+        <h2>3. Financeiro / Oferta</h2>
+        <form id="formOferta">
             <div class="form-group">
-                <label>Gravidade</label>
-                <select id="alertaGravidade">
-                    <option value="baixa">Baixa</option>
-                    <option value="media">Média</option>
-                    <option value="alta">Alta</option>
-                </select>
+                <label>Cliente</label>
+                <select id="selOferta"></select>
             </div>
-            <div class="form-group"><label>Mensagem</label><textarea id="alertaMsg" rows="2" required></textarea></div>
-            <button type="submit">Emitir Alerta</button>
+            <div class="form-group">
+                <label>Última Oferta (R$)</label>
+                <input type="text" id="ofValor" required placeholder="Ex: 10.000">
+                <span class="hint">Este valor será lido pela chave 'ultimaOferta' no aplicativo.</span>
+            </div>
+            <button type="submit" style="background-color: #10b981;">Atualizar Oferta</button>
         </form>
     </div>
 
-    <div class="card">
-        <h2>Negociações Recebidas</h2>
-        <table>
-            <thead><tr><th>Cliente</th><th>Proposta</th></tr></thead>
-            <tbody id="listaNegociacoes">
-                <tr><td colspan="2">Carregando...</td></tr>
-            </tbody>
-        </table>
-    </div>
 </div>
+
+<div id="toast"></div>
 
 </body>
 </html>
