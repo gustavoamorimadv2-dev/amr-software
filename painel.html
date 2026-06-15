@@ -185,19 +185,36 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // 3. EMITIR ALERTA (Baseado no Swift enviado)
+    // 3. EMITIR ALERTA (Baseado no Swift enviado)
     document.getElementById('formAlerta').onsubmit = async (e) => {
         e.preventDefault();
         const btn = e.target.querySelector('button');
         btn.innerText = "Enviando...";
 
+        const selectAlerta = document.getElementById('clienteAlerta');
+        const opcaoSelecionada = selectAlerta.options[selectAlerta.selectedIndex];
+        const cpfDoCliente = opcaoSelecionada.getAttribute('data-cpf'); // Pega o CPF
+
         // Objeto formatado EXATAMENTE como o init() do seu App iOS espera
         const payloadAlerta = {
             titulo: document.getElementById('alertaTitulo').value,
             mensagem: document.getElementById('alertaMsg').value,
-            data: new Date().toISOString(), // Lida no Swift como data["data"]
-            gravidade: document.getElementById('alertaGravidade').value.toLowerCase(), // O Swift usa .lowercased()
-            destinoId: document.getElementById('clienteAlerta').value // Para filtrar quem recebe
+            data: new Date().toISOString(), 
+            gravidade: document.getElementById('alertaGravidade').value.toLowerCase(), 
+            destinoId: selectAlerta.value, 
+            cpf: cpfDoCliente // <--- AQUI ESTÁ A MÁGICA! O App agora vai achar.
         };
+
+        try {
+            await addDoc(collection(db, "alertas"), payloadAlerta); 
+            showToast("Alerta disparado para o App!");
+            e.target.reset();
+        } catch (error) {
+            showToast("Erro ao enviar alerta.");
+            console.error(error);
+        }
+        btn.innerText = "Emitir Alerta";
+    };
 
         try {
             await addDoc(collection(db, "alertas"), payloadAlerta); // Coleção "alertas"
