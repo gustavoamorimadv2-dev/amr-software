@@ -100,18 +100,21 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Carregar clientes nos selects
+   // Carregar clientes nos selects
     async function carregarClientes() {
         const selectAndamento = document.getElementById('clienteAndamento');
         const selectAlerta = document.getElementById('clienteAlerta');
         
         try {
             const snapshot = await getDocs(collection(db, "clientes"));
-            let options = '<option value="">Selecione...</option>';
+            let options = '<option value="" data-cpf="">Selecione...</option>';
             snapshot.forEach(doc => {
-                options += `<option value="${doc.id}">${doc.data().nome}</option>`;
+                const data = doc.data();
+                // Agora salvamos o CPF escondido no data-cpf
+                options += `<option value="${doc.id}" data-cpf="${data.cpf || ''}">${data.nome}</option>`;
             });
             selectAndamento.innerHTML = options;
-            selectAlerta.innerHTML = '<option value="todos">Todos os Clientes</option>' + options;
+            selectAlerta.innerHTML = '<option value="todos" data-cpf="todos">Todos os Clientes</option>' + options;
         } catch (error) {
             console.error("Erro ao buscar clientes:", error);
         }
