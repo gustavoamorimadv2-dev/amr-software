@@ -1,24 +1,83 @@
-Política de Privacidade
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Política de Privacidade - [NOME DO SEU APP]</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f5;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        h1 {
+            color: #000000;
+            font-size: 26px;
+            margin-bottom: 5px;
+        }
+        h2 {
+            color: #111111;
+            font-size: 18px;
+            margin-top: 30px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #eeeeee;
+            padding-bottom: 5px;
+        }
+        p {
+            margin-bottom: 15px;
+        }
+        .date {
+            color: #666666;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        a {
+            color: #0066cc;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
 
-Última atualização: [19 de junho de 2026]
+    <div class="container">
+        <h1>Política de Privacidade</h1>
+        <div class="date">Última atualização: [19 de junho de 2026]</div>
 
-Esta Política de Privacidade descreve como o aplicativo AMR Software lida com as suas informações. Nós levamos a sua privacidade a sério e desenvolvemos nosso aplicativo para ser seguro e respeitar os seus dados.
+        <p>Esta Política de Privacidade descreve como o aplicativo <strong>Amr Software</strong> lida com as suas informações. Nós levamos a sua privacidade a sério e desenvolvemos nosso aplicativo para ser seguro e respeitar os seus dados.</p>
 
-1. Coleta e Uso de Dados
-O aplicativo Alves Saavedra Advocacia não coleta, não armazena e não compartilha nenhum tipo de dado pessoal, informação de identificação ou dados de uso do seu dispositivo. Você não precisa criar uma conta, fornecer e-mail, nome ou qualquer outra informação para utilizar os recursos do nosso aplicativo. Tudo o que você faz no app fica apenas no seu próprio aparelho.
+        <h2>1. Coleta e Uso de Dados</h2>
+        <p>O aplicativo <strong>Alves Saavedra app não coleta, não armazena e não compartilha</strong> nenhum tipo de dado pessoal, informação de identificação ou dados de uso do seu dispositivo. Você não precisa criar uma conta, fornecer e-mail, nome ou qualquer outra informação para utilizar os recursos do nosso aplicativo. Tudo o que você faz no app fica apenas no seu próprio aparelho.</p>
 
-2. Anúncios e Rastreamento
-Nosso aplicativo é totalmente livre de anúncios (ads). Nós não exibimos propagandas e não utilizamos nenhum software de rastreamento (analytics) de terceiros para monitorar o seu comportamento ou cliques dentro do aplicativo.
+        <h2>2. Anúncios e Rastreamento</h2>
+        <p>Nosso aplicativo é totalmente livre de anúncios (ads). Nós não exibimos propagandas e não utilizamos nenhum software de rastreamento (analytics) de terceiros para monitorar o seu comportamento ou cliques dentro do aplicativo.</p>
 
-3. Permissões do Dispositivo
-(Nota: Se o seu aplicativo não pede nenhuma permissão do celular, como câmera, microfone ou galeria, você pode apagar este parágrafo. Se ele pede, deixe o texto abaixo:)
-Caso o aplicativo solicite alguma permissão do seu dispositivo, isso ocorre exclusivamente para o funcionamento do app no seu próprio aparelho. Nenhuma informação, foto ou arquivo sai do seu celular ou é enviado para nós ou para terceiros.
+        <h2>3. Permissões do Dispositivo</h2>
+        <p>Caso o aplicativo solicite alguma permissão do seu dispositivo (como câmera ou galeria, por exemplo), isso ocorre exclusivamente para o funcionamento do app no seu próprio aparelho. Nenhuma informação, foto ou arquivo sai do seu celular ou é enviado para nós ou para terceiros.</p>
+        <!-- Nota: Se o seu app não pede NENHUMA permissão, você pode apagar o bloco <h2> e <p> acima referente ao item 3 -->
 
-4. Privacidade de Crianças
-Como não coletamos nenhuma informação pessoal, nosso aplicativo é seguro e adequado para usuários de todas as idades, incluindo crianças, estando de acordo com as leis de proteção à privacidade infantil.
+        <h2>4. Privacidade de Crianças</h2>
+        <p>Como não coletamos nenhuma informação pessoal, nosso aplicativo é seguro e adequado para usuários de todas as idades, incluindo crianças, estando de acordo com as leis de proteção à privacidade infantil.</p>
 
-5. Mudanças nesta Política
-Podemos atualizar nossa Política de Privacidade no futuro caso o aplicativo ganhe novos recursos. Quaisquer alterações serão refletidas nesta página.
+        <h2>5. Mudanças nesta Política</h2>
+        <p>Podemos atualizar nossa Política de Privacidade no futuro caso o aplicativo ganhe novos recursos. Quaisquer alterações serão refletidas nesta página.</p>
 
-6. Contato
-Se você tiver alguma dúvida sobre esta Política de Privacidade, por favor, entre em contato através do e-mail: [SEU E-MAIL DE CONTATO]
+        <h2>6. Contato</h2>
+        <p>Se você tiver alguma dúvida sobre esta Política de Privacidade, por favor, entre em contato através do e-mail: <a href="mailto:[SEU E-MAIL DE CONTATO]"><strong>[SEU E-MAIL DE CONTATO]</strong></a></p>
+    </div>
+
+</body>
+</html>
