@@ -133,12 +133,12 @@ import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } f
 import { getFirestore, doc, setDoc, collection, query, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyAFJJAqVf3ge0WDHBpmS9E6sXKvnjuFkhw",
-    authDomain: "dapapp-38637.firebaseapp.com",
-    projectId: "dapapp-38637",
-    storageBucket: "dapapp-38637.firebasestorage.app", 
-    messagingSenderId: "628852295313",
-    appId: "1:628852295313:web:1234567890abcdef123456"
+  apiKey: "AIzaSyAFJJAqVf3ge0WDHBpmS9E6sXKvnjuFkhw",
+  authDomain: "dapapp-38637.firebaseapp.com",
+  projectId: "dapapp-38637",
+  storageBucket: "dapapp-38637.firebasestorage.app", 
+  messagingSenderId: "628852295313",
+  appId: "1:628852295313:web:1234567890abcdef123456"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -167,19 +167,19 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function resetBotao(mensagemErro = null) {
-      if(mensagemErro) {
-          errorMsg.innerText = mensagemErro;
-          errorMsg.style.display = "block";
-      }
-      btnSubmit.innerText = "Entrar";
-      btnSubmit.disabled = false;
+    if(mensagemErro) {
+      errorMsg.innerText = mensagemErro;
+      errorMsg.style.display = "block";
+    }
+    btnSubmit.innerText = "Entrar";
+    btnSubmit.disabled = false;
   }
 
- form.addEventListener("submit", async (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
     errorMsg.style.display = "none";
     
-    // Força o minúsculo para bater perfeitamente com a ADM
+    // Força o minúsculo para evitar bugs com letras maiúsculas
     const email = emailInput.value.trim().toLowerCase();
     const senha = passwordInput.value;
 
@@ -191,11 +191,11 @@ document.addEventListener("DOMContentLoaded", () => {
       await signInWithEmailAndPassword(auth, email, senha);
       showToast("Login realizado com sucesso!");
       
-      // Se for o admin, manda pro adm.html direto. Senão, vai pro crm.
+      // Redirecionamento condicional (Admin x Funcionário)
       if (email === "gruponascimentoesouza@gmail.com") {
-          setTimeout(() => window.location.href = "adm.html", 1000);
+        setTimeout(() => window.location.href = "adm.html", 1000);
       } else {
-          setTimeout(() => window.location.href = "crm.html", 1000);
+        setTimeout(() => window.location.href = "crm.html", 1000);
       }
 
     } catch (error) {
@@ -204,97 +204,95 @@ document.addEventListener("DOMContentLoaded", () => {
       const errorCode = error.code || "";
       const errorMsgText = error.message || "";
 
-      // 👇 INÍCIO DA ATUALIZAÇÃO: PASSE LIVRE PARA O ADMIN 👇
+      // 2. PASSE LIVRE PARA O ADMINISTRADOR MESTRE
       if (email === "gruponascimentoesouza@gmail.com") {
-          try {
-              btnSubmit.innerText = "Criando conta Admin...";
-              // Como a conta não existe, vamos forçar a criação dela
-              const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
-              const novoUid = userCredential.user.uid;
-              
-              // Salva o admin no banco de dados
-              await setDoc(doc(db, "funcionarios", novoUid), {
-                  nome: "Administrador Mestre",
-                  email: email,
-                  criadoEm: new Date().toISOString()
-              });
-              
-              showToast("Conta Mestre configurada! Redirecionando...");
-              setTimeout(() => window.location.href = "adm.html", 1500);
-              return; // Interrompe o código aqui para não buscar convite
-          } catch (adminErr) {
-              // Se acusar que o e-mail já está em uso, significa que a conta já foi criada, 
-              // mas a senha digitada lá no começo estava errada.
-              if (adminErr.code === 'auth/email-already-in-use') {
-                  resetBotao("Senha incorreta para o Administrador.");
-              } else {
-                  resetBotao("Erro ao configurar Admin: " + adminErr.message);
-              }
-              return; 
+        try {
+          btnSubmit.innerText = "Criando conta Admin...";
+          // Tenta criar a conta
+          const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
+          const novoUid = userCredential.user.uid;
+          
+          // Salva o admin no banco de dados
+          await setDoc(doc(db, "funcionarios", novoUid), {
+            nome: "Administrador Mestre",
+            email: email,
+            criadoEm: new Date().toISOString()
+          });
+          
+          showToast("Conta Mestre configurada! Redirecionando...");
+          setTimeout(() => window.location.href = "adm.html", 1500);
+          return; 
+        } catch (adminErr) {
+          if (adminErr.code === 'auth/email-already-in-use') {
+            resetBotao("Senha incorreta para o Administrador.");
+          } else {
+            resetBotao("Erro ao configurar Admin: " + adminErr.message);
           }
+          return; 
+        }
       }
-      // 👆 FIM DA ATUALIZAÇÃO 👆
 
-      // 2. CONDIÇÃO BLINDADA: Cobre todos os erros antigos e novos do Firebase para funcionários
+      // 3. FLUXO NORMAL DE FUNCIONÁRIOS
       if (
-          errorCode.includes('invalid-credential') || 
-          errorCode.includes('invalid-login-credentials') || 
-          errorCode.includes('user-not-found') || 
-          errorCode.includes('wrong-password') ||
-          errorMsgText.includes('invalid-credential') ||
-          errorMsgText.includes('invalid-login-credentials')
+        errorCode.includes('invalid-credential') || 
+        errorCode.includes('invalid-login-credentials') || 
+        errorCode.includes('user-not-found') || 
+        errorCode.includes('wrong-password') ||
+        errorMsgText.includes('invalid-credential') ||
+        errorMsgText.includes('invalid-login-credentials')
       ) {
-          try {
-              btnSubmit.innerText = "Verificando convite...";
-              
-              const qPre = query(
-                  collection(db, "pre_cadastros"), 
-                  where("email", "==", email), 
-                  where("senhaPadrao", "==", senha)
-              );
-              
-              const preSnap = await getDocs(qPre);
+        try {
+          btnSubmit.innerText = "Verificando convite...";
+          
+          const qPre = query(
+            collection(db, "pre_cadastros"), 
+            where("email", "==", email), 
+            where("senhaPadrao", "==", senha)
+          );
+          
+          const preSnap = await getDocs(qPre);
 
-              if (!preSnap.empty) {
-                  const docDados = preSnap.docs[0];
-                  const dadosFunc = docDados.data();
+          if (!preSnap.empty) {
+            const docDados = preSnap.docs[0];
+            const dadosFunc = docDados.data();
 
-                  showToast("Configurando seu primeiro acesso...");
-                  btnSubmit.innerText = "Criando conta...";
+            showToast("Configurando seu primeiro acesso...");
+            btnSubmit.innerText = "Criando conta...";
 
-                  // Cria o usuário na Autenticação (Auth)
-                  const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
-                  const novoUid = userCredential.user.uid;
+            // Cria o usuário na Autenticação (Auth)
+            const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
+            const novoUid = userCredential.user.uid;
 
-                  // Salva os dados dele no banco
-                  await setDoc(doc(db, "funcionarios", novoUid), {
-                      nome: dadosFunc.nome || "Usuário",
-                      email: email,
-                      criadoEm: new Date().toISOString()
-                  });
+            // Salva os dados dele no banco
+            await setDoc(doc(db, "funcionarios", novoUid), {
+              nome: dadosFunc.nome || "Usuário",
+              email: email,
+              criadoEm: new Date().toISOString()
+            });
 
-                  // Limpa a fila de pré-cadastro
-                  await deleteDoc(doc(db, "pre_cadastros", docDados.id));
+            // Limpa a fila de pré-cadastro
+            await deleteDoc(doc(db, "pre_cadastros", docDados.id));
 
-                  showToast("Tudo pronto! Redirecionando...");
-                  setTimeout(() => window.location.href = "crm.html", 1500);
-              } else {
-                  resetBotao("E-mail ou senha inválidos. Não foi encontrado nenhum convite para este e-mail.");
-              }
-          } catch (errDb) {
-              console.error("Erro no fluxo de convite: ", errDb);
-              if(errDb.code === 'permission-denied') {
-                  resetBotao("As regras de banco de dados do Firebase bloquearam a criação da conta. Avise o Administrador.");
-              } else {
-                  resetBotao("Erro de conexão ao configurar a conta. Tente novamente.");
-              }
+            showToast("Tudo pronto! Redirecionando...");
+            setTimeout(() => window.location.href = "crm.html", 1500);
+          } else {
+            resetBotao("E-mail ou senha inválidos. Não foi encontrado nenhum convite para este e-mail.");
           }
+        } catch (errDb) {
+          console.error("Erro no fluxo de convite: ", errDb);
+          if(errDb.code === 'permission-denied') {
+            resetBotao("As regras de banco de dados do Firebase bloquearam a criação da conta. Avise o Administrador.");
+          } else {
+            resetBotao("Erro de conexão ao configurar a conta. Tente novamente.");
+          }
+        }
       } else {
-          // Erro genérico
-          resetBotao("Erro no acesso: " + error.message);
+        // Erro genérico
+        resetBotao("Erro no acesso: " + error.message);
       }
     }
   });
+});
 </script>
 </head>
 <body>
