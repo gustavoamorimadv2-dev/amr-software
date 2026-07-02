@@ -133,19 +133,6 @@ body{
     color:#fff;
 }
 
-/* ================= BOTÃO SAIR ================= */
-.sidebar button.btn-sair-crm {
-    margin-top: auto;
-    color: #f87171;
-}
-.sidebar button.btn-sair-crm:hover {
-    background: rgba(239, 68, 68, 0.2);
-    color: #ef4444;
-}
-.sidebar button.btn-sair-crm img {
-    filter: invert(25%) sepia(90%) saturate(4000%) hue-rotate(350deg) brightness(95%) contrast(100%);
-}
-
 /* ================= MAIN ================= */
 
 .main{
@@ -268,9 +255,11 @@ select option {
     flex-direction:column;
     gap:15px;
     overflow-y:auto;
+    /* Transições suaves para a interação de drag and drop */
     transition: background-color 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
 }
 
+/* Feedback visual quando arrastar um card por cima da coluna */
 .column.drag-over {
     background: rgba(255, 255, 255, 0.08);
     border-color: rgba(255, 255, 255, 0.3);
@@ -284,7 +273,7 @@ select option {
     font-weight: 700;
     letter-spacing: 1px;
     opacity: 0.8;
-    pointer-events: none;
+    pointer-events: none; /* Previne bug visual no drag and drop */
 }
 
 /* ================= CARDS ================= */
@@ -310,6 +299,7 @@ select option {
     background:rgba(255,255,255,0.1);
 }
 
+/* Feedback visual do card sendo arrastado */
 .card.dragging {
     opacity: 0.4;
     transform: scale(0.95);
@@ -635,8 +625,7 @@ import {
 
 import {
     getAuth,
-    onAuthStateChanged,
-    signOut 
+    onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
 
 import {
@@ -689,19 +678,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    /* ================= SAIR ================= */
-    const btnSair = document.getElementById('btnSair');
-    if(btnSair){
-        btnSair.onclick = async () => {
-            try {
-                await signOut(auth);
-            } catch (error) {
-                console.error("Erro ao sair:", error);
-                showToast("Erro ao deslogar.");
-            }
-        };
-    }
-
     const STATUS = [
         'lista-fria',
         'negociacao',
@@ -724,14 +700,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const btnAdd = document.getElementById('btnAdd');
     const btnCancel = document.getElementById('btnCancel');
-
-    /* Atribuição direta e funcional para abertura/fechamento do Modal */
-    if (btnAdd) {
-        btnAdd.onclick = () => openModal(false);
-    }
-    if (btnCancel) {
-        btnCancel.onclick = closeModal;
-    }
 
     const searchInput = document.getElementById('searchInput');
     const filterStatus = document.getElementById('filterStatus');
@@ -1349,11 +1317,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Se estiver editando o cliente, ignora ele mesmo na checagem
                     if (clientForm.dataset.editId && c.id === clientForm.dataset.editId) return false;
                     
-                    if (!c.processo) return false;
-
-                    // Ajustado para checar O VALOR EXATO no array de processos do cliente
-                    const processosDoCliente = c.processo.split(',').map(p => p.trim());
-                    return processosDoCliente.includes(proc);
+                    // Verifica se a string de processos do cliente no banco inclui o processo digitado
+                    return c.processo && c.processo.includes(proc);
                 });
 
                 if (clienteExistente) {
@@ -1463,7 +1428,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             render();
-            showToast("Status updated");
+            showToast("Status atualizado");
         });
     });
 
@@ -1487,18 +1452,16 @@ document.addEventListener('DOMContentLoaded', () => {
     searchInput.oninput = filtragemAplicada;
     filterStatus.onchange = filtragemAplicada;
 
-    /* ================= LOGIN & USERNAME DISPLAY ================= */
+    /* ================= LOGIN ================= */
 
     onAuthStateChanged(auth, user => {
         if(user){
             currentUser = user;
             
-            // EXIBE O NOME DO USUÁRIO LOGADO NO TOPO
+            // EXIBE O EMAIL DO USUÁRIO LOGADO NO TOPO
             const emailDisplay = document.getElementById('userEmailDisplay');
             if (emailDisplay) {
-                // Tenta usar displayName, senão pega a primeira parte do email
-                const nomeExibicao = user.displayName || user.email.split('@')[0];
-                emailDisplay.innerHTML = `👤 ${nomeExibicao}`;
+                emailDisplay.innerHTML = `👤 ${user.email}`;
             }
 
             render();
@@ -1549,11 +1512,6 @@ document.addEventListener('DOMContentLoaded', () => {
     <button>
         <img src="https://img.icons8.com/ios-filled/50/ffffff/settings.png"/>
         <span>Configurações</span>
-    </button>
-
-    <button id="btnSair" class="btn-sair-crm" title="Sair do CRM">
-        <img src="https://img.icons8.com/ios-glyphs/30/000000/logout-rounded.png"/>
-        <span>Sair</span>
     </button>
 
 </div>
