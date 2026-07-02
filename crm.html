@@ -8,8 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
-
-*{
+* {
     margin:0;
     padding:0;
     box-sizing:border-box;
@@ -32,11 +31,10 @@
     background: rgba(255, 255, 255, 0.2); 
 }
 
-body{
+body {
     display:flex;
     height:100vh;
     overflow:hidden;
-    /* Fundo Escuro com Gradientes */
     background:
         radial-gradient(circle at top left,#2f3f73 0%,transparent 30%),
         radial-gradient(circle at bottom right,#0f766e 0%,transparent 25%),
@@ -45,8 +43,7 @@ body{
 }
 
 /* ================= SIDEBAR ================= */
-
-.sidebar{
+.sidebar {
     width:80px;
     display:flex;
     flex-direction:column;
@@ -56,18 +53,13 @@ body{
     transition:width 0.4s ease;
     position:relative;
     z-index:10;
-    /* Efeito Glassmorphism */
     backdrop-filter:blur(30px);
     background:rgba(255,255,255,0.06);
     border-right:1px solid rgba(255,255,255,0.08);
     box-shadow:0 0 40px rgba(0,0,0,0.25);
 }
-
-.sidebar.expanded{
-    width:240px;
-}
-
-.sidebar h2{
+.sidebar.expanded { width:240px; }
+.sidebar h2 {
     font-size:22px;
     font-weight:800;
     color:#fff;
@@ -81,12 +73,8 @@ body{
     transition:opacity 0.3s;
     opacity:0;
 }
-
-.sidebar.expanded h2{
-    opacity:1;
-}
-
-.sidebar button{
+.sidebar.expanded h2 { opacity:1; }
+.sidebar button {
     width:calc(100% - 20px);
     background:transparent;
     border:none;
@@ -103,51 +91,40 @@ body{
     white-space:nowrap;
     overflow:hidden;
 }
-
-.sidebar button img{
+.sidebar button img {
     width:24px;
     height:24px;
     filter:invert(1) opacity(0.7);
     flex-shrink:0;
     transition:transform 0.3s, filter 0.3s;
 }
-
-.sidebar button span{
+.sidebar button span {
     display:inline-block;
     opacity:0;
     transition:opacity 0.3s;
     font-weight:600;
 }
-
-.sidebar.expanded button span{
-    opacity:1;
-}
-
-.sidebar button:hover img{
+.sidebar.expanded button span { opacity:1; }
+.sidebar button:hover img {
     transform:scale(1.1);
     filter:invert(1) opacity(1);
 }
-
-.sidebar button:hover{
+.sidebar button:hover {
     background:rgba(255,255,255,0.1);
     color:#fff;
 }
 
 /* ================= MAIN ================= */
-
-.main{
+.main {
     flex:1;
     display:flex;
     flex-direction:column;
     overflow:hidden;
     transition:filter 0.3s;
 }
+.main.blur { filter:blur(5px) brightness(0.7); }
 
-.main.blur{
-    filter:blur(5px) brightness(0.7);
-}
-
-header{
+header {
     height:70px;
     background:transparent;
     border-bottom:1px solid rgba(255,255,255,0.08);
@@ -157,13 +134,11 @@ header{
     padding:0 30px;
     flex-shrink:0;
 }
-
-header h1{
+header h1 {
     font-size:24px;
     color:#fff;
     font-weight:800;
 }
-
 .user-info {
     font-size: 13px;
     color: rgba(255, 255, 255, 0.8);
@@ -177,8 +152,7 @@ header h1{
 }
 
 /* ================= SEARCH ================= */
-
-.search-bar{
+.search-bar {
     padding:15px 30px;
     background:transparent;
     border-bottom:1px solid rgba(255,255,255,0.08);
@@ -187,12 +161,8 @@ header h1{
     align-items:center;
     flex-shrink:0;
 }
-
-.search-bar input,
-.search-bar select,
-.modal input,
-.modal textarea,
-.modal select {
+.search-bar input, .search-bar select,
+.modal input, .modal textarea, .modal select {
     padding:12px 16px;
     background:rgba(255,255,255,0.08);
     border:1px solid rgba(255,255,255,0.1);
@@ -203,47 +173,30 @@ header h1{
     transition: 0.3s;
     backdrop-filter: blur(10px);
 }
-
-.search-bar input:focus,
-.search-bar select:focus,
-.modal input:focus,
-.modal textarea:focus,
-.modal select:focus {
+.search-bar input:focus, .search-bar select:focus,
+.modal input:focus, .modal textarea:focus, .modal select:focus {
     background:rgba(255,255,255,0.15);
     border-color: rgba(255,255,255,0.3);
 }
-
-.search-bar input::placeholder,
-.modal input::placeholder,
-.modal textarea::placeholder {
+.search-bar input::placeholder, .modal input::placeholder, .modal textarea::placeholder {
     color: rgba(255,255,255,0.5);
 }
-
-.search-bar input{
-    flex:1;
-}
-
-select option {
-    background: #111827;
-    color: #fff;
-}
+.search-bar input { flex:1; }
+select option { background: #111827; color: #fff; }
 
 /* ================= KANBAN ================= */
-
-.kanban-container{
+.kanban-container {
     flex:1;
     overflow-x:auto;
     padding:20px 30px;
 }
-
-.kanban{
+.kanban {
     display:flex;
     gap:20px;
     min-width:max-content;
     height:100%;
 }
-
-.column{
+.column {
     background:rgba(255,255,255,0.03);
     border: 1px solid rgba(255,255,255,0.05);
     backdrop-filter: blur(10px);
@@ -255,30 +208,25 @@ select option {
     flex-direction:column;
     gap:15px;
     overflow-y:auto;
-    /* Transições suaves para a interação de drag and drop */
     transition: background-color 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
 }
-
-/* Feedback visual quando arrastar um card por cima da coluna */
 .column.drag-over {
     background: rgba(255, 255, 255, 0.08);
     border-color: rgba(255, 255, 255, 0.3);
     transform: scale(1.02);
 }
-
-.column h2{
+.column h2 {
     margin-bottom:10px;
     font-size:14px;
     color:#fff;
     font-weight: 700;
     letter-spacing: 1px;
     opacity: 0.8;
-    pointer-events: none; /* Previne bug visual no drag and drop */
+    pointer-events: none;
 }
 
 /* ================= CARDS ================= */
-
-.card{
+.card {
     display:flex;
     background:rgba(255,255,255,0.07);
     border: 1px solid rgba(255,255,255,0.08);
@@ -293,25 +241,20 @@ select option {
     width:100%;
     min-height:200px;
 }
-
-.card:hover{
+.card:hover {
     transform:translateY(-4px);
     background:rgba(255,255,255,0.1);
 }
-
-/* Feedback visual do card sendo arrastado */
 .card.dragging {
     opacity: 0.4;
     transform: scale(0.95);
 }
-
-.card .color-bar{
+.card .color-bar {
     width:6px;
     height:100%;
     border-radius:16px 0 0 16px;
 }
-
-.card-content{
+.card-content {
     padding:20px;
     flex:1;
     display:flex;
@@ -320,8 +263,7 @@ select option {
     overflow:hidden;
     min-width: 0;
 }
-
-.card h3{
+.card h3 {
     font-size:18px;
     margin-bottom:12px;
     color:#fff;
@@ -329,32 +271,36 @@ select option {
     padding-right: 80px; 
     word-break: break-word; 
 }
-
-.card p{
+.card p {
     font-size:13px;
     color:rgba(255,255,255,0.7);
     margin:5px 0;
 }
-
 .card p strong {
     color: #fff;
     font-weight: 600;
 }
 
-.lista-fria .color-bar{ background:#3b82f6; }
-.negociacao .color-bar{ background:#f59e0b; }
-.contrato-assinado .color-bar{ background:#8b5cf6; }
-.fechado .color-bar{ background:#10b981; }
+/* Cores dos Status */
+.dia-1 .color-bar { background: #93c5fd; }
+.dia-2 .color-bar { background: #60a5fa; }
+.dia-3 .color-bar { background: #3b82f6; }
+.dia-4 .color-bar { background: #2563eb; }
+.dia-5 .color-bar { background: #1d4ed8; }
+.funil-geral .color-bar { background: #8b5cf6; }
+.lista-fria .color-bar { background: #3b82f6; }
+.negociacao .color-bar { background: #f59e0b; }
+.contrato-assinado .color-bar { background: #8b5cf6; }
+.fechado .color-bar { background: #10b981; }
 
-.card-actions{
+.card-actions {
     position:absolute;
     top:15px;
     right:15px;
     display:flex;
     gap:10px;
 }
-
-.card-actions button{
+.card-actions button {
     background:rgba(255,255,255,0.1);
     border:1px solid rgba(255,255,255,0.05);
     border-radius: 8px;
@@ -365,25 +311,18 @@ select option {
     justify-content: center;
     transition: 0.3s;
 }
-
-.card-actions img{
+.card-actions img {
     width:16px;
     height:16px;
     filter:invert(1); 
     opacity:0.8;
     transition:opacity 0.2s;
 }
-
-.card-actions button:hover{
-    background:rgba(255,255,255,0.2);
-}
-.card-actions button:hover img{
-    opacity:1;
-}
+.card-actions button:hover { background:rgba(255,255,255,0.2); }
+.card-actions button:hover img { opacity:1; }
 
 /* ================= MODAIS ================= */
-
-.modal-backdrop{
+.modal-backdrop {
     display:none;
     position:fixed;
     inset:0;
@@ -393,8 +332,7 @@ select option {
     align-items:center;
     z-index:50;
 }
-
-.modal{
+.modal {
     background:#0f172a;
     border: 1px solid rgba(255,255,255,0.1);
     padding:24px;
@@ -406,29 +344,18 @@ select option {
     max-height:90vh;
     overflow-y:auto;
 }
-
-.modal h3{
+.modal h3 {
     margin-bottom:20px;
     font-size: 20px;
     font-weight: 700;
 }
-
-.modal .row{
-    margin-bottom:14px;
-}
-
-.modal input,
-.modal textarea,
-.modal select{
-    width:100%;
-}
-
-.modal textarea{
+.modal .row { margin-bottom:14px; }
+.modal input, .modal textarea, .modal select { width:100%; }
+.modal textarea {
     min-height:100px;
     resize:vertical;
 }
-
-.modal .actions{
+.modal .actions {
     display:flex;
     gap:10px;
     justify-content:flex-end;
@@ -436,8 +363,7 @@ select option {
 }
 
 /* ================= BUTTONS ================= */
-
-.btn{
+.btn {
     padding:10px 18px;
     border-radius:12px;
     border:0;
@@ -446,33 +372,14 @@ select option {
     font-size: 14px;
     transition: 0.3s;
 }
-
-.btn.primary{
-    background:#fff;
-    color:#111827;
-}
-
-.btn.primary:hover{
+.btn.primary { background:#fff; color:#111827; }
+.btn.primary:hover {
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(255,255,255,0.2);
 }
-
-.btn.ghost{
-    background:rgba(255,255,255,0.12);
-    color:#fff;
-}
-
-.btn.ghost:hover{
-    background:rgba(255,255,255,0.2);
-}
-
-.btn-green {
-    background: #10b981;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-}
-
+.btn.ghost { background:rgba(255,255,255,0.12); color:#fff; }
+.btn.ghost:hover { background:rgba(255,255,255,0.2); }
+.btn-green { background: #10b981; color: #fff; border: none; cursor: pointer; }
 .btn-green:hover {
     background: #059669;
     transform: translateY(-2px);
@@ -480,20 +387,15 @@ select option {
 }
 
 /* ================= DINÂMICOS ================= */
-
-.processo-row{
+.processo-row {
     display:flex;
     gap:8px;
     margin-bottom:10px;
 }
-
-.processo-row input{
-    flex:1;
-}
+.processo-row input { flex:1; }
 
 /* ================= TOAST ================= */
-
-.toast{
+.toast {
     position:fixed;
     right:30px;
     bottom:30px;
@@ -517,11 +419,7 @@ select option {
     border-radius: 12px;
     margin-bottom: 14px;
 }
-.docs-section h4 {
-    font-size: 14px;
-    margin-bottom: 12px;
-    color: #fff;
-}
+.docs-section h4 { font-size: 14px; margin-bottom: 12px; color: #fff; }
 .doc-item {
     display: flex;
     justify-content: space-between;
@@ -532,15 +430,8 @@ select option {
     margin-bottom: 8px;
     font-size: 13px;
 }
-.doc-item a {
-    color: #60a5fa;
-    text-decoration: none;
-    word-break: break-all;
-    flex: 1;
-}
-.doc-item a:hover {
-    text-decoration: underline;
-}
+.doc-item a { color: #60a5fa; text-decoration: none; word-break: break-all; flex: 1; }
+.doc-item a:hover { text-decoration: underline; }
 .doc-item button {
     background: transparent;
     border: none;
@@ -552,9 +443,7 @@ select option {
     transition: 0.2s;
     margin-left: 10px;
 }
-.doc-item button:hover {
-    background: rgba(239, 68, 68, 0.1);
-}
+.doc-item button:hover { background: rgba(239, 68, 68, 0.1); }
 
 .col-header-actions {
     display: flex;
@@ -573,15 +462,8 @@ select option {
     justify-content: center;
     transition: 0.3s;
 }
-.btn-robot:hover {
-    background: rgba(255,255,255,0.2);
-}
-.btn-robot img {
-    width: 20px;
-    height: 20px;
-    filter: invert(1);
-    opacity: 0.9;
-}
+.btn-robot:hover { background: rgba(255,255,255,0.2); }
+.btn-robot img { width: 20px; height: 20px; filter: invert(1); opacity: 0.9; }
 
 /* Fila de Disparo */
 .fila-item {
@@ -594,49 +476,190 @@ select option {
     margin-bottom: 8px;
     border: 1px solid rgba(255,255,255,0.05);
 }
-.fila-item span {
-    font-size: 14px;
-    font-weight: 500;
-}
-.btn-enviar-msg {
-    padding: 6px 12px;
-    font-size: 12px;
-    border-radius: 6px;
-    transition: 0.3s;
-}
-
+.fila-item span { font-size: 14px; font-weight: 500; }
+.btn-enviar-msg { padding: 6px 12px; font-size: 12px; border-radius: 6px; transition: 0.3s; }
 </style>
+</head>
+<body>
 
+<!-- SIDEBAR -->
+<div class="sidebar">
+    <h2>CRM</h2>
+    <button onclick="openModal(false)">
+        <img src="https://img.icons8.com/ios-glyphs/30/ffffff/plus-math.png" alt="Novo"/>
+        <span>Novo Cliente</span>
+    </button>
+    <button id="btnAgente">
+        <img src="https://img.icons8.com/ios-glyphs/30/ffffff/bot.png" alt="Bot"/>
+        <span>Agente Bot</span>
+    </button>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+    <header>
+        <h1>Pipeline</h1>
+        <div class="user-info">
+            <span id="userName">Usuário Conectado</span>
+        </div>
+    </header>
+
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Buscar por nome, CPF ou processo...">
+        <select id="filterStatus">
+            <option value="">Todos os Status</option>
+            <option value="dia-1">Dia 1</option>
+            <option value="dia-2">Dia 2</option>
+            <option value="dia-3">Dia 3</option>
+            <option value="dia-4">Dia 4</option>
+            <option value="dia-5">Dia 5</option>
+            <option value="funil-geral">Funil Geral</option>
+            <option value="lista-fria">Lista Fria</option>
+            <option value="negociacao">Em Negociação</option>
+            <option value="contrato-assinado">Contrato Assinado</option>
+            <option value="fechado">Fechado</option>
+        </select>
+    </div>
+
+    <div class="kanban-container">
+        <div class="kanban">
+            <!-- Pipeline de 5 Dias -->
+            <div class="column" id="dia-1">
+                <h2>DIA 1</h2>
+            </div>
+            <div class="column" id="dia-2">
+                <h2>DIA 2</h2>
+            </div>
+            <div class="column" id="dia-3">
+                <h2>DIA 3</h2>
+            </div>
+            <div class="column" id="dia-4">
+                <h2>DIA 4</h2>
+            </div>
+            <div class="column" id="dia-5">
+                <h2>DIA 5</h2>
+            </div>
+            
+            <!-- Funil Geral -->
+            <div class="column" id="funil-geral">
+                <h2>FUNIL GERAL</h2>
+            </div>
+
+            <!-- Colunas Antigas -->
+            <div class="column" id="lista-fria">
+                <h2>LISTA FRIA</h2>
+            </div>
+            <div class="column" id="negociacao">
+                <h2>EM NEGOCIAÇÃO</h2>
+            </div>
+            <div class="column" id="contrato-assinado">
+                <h2>CONTRATO ASSINADO</h2>
+            </div>
+            <div class="column" id="fechado">
+                <h2>FECHADO</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL NOVO/EDITAR CLIENTE -->
+<div class="modal-backdrop" id="modalBackdrop">
+    <div class="modal" id="clientForm">
+        <h3 id="modalTitle">Novo Cliente</h3>
+        <div class="row">
+            <input type="text" id="inputNome" placeholder="Nome Completo">
+        </div>
+        <div class="row">
+            <input type="text" id="inputCPF" placeholder="CPF/CNPJ">
+        </div>
+        <div class="row">
+            <select id="inputStatus">
+                <option value="dia-1">Dia 1</option>
+                <option value="dia-2">Dia 2</option>
+                <option value="dia-3">Dia 3</option>
+                <option value="dia-4">Dia 4</option>
+                <option value="dia-5">Dia 5</option>
+                <option value="funil-geral">Funil Geral</option>
+                <option value="lista-fria">Lista Fria</option>
+                <option value="negociacao">Em Negociação</option>
+                <option value="contrato-assinado">Contrato Assinado</option>
+                <option value="fechado">Fechado</option>
+            </select>
+        </div>
+        <div class="row">
+            <input type="text" id="inputClasse" placeholder="Classe da Ação">
+        </div>
+        <div class="row">
+            <input type="number" id="inputValor" placeholder="Valor da Causa (R$)">
+        </div>
+        <div class="row">
+            <input type="text" id="inputEstado" placeholder="Estado (Ex: São Paulo)">
+        </div>
+        
+        <div class="docs-section">
+            <h4>Telefones</h4>
+            <div id="telefonesContainer"></div>
+            <button type="button" id="btnAddTelefone" class="btn ghost">+ Adicionar Telefone</button>
+        </div>
+
+        <div class="docs-section">
+            <h4>Processos</h4>
+            <div id="processosContainer"></div>
+        </div>
+
+        <div class="docs-section">
+            <h4>Documentos</h4>
+            <input type="file" id="inputFile" multiple style="display:none">
+            <button type="button" id="btnTriggerFile" class="btn ghost">Anexar Arquivo</button>
+            <p id="uploadProgress" style="display:none; font-size:12px; margin-top:10px;"></p>
+            <div id="docsList" style="margin-top: 10px;"></div>
+        </div>
+
+        <div class="row">
+            <textarea id="inputObs" placeholder="Observações Gerais"></textarea>
+        </div>
+
+        <div class="actions">
+            <button class="btn ghost" id="btnCancel" onclick="closeModal()">Cancelar</button>
+            <button class="btn primary" id="btnAdd">Salvar Cliente</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL AGENTE BOT -->
+<div class="modal-backdrop" id="modalAgenteBackdrop">
+    <div class="modal">
+        <h3>Agente Bot WhatsApp</h3>
+        <div class="row">
+            <textarea id="agenteMensagem" placeholder="Olá {nome}, tudo bem? ..."></textarea>
+        </div>
+        <button class="btn primary" id="btnCarregarFila" style="width:100%; margin-bottom:15px;">Carregar Fila (Lista Fria)</button>
+        <div id="agenteFilaContainer" style="display:none; margin-bottom:15px; max-height:200px; overflow-y:auto;">
+            <div id="agenteLista"></div>
+        </div>
+        <div class="actions">
+            <button class="btn ghost" id="btnFecharAgente">Fechar</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast">Aviso</div>
+<audio id="coinSound" src=""></audio>
+
+<!-- SCRIPT FIREBASE -->
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-
 import {
-    getFirestore,
-    collection,
-    addDoc,
-    getDocs,
-    doc,
-    setDoc,
-    updateDoc,
-    query,
-    where
+    getFirestore, collection, addDoc, getDocs, doc, setDoc, updateDoc, query, where
 } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
-
 import {
-    getAuth,
-    onAuthStateChanged
+    getAuth, onAuthStateChanged, signInAnonymously
 } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
-
 import {
-    getStorage,
-    ref,
-    uploadBytes,
-    getDownloadURL
+    getStorage, ref, uploadBytes, getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js";
 
 /* ================= FIREBASE ================= */
-
 const firebaseConfig = {
     apiKey: "AIzaSyAFJJAqVf3ge0WDHBpmS9E6sXKvnjuFkhw",
     authDomain: "dapapp-38637.firebaseapp.com",
@@ -659,1047 +682,582 @@ try {
 
 window.firebaseDB = db;
 
-/* ================= APP ================= */
+/* ================= VARIÁVEIS GLOBAIS E DOM ================= */
+const STATUS = [
+    'dia-1', 'dia-2', 'dia-3', 'dia-4', 'dia-5', 
+    'funil-geral', 'lista-fria', 'negociacao', 'contrato-assinado', 'fechado'
+];
+const cardsMap = {};
+let currentUser = null;
+let draggedCard = null;
 
+const sidebar = document.querySelector(".sidebar");
+const mainContent = document.querySelector(".main");
+
+const modalBackdrop = document.getElementById('modalBackdrop');
+const clientForm = document.getElementById('clientForm');
+
+const inputNome = document.getElementById('inputNome');
+const inputCPF = document.getElementById('inputCPF');
+const inputObs = document.getElementById('inputObs');
+const inputStatus = document.getElementById('inputStatus');
+const inputClasse = document.getElementById('inputClasse');
+const inputValor = document.getElementById('inputValor');
+const inputEstado = document.getElementById('inputEstado');
+
+const btnAdd = document.getElementById('btnAdd');
+const btnCancel = document.getElementById('btnCancel');
+const searchInput = document.getElementById('searchInput');
+const filterStatus = document.getElementById('filterStatus');
+const toastEl = document.getElementById('toast');
+const processosContainer = document.getElementById('processosContainer');
+const telefonesContainer = document.getElementById('telefonesContainer');
+const btnAddTelefone = document.getElementById('btnAddTelefone');
+
+/* ================= VARIÁVEIS DOCUMENTOS ================= */
+const inputFile = document.getElementById('inputFile');
+const btnTriggerFile = document.getElementById('btnTriggerFile');
+const docsList = document.getElementById('docsList');
+const uploadProgress = document.getElementById('uploadProgress');
+let currentDocs = [];
+
+/* ================= VARIÁVEIS AGENTE WHATSAPP ================= */
+const btnAgente = document.getElementById('btnAgente');
+const modalAgenteBackdrop = document.getElementById('modalAgenteBackdrop');
+const btnFecharAgente = document.getElementById('btnFecharAgente');
+const btnCarregarFila = document.getElementById('btnCarregarFila');
+const agenteMensagem = document.getElementById('agenteMensagem');
+const agenteFilaContainer = document.getElementById('agenteFilaContainer');
+const agenteLista = document.getElementById('agenteLista');
+
+/* ================= INIT APP ================= */
 document.addEventListener('DOMContentLoaded', () => {
 
-    const sidebar = document.querySelector(".sidebar");
-    const mainContent = document.querySelector(".main");
+    // Login Anônimo para funcionamento sem página de auth
+    signInAnonymously(auth).catch(console.error);
+
+    onAuthStateChanged(auth, async (user) => {
+        if(user) {
+            currentUser = user;
+            await refreshBoard();
+        }
+    });
 
     if(sidebar && mainContent){
         sidebar.addEventListener('mouseenter', () => {
             sidebar.classList.add('expanded');
             mainContent.classList.add('blur');
         });
-
         sidebar.addEventListener('mouseleave', () => {
             sidebar.classList.remove('expanded');
             mainContent.classList.remove('blur');
         });
     }
 
-    const STATUS = [
-        'lista-fria',
-        'negociacao',
-        'contrato-assinado',
-        'fechado'
-    ];
-
-    const cardsMap = {};
-
-    const modalBackdrop = document.getElementById('modalBackdrop');
-    const clientForm = document.getElementById('clientForm');
-
-    const inputNome = document.getElementById('inputNome');
-    const inputCPF = document.getElementById('inputCPF');
-    const inputObs = document.getElementById('inputObs');
-    const inputStatus = document.getElementById('inputStatus');
-    const inputClasse = document.getElementById('inputClasse');
-    const inputValor = document.getElementById('inputValor');
-    const inputEstado = document.getElementById('inputEstado');
-
-    const btnAdd = document.getElementById('btnAdd');
-    const btnCancel = document.getElementById('btnCancel');
-
-    const searchInput = document.getElementById('searchInput');
-    const filterStatus = document.getElementById('filterStatus');
-
-    const toastEl = document.getElementById('toast');
-    const coinSound = document.getElementById('coinSound');
-
-    const processosContainer = document.getElementById('processosContainer');
-
-    const telefonesContainer = document.getElementById('telefonesContainer');
-    const btnAddTelefone = document.getElementById('btnAddTelefone');
-
-    /* ================= VARIÁVEIS DOCUMENTOS ================= */
-    const inputFile = document.getElementById('inputFile');
-    const btnTriggerFile = document.getElementById('btnTriggerFile');
-    const docsList = document.getElementById('docsList');
-    const uploadProgress = document.getElementById('uploadProgress');
-    let currentDocs = [];
-
-    let currentUser = null;
-
-    /* ================= VARIÁVEIS AGENTE WHATSAPP ================= */
-    const btnAgente = document.getElementById('btnAgente');
-    const modalAgenteBackdrop = document.getElementById('modalAgenteBackdrop');
-    const btnFecharAgente = document.getElementById('btnFecharAgente');
-    const btnCarregarFila = document.getElementById('btnCarregarFila');
-    const agenteMensagem = document.getElementById('agenteMensagem');
-    const agenteFilaContainer = document.getElementById('agenteFilaContainer');
-    const agenteLista = document.getElementById('agenteLista');
-
-    /* ================= TOAST ================= */
-
-    function showToast(msg){
-        toastEl.innerText = msg;
-        toastEl.style.display = 'block';
-        clearTimeout(toastEl._t);
-        toastEl._t = setTimeout(() => {
-            toastEl.style.display = 'none';
-        },3000);
-    }
-
-    /* ================= FORÇAR DOWNLOAD DE DOCUMENTO ================= */
-    window.forceDownload = async function(url, filename, event) {
-        if(event) {
-            event.preventDefault();
-            event.stopPropagation();
-        }
-        showToast("Iniciando download...");
-        try {
-            const response = await fetch(url);
-            const blob = await response.blob();
-            const objectUrl = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = objectUrl;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(objectUrl);
-        } catch (error) {
-            console.warn("Bloqueio de CORS. Abrindo em nova aba para download manual.", error);
-            window.open(url, '_blank');
-        }
-    };
-
-    /* ================= FIRESTORE ================= */
-
-    async function getClientes(){
-        if(!currentUser){
-            return [];
-        }
-        const q = query(
-            collection(db,"clientes"),
-            where("userId","==",currentUser.uid)
-        );
-        const snapshot = await getDocs(q);
-        return snapshot.docs.map(docData => ({
-            id: docData.id,
-            ...docData.data()
-        }));
-    }
-
-    async function saveCliente(cliente){
-        if(!currentUser){
-            return;
-        }
-        cliente.userId = currentUser.uid;
-
-        if(cliente.id){
-            const docRef = doc(db,"clientes",cliente.id);
-            await setDoc(docRef,cliente);
-        }else{
-            const docRef = await addDoc(
-                collection(db,"clientes"),
-                cliente
-            );
-            cliente.id = docRef.id;
-        }
-    }
-
-    /* ================= LÓGICA DO AGENTE BOT ================= */
-    
-    if (btnAgente) {
-        btnAgente.onclick = () => {
-            modalAgenteBackdrop.style.display = 'flex';
-            agenteFilaContainer.style.display = 'none';
-            agenteLista.innerHTML = '';
-        };
-    }
-
-    if (btnFecharAgente) {
-        btnFecharAgente.onclick = () => {
-            modalAgenteBackdrop.style.display = 'none';
-        };
-    }
-
-    if (btnCarregarFila) {
-        btnCarregarFila.onclick = async () => {
-            const template = agenteMensagem.value.trim();
-            
-            if (!template) {
-                showToast("Por favor, digite uma mensagem padrão.");
-                return;
-            }
-
-            btnCarregarFila.innerText = "Carregando...";
-            const clientes = await getClientes();
-            
-            const listaFria = clientes.filter(c => c.status === 'lista-fria' && c.numeros);
-
-            btnCarregarFila.innerText = "Carregar Lista Fria";
-
-            if (listaFria.length === 0) {
-                showToast("Nenhum cliente com telefone na Lista Fria.");
-                agenteFilaContainer.style.display = 'none';
-                return;
-            }
-
-            agenteLista.innerHTML = '';
-            
-            listaFria.forEach(cliente => {
-                const numerosLimpos = cliente.numeros
-                    .split(',')
-                    .map(n => n.replace(/\D/g, ''))
-                    .filter(n => n !== '');
-                
-                if (numerosLimpos.length === 0) return;
-
-                const divFila = document.createElement('div');
-                divFila.className = 'fila-item';
-
-                const spanNome = document.createElement('span');
-                spanNome.innerText = cliente.nome + (numerosLimpos.length > 1 ? ` (${numerosLimpos.length} números)` : '');
-
-                const btnEnviar = document.createElement('button');
-                btnEnviar.className = 'btn btn-green btn-enviar-msg';
-                btnEnviar.innerHTML = numerosLimpos.length > 1 ? `Enviar para todos (${numerosLimpos.length}) ↗` : 'Enviar ↗';
-
-                btnEnviar.onclick = () => {
-                    const mensagemFinal = template.replace(/{nome}/g, cliente.nome);
-                    
-                    numerosLimpos.forEach(num => {
-                        const waUrl = `https://wa.me/55${num}?text=${encodeURIComponent(mensagemFinal)}`;
-                        window.open(waUrl, '_blank');
-                    });
-
-                    btnEnviar.innerHTML = '✓ Enviados';
-                    btnEnviar.style.background = '#4b5563'; 
-                    btnEnviar.disabled = true;
-                };
-
-                divFila.appendChild(spanNome);
-                divFila.appendChild(btnEnviar);
-                agenteLista.appendChild(divFila);
-            });
-
-            agenteFilaContainer.style.display = 'block';
-        };
-    }
-
-    /* ================= UPLOAD DE DOCUMENTOS ================= */
-
-    function renderDocsList() {
-        docsList.innerHTML = '';
-        if (currentDocs.length === 0) {
-            docsList.innerHTML = '<span style="color:rgba(255,255,255,0.5); font-size:12px;">Nenhum documento anexado.</span>';
-            return;
-        }
-
-        currentDocs.forEach((arquivo, index) => {
-            const div = document.createElement('div');
-            div.className = 'doc-item';
-            
-            div.innerHTML = `<a href="javascript:void(0)" onclick="window.forceDownload('${arquivo.url}', '${arquivo.name}', event)" title="Baixar documento">📄 ${arquivo.name} <span style="font-size:10px; color:#9ca3af; margin-left: 5px;">(Baixar)</span></a>`;
-            
-            const btnRemove = document.createElement('button');
-            btnRemove.type = 'button';
-            btnRemove.innerText = 'X';
-            btnRemove.title = "Remover documento";
-            btnRemove.onclick = () => {
-                currentDocs.splice(index, 1);
-                renderDocsList();
-            };
-
-            div.appendChild(btnRemove);
-            docsList.appendChild(div);
-        });
-    }
-
-    btnTriggerFile.onclick = () => {
-        inputFile.click();
-    };
-
-    inputFile.onchange = async (e) => {
-        if (!storage) {
-            showToast("Erro: Serviço de arquivos do Firebase não configurado");
-            return;
-        }
-
-        const files = Array.from(e.target.files);
-        if (!files.length || !currentUser) return;
-        
-        uploadProgress.style.display = 'block';
-        uploadProgress.style.color = '#f59e0b';
-        uploadProgress.innerText = `Enviando ${files.length} arquivo(s)... Aguarde.`;
-        
-        let errorOccurred = false;
-
-        try {
-            for (let file of files) {
-                try {
-                    const uniqueName = Date.now() + "_" + file.name;
-                    const storageRef = ref(storage, `documentos/${currentUser.uid}/${uniqueName}`);
-                    await uploadBytes(storageRef, file);
-                    const url = await getDownloadURL(storageRef);
-                    currentDocs.push({ name: file.name, url: url });
-                } catch (error) {
-                    console.error("Erro no upload do arquivo:", error);
-                    errorOccurred = true;
-                    showToast("Erro ao enviar: " + file.name);
-                }
-            }
-        } finally {
-            if (errorOccurred) {
-                uploadProgress.style.color = '#ef4444';
-                uploadProgress.innerText = 'Erro de permissão no Firebase. Arquivo não salvo.';
-                setTimeout(() => { uploadProgress.style.display = 'none'; }, 5000);
-            } else {
-                uploadProgress.style.color = '#10b981';
-                uploadProgress.innerText = 'Upload concluído com sucesso!';
-                setTimeout(() => { uploadProgress.style.display = 'none'; }, 2000);
-            }
-            inputFile.value = ''; 
-            renderDocsList();
-        }
-    };
-
-    /* ================= MODAL DE CLIENTES ================= */
-
-    function openModal(edit = false, data = null){
-
-        modalBackdrop.style.display = 'flex';
-
-        document.getElementById('modalTitle').innerText =
-            edit ? "Editar Cliente" : "Novo Cliente";
-
-        processosContainer.innerHTML = '';
-        telefonesContainer.innerHTML = '';
-
-        if(edit && data){
-
-            inputNome.value = data.nome || "";
-            inputCPF.value = data.cpf || "";
-            inputObs.value = data.obs || "";
-            inputStatus.value = data.status || "lista-fria";
-            inputClasse.value = data.classe || "Outros";
-            inputValor.value = data.valor || "";
-            inputEstado.value = data.estado || "São Paulo";
-
-            const processos = data.processo
-                ? data.processo.split(',').map(p => p.trim())
-                : [''];
-
-            processos.forEach(p => addProcessoField(p));
-
-            const telefones = data.numeros
-                ? data.numeros.split(',').map(t => t.trim())
-                : [''];
-
-            telefones.forEach(t => addTelefoneField(t));
-
-            currentDocs = Array.isArray(data.documentos) ? [...data.documentos] : [];
-
-            clientForm.dataset.editId = data.id;
-
-        }else{
-
-            addProcessoField();
-            addTelefoneField();
-
-            inputNome.value = "";
-            inputCPF.value = "";
-            inputObs.value = "";
-            inputStatus.value = "lista-fria";
-            inputClasse.value = "Outros";
-            inputValor.value = "";
-            inputEstado.value = "São Paulo";
-
-            currentDocs = [];
-
-            delete clientForm.dataset.editId;
-        }
-
-        renderDocsList();
-    }
-
-    function closeModal(){
-        modalBackdrop.style.display = 'none';
-        uploadProgress.style.display = 'none';
-    }
-
-    /* ================= PROCESSOS ================= */
-
-    function addProcessoField(value = ""){
-
-        const row = document.createElement('div');
-        row.className = 'processo-row';
-
-        const input = document.createElement('input');
-        input.className = 'inputProcesso';
-        input.placeholder = '0000000-00.0000.0.00.0000';
-        input.value = value;
-
-        const btnAdd = document.createElement('button');
-        btnAdd.type = 'button';
-        btnAdd.className = 'btn ghost';
-        btnAdd.textContent = '+';
-
-        btnAdd.onclick = () => {
-            addProcessoField();
-        };
-
-        const btnRemove = document.createElement('button');
-        btnRemove.type = 'button';
-        btnRemove.className = 'btn ghost';
-        btnRemove.textContent = '-';
-
-        btnRemove.onclick = () => {
-            row.remove();
-        };
-
-        row.appendChild(input);
-        row.appendChild(btnAdd);
-        row.appendChild(btnRemove);
-
-        processosContainer.appendChild(row);
-    }
-
-    /* ================= TELEFONES ================= */
-
-    function addTelefoneField(value = ""){
-
-        const row = document.createElement('div');
-        row.className = 'processo-row';
-
-        const input = document.createElement('input');
-        input.className = 'inputTelefone';
-        input.placeholder = 'Telefone / WhatsApp';
-        input.value = value;
-
-        const btnAdd = document.createElement('button');
-        btnAdd.type = 'button';
-        btnAdd.className = 'btn ghost';
-        btnAdd.textContent = '+';
-
-        btnAdd.onclick = () => {
-            addTelefoneField();
-        };
-
-        const btnRemove = document.createElement('button');
-        btnRemove.type = 'button';
-        btnRemove.className = 'btn ghost';
-        btnRemove.textContent = '-';
-
-        btnRemove.onclick = () => {
-            row.remove();
-        };
-
-        row.appendChild(input);
-        row.appendChild(btnAdd);
-        row.appendChild(btnRemove);
-
-        telefonesContainer.appendChild(row);
-    }
-
-    btnAddTelefone.onclick = () => {
-        addTelefoneField();
-    };
-
-    /* ================= CARDS ================= */
-
-    function criarCard(cliente){
-
-        const status = cliente.status || 'lista-fria';
-
-        const col = document.getElementById(status);
-
-        if(!col){
-            return;
-        }
-
-        const card = document.createElement('div');
-
-        card.className = `card ${status}`;
-
-        card.dataset.id = cliente.id;
-        card.dataset.status = status;
-        card.dataset.nome = cliente.nome.toLowerCase();
-
-        card.draggable = true;
-
-        const colorBar = document.createElement('div');
-        colorBar.className = 'color-bar';
-
-        card.appendChild(colorBar);
-
-        /* ================= ACTIONS ================= */
-
-        const actionsDiv = document.createElement('div');
-        actionsDiv.className = 'card-actions';
-
-        const btnCall = document.createElement('button');
-
-        btnCall.onclick = (e) => {
-            e.stopPropagation();
-            const numero = cliente.numeros
-                ? cliente.numeros.split(',')[0].trim()
-                : '';
-            ligar(numero);
-        };
-
-        btnCall.innerHTML =
-            '<img src="https://img.icons8.com/ios-glyphs/30/000000/phone.png"/>';
-
-        const btnWa = document.createElement('button');
-
-        btnWa.onclick = (e) => {
-            e.stopPropagation();
-            const numero = cliente.numeros
-                ? cliente.numeros.split(',')[0].trim()
-                : '';
-            whatsapp(numero);
-        };
-
-        btnWa.innerHTML =
-            '<img src="https://img.icons8.com/ios-glyphs/30/000000/whatsapp.png"/>';
-
-        actionsDiv.appendChild(btnCall);
-        actionsDiv.appendChild(btnWa);
-
-        card.appendChild(actionsDiv);
-
-        /* ================= CONTENT ================= */
-
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'card-content';
-
-        const processosArray = cliente.processo
-            ? cliente.processo.split(',').map(p => p.trim())
-            : [];
-
-        const primeiroProcesso = processosArray.length > 0
-            ? processosArray[0]
-            : '-';
-
-        contentDiv.innerHTML = `
-            <h3>${cliente.nome}</h3>
-
-            <p><strong>CPF:</strong> ${cliente.cpf || '-'}</p>
-            <p><strong>Classe:</strong> ${cliente.classe || '-'}</p>
-            <p><strong>Estado:</strong> ${cliente.estado || '-'}</p>
-            <p><strong>Processo:</strong> ${primeiroProcesso}</p>
-            <p><strong>Valor:</strong> R$ ${cliente.valor || 0}</p>
-        `;
-
-        if (Array.isArray(cliente.documentos) && cliente.documentos.length > 0) {
-            const docsDiv = document.createElement('div');
-            docsDiv.style.marginTop = "12px";
-            docsDiv.innerHTML = `<p style="font-weight: 600; color: #fff; margin-bottom: 5px;">Documentos Anexos:</p>`;
-            
-            cliente.documentos.forEach(arquivo => {
-                const link = document.createElement('a');
-                link.href = "javascript:void(0)";
-                
-                link.style.display = "block";
-                link.style.fontSize = "13px";
-                link.style.color = "#60a5fa"; 
-                link.style.textDecoration = "none";
-                link.style.margin = "4px 0";
-                link.style.whiteSpace = "nowrap";      
-                link.style.overflow = "hidden";        
-                link.style.textOverflow = "ellipsis";  
-                
-                link.innerHTML = `📄 ${arquivo.name} <span style="font-size:10px; color:#9ca3af; margin-left: 5px;">(Baixar)</span>`;
-                
-                link.onclick = (e) => {
-                    e.stopPropagation();
-                    window.forceDownload(arquivo.url, arquivo.name, e);
-                };
-                
-                docsDiv.appendChild(link);
-            });
-            contentDiv.appendChild(docsDiv);
-        }
-
-        card.appendChild(contentDiv);
-
-        card.onclick = () => {
-            openModal(true, cliente);
-        };
-
-        addDragEvents(card);
-
-        col.appendChild(card);
-
-        cardsMap[cliente.id] = card;
-    }
-
-    /* ================= TELEFONE ================= */
-
-    function ligar(numero){
-        if(!numero){
-            showToast("Número não informado");
-            return;
-        }
-        window.open(`tel:${numero.replace(/\D/g,'')}`);
-    }
-
-    function whatsapp(numero){
-        if(!numero){
-            showToast("Número não informado");
-            return;
-        }
-        const num = numero.replace(/\D/g,'');
-        window.open(`https://wa.me/55${num}`,'_blank');
-    }
-
-    /* ================= RENDER ================= */
-
-    async function render(){
-
-        STATUS.forEach(status => {
-            const col = document.getElementById(status);
-            
-            if (status === 'lista-fria') {
-                col.innerHTML = `
-                    <div class="col-header-actions">
-                        <h2 style="margin-bottom:0;">LISTA FRIA</h2>
-                        <button class="btn-robot" title="Ativar Robô" onclick="document.getElementById('btnAgente').click()">
-                            <img src="https://img.icons8.com/ios-glyphs/30/000000/bot.png" alt="Robô"/>
-                        </button>
-                    </div>
-                `;
-            } else {
-                col.innerHTML = `<h2>${status.replace('-',' ').toUpperCase()}</h2>`;
-            }
-        });
-
-        for(const k in cardsMap){
-            delete cardsMap[k];
-        }
-
-        const clientes = await getClientes();
-
-        for(const cliente of clientes){
-            criarCard(cliente);
-        }
-
-        filtragemAplicada();
-    }
-
-   /* ================= FORM ================= */
-
-    clientForm.onsubmit = async function(e){
-
-        e.preventDefault();
-
-        const nome = inputNome.value.trim();
-
-        if(!nome){
-            showToast("Nome obrigatório");
-            return;
-        }
-
-        const processos = Array.from(
-            document.querySelectorAll('.inputProcesso')
-        )
-        .map(input => input.value.trim())
-        .filter(valor => valor);
-
-        // 👇 INÍCIO DA ATUALIZAÇÃO: VERIFICAÇÃO GLOBAL DE PROCESSO DUPLICADO 👇
-        if (processos.length > 0) {
-            // Puxa TODOS os clientes de TODOS os usuários no banco de dados
-            const queryTodos = query(collection(db, "clientes"));
-            const snapshotTodos = await getDocs(queryTodos);
-            const todosClientes = snapshotTodos.docs.map(docData => ({
-                id: docData.id,
-                ...docData.data()
-            }));
-
-            let processoDuplicado = null;
-
-            for (let proc of processos) {
-                const clienteExistente = todosClientes.find(c => {
-                    // Se estiver editando o cliente, ignora ele mesmo na checagem
-                    if (clientForm.dataset.editId && c.id === clientForm.dataset.editId) return false;
-                    
-                    // Verifica se a string de processos do cliente no banco inclui o processo digitado
-                    return c.processo && c.processo.includes(proc);
-                });
-
-                if (clienteExistente) {
-                    processoDuplicado = proc;
-                    break; // Para o loop assim que achar um repetido
-                }
-            }
-
-            // Se achou duplicata, avisa e trava o salvamento
-            if (processoDuplicado) {
-                showToast(`Erro: O processo ${processoDuplicado} já está cadastrado no sistema!`);
-                return; // Impede o envio do formulário
-            }
-        }
-        // 👆 FIM DA ATUALIZAÇÃO 👆
-
-        const telefones = Array.from(
-            document.querySelectorAll('.inputTelefone')
-        )
-        .map(input => input.value.trim())
-        .filter(valor => valor);
-
-        const novo = {
-            nome: nome,
-            cpf: inputCPF.value.trim(),
-            obs: inputObs.value.trim().substring(0,300),
-            status: inputStatus.value,
-            numeros: telefones.join(', '),
-            processo: processos.join(', '),
-            classe: inputClasse.value,
-            valor: inputValor.value,
-            estado: inputEstado.value,
-            documentos: currentDocs,
-            dataCadastro: new Date().toISOString()
-        };
-
-        if(clientForm.dataset.editId){
-            novo.id = clientForm.dataset.editId;
-            await saveCliente(novo);
-            showToast("Cliente atualizado!");
-        }else{
-            await saveCliente(novo);
-            showToast("Cliente adicionado!");
-        }
-
-        closeModal();
-        render();
-    };
-
-    /* ================= DRAG AND DROP MELHORADO ================= */
-
-    let draggedCard = null;
-
-    function addDragEvents(card){
-        card.addEventListener('dragstart', () => {
-            draggedCard = card;
-            // Delay para o visual do fantasma nativo não quebrar
-            setTimeout(() => card.classList.add('dragging'), 0);
-        });
-
-        card.addEventListener('dragend', () => {
-            draggedCard = null;
-            card.classList.remove('dragging');
-            
-            // Remove o efeito de hover de todas as colunas
-            document.querySelectorAll('.column').forEach(c => {
-                c.classList.remove('drag-over');
-            });
-        });
-    }
-
-    document.querySelectorAll('.column').forEach(col => {
-        
-        // Efeito visual quando entra na coluna
-        col.addEventListener('dragenter', e => {
-            e.preventDefault();
-            if (draggedCard) {
-                col.classList.add('drag-over');
-            }
-        });
-
-        col.addEventListener('dragover', e => {
-            e.preventDefault(); // Necessário para o evento de 'drop' disparar
-        });
-
-        // Tira o efeito quando sai da coluna
-        col.addEventListener('dragleave', e => {
-            col.classList.remove('drag-over');
-        });
-
-        col.addEventListener('drop', async () => {
-            col.classList.remove('drag-over');
-
-            if(!draggedCard){
-                return;
-            }
-
-            const id = draggedCard.dataset.id;
-            const status = col.id;
-            const docRef = doc(db,"clientes",id);
-
-            await updateDoc(docRef,{ status });
-
-            if(status === "fechado"){
-                coinSound.currentTime = 0;
-                coinSound.play();
-            }
-
-            render();
-            showToast("Status atualizado");
-        });
-    });
-
-    /* ================= FILTROS ================= */
-
-    function filtragemAplicada(){
-        const q = searchInput.value.toLowerCase();
-        const filterS = filterStatus.value;
-
-        Object.values(cardsMap).forEach(card => {
-            const matchSearch = card.dataset.nome.includes(q);
-            const matchStatus = !filterS || card.dataset.status === filterS;
-
-            card.style.display =
-                (matchSearch && matchStatus)
-                ? 'flex'
-                : 'none';
-        });
-    }
-
-    searchInput.oninput = filtragemAplicada;
-    filterStatus.onchange = filtragemAplicada;
-
-    /* ================= LOGIN ================= */
-
-    onAuthStateChanged(auth, user => {
-        if(user){
-            currentUser = user;
-            
-            // EXIBE O EMAIL DO USUÁRIO LOGADO NO TOPO
-            const emailDisplay = document.getElementById('userEmailDisplay');
-            if (emailDisplay) {
-                emailDisplay.innerHTML = `👤 ${user.email}`;
-            }
-
-            render();
-        }else{
-            window.location.href = "login.html";
-        }
-    });
-
+    setupDragAndDropZones();
+
+    // Filtros
+    searchInput.addEventListener('input', applyFilters);
+    filterStatus.addEventListener('change', applyFilters);
 });
 
+/* ================= FUNÇÕES CORE ================= */
+function showToast(msg){
+    toastEl.innerText = msg;
+    toastEl.style.display = 'block';
+    clearTimeout(toastEl._t);
+    toastEl._t = setTimeout(() => { toastEl.style.display = 'none'; },3000);
+}
+
+window.forceDownload = async function(url, filename, event) {
+    if(event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    showToast("Iniciando download...");
+    try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        const objectUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = objectUrl;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(objectUrl);
+    } catch (error) {
+        console.warn("Bloqueio de CORS. Abrindo em nova aba.", error);
+        window.open(url, '_blank');
+    }
+};
+
+/* ================= FIRESTORE ================= */
+async function getClientes(){
+    if(!currentUser) return [];
+    const q = query(collection(db,"clientes"), where("userId","==",currentUser.uid));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(docData => ({ id: docData.id, ...docData.data() }));
+}
+
+async function saveCliente(cliente){
+    if(!currentUser) return;
+    cliente.userId = currentUser.uid;
+
+    if(cliente.id){
+        const docRef = doc(db,"clientes",cliente.id);
+        await setDoc(docRef,cliente);
+    }else{
+        const docRef = await addDoc(collection(db,"clientes"), cliente);
+        cliente.id = docRef.id;
+    }
+}
+
+/* ================= AVANÇO AUTOMÁTICO DE DIAS ================= */
+async function avancarPipelineAutomaticamente(clientes) {
+    const hoje = new Date();
+    let atualizouAlgum = false;
+
+    for (let cliente of clientes) {
+        if (!cliente.dataCriacao) continue;
+
+        if (cliente.status && cliente.status.startsWith('dia-')) {
+            const dataCriacao = new Date(cliente.dataCriacao);
+            const diferencaTempo = Math.abs(hoje - dataCriacao);
+            const diferencaDias = Math.floor(diferencaTempo / (1000 * 60 * 60 * 24)); 
+
+            let novoStatus = cliente.status;
+
+            if (diferencaDias >= 5) {
+                novoStatus = 'funil-geral';
+            } else if (diferencaDias > 0) {
+                novoStatus = `dia-${diferencaDias + 1}`;
+            }
+
+            if (novoStatus !== cliente.status) {
+                cliente.status = novoStatus;
+                await updateDoc(doc(db, "clientes", cliente.id), { status: novoStatus });
+                atualizouAlgum = true;
+            }
+        }
+    }
+    
+    if(atualizouAlgum) {
+        showToast("Cards avançaram no pipeline automaticamente!");
+    }
+}
+
+/* ================= RENDERIZAR QUADRO ================= */
+async function refreshBoard() {
+    let clientes = await getClientes();
+    await avancarPipelineAutomaticamente(clientes);
+    clientes = await getClientes(); // Fetch atualizado
+
+    // Limpa colunas
+    STATUS.forEach(s => {
+        const col = document.getElementById(s);
+        if(col) col.querySelectorAll('.card').forEach(c => c.remove());
+    });
+
+    clientes.forEach(c => criarCard(c));
+}
+
+function applyFilters() {
+    const text = searchInput.value.toLowerCase();
+    const st = filterStatus.value;
+    document.querySelectorAll('.card').forEach(card => {
+        const matchText = card.innerText.toLowerCase().includes(text);
+        const matchStatus = st === "" || card.dataset.status === st;
+        card.style.display = (matchText && matchStatus) ? "flex" : "none";
+    });
+}
+
+/* ================= SALVAR DO FORMULÁRIO ================= */
+btnAdd.onclick = async () => {
+    const id = clientForm.dataset.editId;
+    
+    const processos = Array.from(document.querySelectorAll('.inputProcesso'))
+        .map(i => i.value.trim()).filter(v => v);
+    
+    const telefones = Array.from(document.querySelectorAll('.inputTelefone'))
+        .map(i => i.value.trim()).filter(v => v);
+
+    const clienteData = {
+        nome: inputNome.value.trim(),
+        cpf: inputCPF.value.trim(),
+        status: inputStatus.value,
+        classe: inputClasse.value.trim(),
+        valor: parseFloat(inputValor.value) || 0,
+        estado: inputEstado.value.trim(),
+        obs: inputObs.value.trim(),
+        processo: processos.join(','),
+        numeros: telefones.join(','),
+        documentos: currentDocs
+    };
+
+    if(!id) {
+        clienteData.dataCriacao = new Date().toISOString(); 
+    } else {
+        clienteData.id = id;
+    }
+
+    btnAdd.innerText = "Salvando...";
+    await saveCliente(clienteData);
+    closeModal();
+    btnAdd.innerText = "Salvar Cliente";
+    showToast("Cliente salvo com sucesso!");
+    refreshBoard();
+};
+
+/* ================= MODAL CLIENTES ================= */
+window.openModal = function(edit = false, data = null) {
+    modalBackdrop.style.display = 'flex';
+    document.getElementById('modalTitle').innerText = edit ? "Editar Cliente" : "Novo Cliente";
+    processosContainer.innerHTML = '';
+    telefonesContainer.innerHTML = '';
+
+    if(edit && data){
+        inputNome.value = data.nome || "";
+        inputCPF.value = data.cpf || "";
+        inputObs.value = data.obs || "";
+        inputStatus.value = data.status || "dia-1";
+        inputClasse.value = data.classe || "";
+        inputValor.value = data.valor || "";
+        inputEstado.value = data.estado || "";
+
+        const processos = data.processo ? data.processo.split(',').map(p => p.trim()) : [''];
+        processos.forEach(p => addProcessoField(p));
+
+        const telefones = data.numeros ? data.numeros.split(',').map(t => t.trim()) : [''];
+        telefones.forEach(t => addTelefoneField(t));
+
+        currentDocs = Array.isArray(data.documentos) ? [...data.documentos] : [];
+        clientForm.dataset.editId = data.id;
+    } else {
+        addProcessoField();
+        addTelefoneField();
+        inputNome.value = "";
+        inputCPF.value = "";
+        inputObs.value = "";
+        inputStatus.value = "dia-1";
+        inputClasse.value = "";
+        inputValor.value = "";
+        inputEstado.value = "";
+        currentDocs = [];
+        delete clientForm.dataset.editId;
+    }
+    renderDocsList();
+}
+
+window.closeModal = function() {
+    modalBackdrop.style.display = 'none';
+    uploadProgress.style.display = 'none';
+}
+
+function addProcessoField(value = ""){
+    const row = document.createElement('div');
+    row.className = 'processo-row';
+    const input = document.createElement('input');
+    input.className = 'inputProcesso';
+    input.placeholder = '0000000-00.0000.0.00.0000';
+    input.value = value;
+    
+    const btnAddP = document.createElement('button');
+    btnAddP.type = 'button';
+    btnAddP.className = 'btn ghost';
+    btnAddP.textContent = '+';
+    btnAddP.onclick = () => addProcessoField();
+
+    const btnRemP = document.createElement('button');
+    btnRemP.type = 'button';
+    btnRemP.className = 'btn ghost';
+    btnRemP.textContent = '-';
+    btnRemP.onclick = () => row.remove();
+
+    row.appendChild(input);
+    row.appendChild(btnAddP);
+    row.appendChild(btnRemP);
+    processosContainer.appendChild(row);
+}
+
+function addTelefoneField(value = ""){
+    const row = document.createElement('div');
+    row.className = 'processo-row';
+    const input = document.createElement('input');
+    input.className = 'inputTelefone';
+    input.placeholder = 'Telefone / WhatsApp';
+    input.value = value;
+    
+    const btnAddT = document.createElement('button');
+    btnAddT.type = 'button';
+    btnAddT.className = 'btn ghost';
+    btnAddT.textContent = '+';
+    btnAddT.onclick = () => addTelefoneField();
+
+    const btnRemT = document.createElement('button');
+    btnRemT.type = 'button';
+    btnRemT.className = 'btn ghost';
+    btnRemT.textContent = '-';
+    btnRemT.onclick = () => row.remove();
+
+    row.appendChild(input);
+    row.appendChild(btnAddT);
+    row.appendChild(btnRemT);
+    telefonesContainer.appendChild(row);
+}
+btnAddTelefone.onclick = () => addTelefoneField();
+
+/* ================= CARDS & DRAG/DROP ================= */
+function criarCard(cliente) {
+    const status = cliente.status || 'dia-1';
+    const col = document.getElementById(status);
+    if(!col) return;
+
+    const card = document.createElement('div');
+    card.className = `card ${status}`;
+    card.dataset.id = cliente.id;
+    card.dataset.status = status;
+    card.dataset.nome = cliente.nome.toLowerCase();
+    card.draggable = true;
+
+    const colorBar = document.createElement('div');
+    colorBar.className = 'color-bar';
+    card.appendChild(colorBar);
+
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = 'card-actions';
+
+    const btnCall = document.createElement('button');
+    btnCall.onclick = (e) => {
+        e.stopPropagation();
+        const numero = cliente.numeros ? cliente.numeros.split(',')[0].trim() : '';
+        if(numero) window.open(`tel:${numero}`);
+    };
+    btnCall.innerHTML = '<img src="https://img.icons8.com/ios-glyphs/30/000000/phone.png"/>';
+
+    const btnWa = document.createElement('button');
+    btnWa.onclick = (e) => {
+        e.stopPropagation();
+        const numero = cliente.numeros ? cliente.numeros.split(',')[0].trim() : '';
+        if(numero) window.open(`https://wa.me/55${numero.replace(/\D/g,'')}`, '_blank');
+    };
+    btnWa.innerHTML = '<img src="https://img.icons8.com/ios-glyphs/30/000000/whatsapp.png"/>';
+
+    actionsDiv.appendChild(btnCall);
+    actionsDiv.appendChild(btnWa);
+    card.appendChild(actionsDiv);
+
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'card-content';
+
+    const processosArray = cliente.processo ? cliente.processo.split(',').map(p => p.trim()) : [];
+    const primeiroProcesso = processosArray.length > 0 ? processosArray[0] : '-';
+
+    contentDiv.innerHTML = `
+        <h3>${cliente.nome}</h3>
+        <p><strong>CPF:</strong> ${cliente.cpf || '-'}</p>
+        <p><strong>Classe:</strong> ${cliente.classe || '-'}</p>
+        <p><strong>Processo:</strong> ${primeiroProcesso}</p>
+        <p><strong>Valor:</strong> R$ ${cliente.valor || 0}</p>
+    `;
+
+    if (Array.isArray(cliente.documentos) && cliente.documentos.length > 0) {
+        const docsDiv = document.createElement('div');
+        docsDiv.style.marginTop = "12px";
+        docsDiv.innerHTML = `<p style="font-weight: 600; color: #fff; margin-bottom: 5px;">Documentos Anexos:</p>`;
+        
+        cliente.documentos.forEach(arquivo => {
+            const link = document.createElement('a');
+            link.href = "javascript:void(0)";
+            link.style.display = "block";
+            link.style.fontSize = "13px";
+            link.style.color = "#60a5fa"; 
+            link.style.textDecoration = "none";
+            link.style.margin = "4px 0";
+            link.innerHTML = `📄 ${arquivo.name}`;
+            link.onclick = (e) => {
+                e.stopPropagation();
+                window.forceDownload(arquivo.url, arquivo.name, e);
+            };
+            docsDiv.appendChild(link);
+        });
+        contentDiv.appendChild(docsDiv);
+    }
+
+    card.appendChild(contentDiv);
+    card.onclick = () => openModal(true, cliente);
+
+    addDragEventsToCard(card);
+    col.appendChild(card);
+    cardsMap[cliente.id] = card;
+}
+
+function addDragEventsToCard(card) {
+    card.addEventListener('dragstart', () => {
+        draggedCard = card;
+        setTimeout(() => card.classList.add('dragging'), 0);
+    });
+    card.addEventListener('dragend', async () => {
+        draggedCard = null;
+        card.classList.remove('dragging');
+        
+        const newCol = card.parentElement;
+        if(newCol && newCol.classList.contains('column') && card.dataset.status !== newCol.id) {
+            const newStatus = newCol.id;
+            card.dataset.status = newStatus;
+            card.className = `card ${newStatus}`;
+            
+            // Atualiza no Firebase
+            await updateDoc(doc(db, "clientes", card.dataset.id), { status: newStatus });
+            showToast("Status atualizado!");
+        }
+    });
+}
+
+function setupDragAndDropZones() {
+    document.querySelectorAll('.column').forEach(col => {
+        col.addEventListener('dragover', e => {
+            e.preventDefault();
+            col.classList.add('drag-over');
+        });
+        col.addEventListener('dragleave', () => {
+            col.classList.remove('drag-over');
+        });
+        col.addEventListener('drop', e => {
+            e.preventDefault();
+            col.classList.remove('drag-over');
+            if (draggedCard) {
+                col.appendChild(draggedCard);
+            }
+        });
+    });
+}
+
+/* ================= UPLOAD DE DOCUMENTOS ================= */
+function renderDocsList() {
+    docsList.innerHTML = '';
+    if (currentDocs.length === 0) {
+        docsList.innerHTML = '<span style="color:rgba(255,255,255,0.5); font-size:12px;">Nenhum documento anexado.</span>';
+        return;
+    }
+    currentDocs.forEach((arquivo, index) => {
+        const div = document.createElement('div');
+        div.className = 'doc-item';
+        div.innerHTML = `<a href="javascript:void(0)" onclick="window.forceDownload('${arquivo.url}', '${arquivo.name}', event)">📄 ${arquivo.name}</a>`;
+        
+        const btnRemove = document.createElement('button');
+        btnRemove.type = 'button';
+        btnRemove.innerText = 'X';
+        btnRemove.onclick = () => {
+            currentDocs.splice(index, 1);
+            renderDocsList();
+        };
+        div.appendChild(btnRemove);
+        docsList.appendChild(div);
+    });
+}
+
+btnTriggerFile.onclick = () => inputFile.click();
+
+inputFile.onchange = async (e) => {
+    if (!storage) return showToast("Storage indisponível");
+    const files = Array.from(e.target.files);
+    if (!files.length || !currentUser) return;
+    
+    uploadProgress.style.display = 'block';
+    uploadProgress.style.color = '#f59e0b';
+    uploadProgress.innerText = `Enviando ${files.length} arquivo(s)... Aguarde.`;
+    
+    let errorOccurred = false;
+    try {
+        for (let file of files) {
+            try {
+                const uniqueName = Date.now() + "_" + file.name;
+                const storageRef = ref(storage, `documentos/${currentUser.uid}/${uniqueName}`);
+                await uploadBytes(storageRef, file);
+                const url = await getDownloadURL(storageRef);
+                currentDocs.push({ name: file.name, url: url });
+            } catch (error) {
+                errorOccurred = true;
+                showToast("Erro ao enviar: " + file.name);
+            }
+        }
+    } finally {
+        if (errorOccurred) {
+            uploadProgress.style.color = '#ef4444';
+            uploadProgress.innerText = 'Erro no upload.';
+        } else {
+            uploadProgress.style.color = '#10b981';
+            uploadProgress.innerText = 'Upload concluído!';
+        }
+        setTimeout(() => uploadProgress.style.display = 'none', 3000);
+        inputFile.value = ''; 
+        renderDocsList();
+    }
+};
+
+/* ================= LÓGICA DO AGENTE BOT ================= */
+if (btnAgente) {
+    btnAgente.onclick = () => {
+        modalAgenteBackdrop.style.display = 'flex';
+        agenteFilaContainer.style.display = 'none';
+        agenteLista.innerHTML = '';
+    };
+}
+if (btnFecharAgente) {
+    btnFecharAgente.onclick = () => { modalAgenteBackdrop.style.display = 'none'; };
+}
+if (btnCarregarFila) {
+    btnCarregarFila.onclick = async () => {
+        const template = agenteMensagem.value.trim();
+        if (!template) return showToast("Por favor, digite uma mensagem.");
+
+        btnCarregarFila.innerText = "Carregando...";
+        const clientes = await getClientes();
+        
+        // Pode alterar para carregar do pipeline atual, no exemplo pega lista-fria
+        const listaFria = clientes.filter(c => c.status === 'lista-fria' && c.numeros);
+
+        btnCarregarFila.innerText = "Carregar Fila (Lista Fria)";
+
+        if (listaFria.length === 0) {
+            showToast("Nenhum cliente com telefone na lista.");
+            agenteFilaContainer.style.display = 'none';
+            return;
+        }
+
+        agenteLista.innerHTML = '';
+        
+        listaFria.forEach(cliente => {
+            const numerosLimpos = cliente.numeros.split(',').map(n => n.replace(/\D/g, '')).filter(n => n !== '');
+            if (numerosLimpos.length === 0) return;
+
+            const divFila = document.createElement('div');
+            divFila.className = 'fila-item';
+            const spanNome = document.createElement('span');
+            spanNome.innerText = cliente.nome;
+
+            const btnEnviar = document.createElement('button');
+            btnEnviar.className = 'btn btn-green btn-enviar-msg';
+            btnEnviar.innerHTML = 'Enviar ↗';
+
+            btnEnviar.onclick = () => {
+                const mensagemFinal = template.replace(/{nome}/g, cliente.nome);
+                numerosLimpos.forEach(num => {
+                    window.open(`https://wa.me/55${num}?text=${encodeURIComponent(mensagemFinal)}`, '_blank');
+                });
+                btnEnviar.innerHTML = '✓ Enviado';
+                btnEnviar.style.background = '#4b5563'; 
+                btnEnviar.disabled = true;
+            };
+
+            divFila.appendChild(spanNome);
+            divFila.appendChild(btnEnviar);
+            agenteLista.appendChild(divFila);
+        });
+        agenteFilaContainer.style.display = 'block';
+    };
+}
 </script>
-
-</head>
-
-<body>
-
-<div class="sidebar">
-
-    <h2 onclick="window.location.href='dashboard.html'">
-        AMR ADV
-    </h2>
-
-    <button onclick="window.location.href='crm.html'">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/dashboard.png"/>
-        <span>CRM</span>
-    </button>
-
-    <button onclick="window.location.href='agenda.html'">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/calendar.png"/>
-        <span>Agenda</span>
-    </button>
-
-    <button onclick="window.location.href='discador.html'">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/contacts.png"/>
-        <span>Contatos</span>
-    </button>
-
-    <button onclick="window.location.href='funil-geral.html'">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/filter.png"/>
-        <span>Funil Geral</span>
-    </button>
-   
-    <button onclick="window.location.href='adm.html'">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/admin-settings-male.png"/>
-        <span>ADM</span>
-    </button>
-
-    <button>
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/settings.png"/>
-        <span>Configurações</span>
-    </button>
-
-</div>
-
-<div class="main">
-
-<header>
-    <div style="display: flex; align-items: center; gap: 20px;">
-        <h1>CRM</h1>
-        <div id="userEmailDisplay" class="user-info"></div>
-    </div>
-
-    <div style="display: flex; gap: 12px; align-items: center;">
-        <button id="btnAgente" class="btn btn-green" style="padding: 10px 18px; border-radius: 12px; font-weight: 600;">
-            🤖 Agente de Whatsapp
-        </button>
-        
-        <button id="btnAdd" class="btn primary">
-            + Adicionar Cliente
-        </button>
-    </div>
-
-</header>
-
-<div class="search-bar">
-
-    <input
-        id="searchInput"
-        placeholder="Buscar cliente..."
-    />
-
-    <select id="filterStatus">
-        <option value="">Todos os status</option>
-        <option value="lista-fria">Lista Fria</option>
-        <option value="negociacao">Negociação</option>
-        <option value="contrato-assinado">Contrato Assinado</option>
-        <option value="fechado">Fechado</option>
-    </select>
-
-</div>
-
-<div class="kanban-container">
-
-<main class="kanban" id="kanban">
-
-    <div class="column" id="lista-fria">
-        <h2>LISTA FRIA</h2>
-    </div>
-
-    <div class="column" id="negociacao">
-        <h2>NEGOCIAÇÃO</h2>
-    </div>
-
-    <div class="column" id="contrato-assinado">
-        <h2>CONTRATO ASSINADO</h2>
-    </div>
-
-    <div class="column" id="fechado">
-        <h2>FECHADO</h2>
-    </div>
-
-</main>
-
-</div>
-
-</div>
-
-<div class="modal-backdrop" id="modalBackdrop">
-    <div class="modal">
-        <h3 id="modalTitle">Novo Cliente</h3>
-        <form id="clientForm">
-            <div class="row">
-                <input id="inputNome" placeholder="Nome do cliente" required />
-            </div>
-            <div class="row">
-                <input id="inputCPF" placeholder="CPF/CNPJ" />
-            </div>
-            <div id="telefonesContainer"></div>
-            <div class="row">
-                <button type="button" class="btn ghost" id="btnAddTelefone">+ Adicionar Telefone</button>
-            </div>
-            <div class="row">
-                <select id="inputClasse">
-                    <option value="Outros">Outros</option>
-                    <option value="Busca e Apreensão">Busca e Apreensão</option>
-                    <option value="Execução">Execução</option>
-                    <option value="Renegociação">Renegociação</option>
-                </select>
-            </div>
-            <div class="row">
-                <input id="inputValor" type="number" placeholder="Valor (R$)" />
-            </div>
-            <div class="row">
-                <select id="inputEstado">
-                    <option value="Acre">Acre</option>
-                    <option value="Alagoas">Alagoas</option>
-                    <option value="Amapá">Amapá</option>
-                    <option value="Amazonas">Amazonas</option>
-                    <option value="Bahia">Bahia</option>
-                    <option value="Ceará">Ceará</option>
-                    <option value="Distrito Federal">Distrito Federal</option>
-                    <option value="Espírito Santo">Espírito Santo</option>
-                    <option value="Goiás">Goiás</option>
-                    <option value="Maranhão">Maranhão</option>
-                    <option value="Mato Grosso">Mato Grosso</option>
-                    <option value="Mato Grosso do Sul">Mato Grosso do Sul</option>
-                    <option value="Minas Gerais">Minas Gerais</option>
-                    <option value="Pará">Pará</option>
-                    <option value="Paraíba">Paraíba</option>
-                    <option value="Paraná">Paraná</option>
-                    <option value="Pernambuco">Pernambuco</option>
-                    <option value="Piauí">Piauí</option>
-                    <option value="Rio de Janeiro" selected>Rio de Janeiro</option>
-                    <option value="Rio Grande do Norte">Rio Grande do Norte</option>
-                    <option value="Rio Grande do Sul">Rio Grande do Sul</option>
-                    <option value="Rondônia">Rondônia</option>
-                    <option value="Roraima">Roraima</option>
-                    <option value="Santa Catarina">Santa Catarina</option>
-                    <option value="São Paulo">São Paulo</option>
-                    <option value="Sergipe">Sergipe</option>
-                    <option value="Tocantins">Tocantins</option>
-                </select>
-            </div>
-            <div id="processosContainer"></div>
-            <div class="docs-section">
-                <h4>Documentos do Cliente</h4>
-                <div id="docsList"></div>
-                <input type="file" id="inputFile" style="display: none;" multiple />
-                <button type="button" class="btn ghost" id="btnTriggerFile" style="margin-top: 8px;">📁 Anexar Arquivos</button>
-                <div id="uploadProgress" style="font-size: 12px; color: #10b981; margin-top: 5px; display: none;"></div>
-            </div>
-            <div class="row">
-                <textarea id="inputObs" maxlength="300" placeholder="Observações (máx. 300 caracteres)"></textarea>
-            </div>
-            <div class="row">
-                <select id="inputStatus">
-                    <option value="lista-fria">Lista Fria</option>
-                    <option value="negociacao">Negociação</option>
-                    <option value="contrato-assinado">Contrato Assinado</option>
-                    <option value="fechado">Fechado</option>
-                </select>
-            </div>
-            <div class="actions">
-                <button type="submit" class="btn primary">Salvar</button>
-                <button type="button" class="btn ghost" id="btnCancel">Cancelar</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<div class="modal-backdrop" id="modalAgenteBackdrop">
-    <div class="modal">
-        <h3 style="margin-bottom: 5px;"> Agente de WhatsApp</h3>
-        
-        <div style="background: rgba(245, 158, 11, 0.1); border-left: 3px solid #f59e0b; padding: 10px; margin-bottom: 15px; border-radius: 4px;">
-            <p style="font-size: 12px; color: #fcd34d; margin: 0;">
-                <strong>Aviso:</strong> Se um cliente tiver múltiplos números, o seu navegador pode bloquear a abertura das abas extras. Caso isso aconteça, clique no ícone de "Pop-up bloqueado" na barra de endereços lá em cima e selecione <strong>"Sempre permitir pop-ups"</strong>.
-            </p>
-        </div>
-
-        <p style="font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 20px;">
-            Digite a mensagem base. Escreva <strong>{nome}</strong> para que o sistema troque automaticamente pelo nome do cliente.
-        </p>
-        
-        <div class="row">
-            <textarea id="agenteMensagem" rows="5" placeholder="Olá {nome}, tudo bem? Vi que seu caso..." style="background: rgba(255,255,255,0.05);"></textarea>
-        </div>
-
-        <div class="actions">
-            <button class="btn primary" id="btnCarregarFila">Carregar Lista Fria</button>
-            <button class="btn ghost" id="btnFecharAgente">Fechar</button>
-        </div>
-
-        <div id="agenteFilaContainer" style="margin-top: 25px; display: none;">
-            <h4 style="margin-bottom: 12px; font-size: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">Fila de Disparo</h4>
-            <div id="agenteLista" style="max-height: 250px; overflow-y: auto; padding-right: 5px;">
-                </div>
-        </div>
-    </div>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<audio
-    id="coinSound"
-    src="https://assets.mixkit.co/sfx/preview/mixkit-winning-notification-2018.mp3"
-    preload="auto">
-</audio>
-
 </body>
 </html>
