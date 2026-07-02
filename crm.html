@@ -636,7 +636,7 @@ import {
 import {
     getAuth,
     onAuthStateChanged,
-    signOut // <-- Import do signOut para o funcionamento do botão sair
+    signOut 
 } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
 
 import {
@@ -724,6 +724,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const btnAdd = document.getElementById('btnAdd');
     const btnCancel = document.getElementById('btnCancel');
+
+    /* Atribuição direta e funcional para abertura/fechamento do Modal */
+    if (btnAdd) {
+        btnAdd.onclick = () => openModal(false);
+    }
+    if (btnCancel) {
+        btnCancel.onclick = closeModal;
+    }
 
     const searchInput = document.getElementById('searchInput');
     const filterStatus = document.getElementById('filterStatus');
@@ -1455,7 +1463,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             render();
-            showToast("Status atualizado");
+            showToast("Status updated");
         });
     });
 
@@ -1479,16 +1487,18 @@ document.addEventListener('DOMContentLoaded', () => {
     searchInput.oninput = filtragemAplicada;
     filterStatus.onchange = filtragemAplicada;
 
-    /* ================= LOGIN ================= */
+    /* ================= LOGIN & USERNAME DISPLAY ================= */
 
     onAuthStateChanged(auth, user => {
         if(user){
             currentUser = user;
             
-            // EXIBE O EMAIL/NOME DO USUÁRIO LOGADO NO TOPO
+            // EXIBE O NOME DO USUÁRIO LOGADO NO TOPO
             const emailDisplay = document.getElementById('userEmailDisplay');
             if (emailDisplay) {
-                emailDisplay.innerHTML = `👤 ${user.displayName || user.email}`;
+                // Tenta usar displayName, senão pega a primeira parte do email
+                const nomeExibicao = user.displayName || user.email.split('@')[0];
+                emailDisplay.innerHTML = `👤 ${nomeExibicao}`;
             }
 
             render();
