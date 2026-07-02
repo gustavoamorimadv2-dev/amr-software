@@ -164,18 +164,6 @@ header h1{
     font-weight:800;
 }
 
-.user-info {
-    font-size: 13px;
-    color: rgba(255, 255, 255, 0.8);
-    background: rgba(255, 255, 255, 0.05);
-    padding: 6px 12px;
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
 /* ================= SEARCH ================= */
 
 .search-bar{
@@ -223,6 +211,7 @@ header h1{
     flex:1;
 }
 
+/* Estilizando as opções do select para ficarem legíveis no dark mode */
 select option {
     background: #111827;
     color: #fff;
@@ -255,15 +244,6 @@ select option {
     flex-direction:column;
     gap:15px;
     overflow-y:auto;
-    /* Transições suaves para a interação de drag and drop */
-    transition: background-color 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
-}
-
-/* Feedback visual quando arrastar um card por cima da coluna */
-.column.drag-over {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.3);
-    transform: scale(1.02);
 }
 
 .column h2{
@@ -273,7 +253,6 @@ select option {
     font-weight: 700;
     letter-spacing: 1px;
     opacity: 0.8;
-    pointer-events: none; /* Previne bug visual no drag and drop */
 }
 
 /* ================= CARDS ================= */
@@ -287,7 +266,7 @@ select option {
     box-shadow:0 8px 30px rgba(0,0,0,0.2);
     cursor:pointer;
     overflow:hidden;
-    transition:transform 0.2s, background 0.2s;
+    transition:transform 0.3s, background 0.3s;
     position:relative;
     flex-direction:row;
     width:100%;
@@ -297,12 +276,6 @@ select option {
 .card:hover{
     transform:translateY(-4px);
     background:rgba(255,255,255,0.1);
-}
-
-/* Feedback visual do card sendo arrastado */
-.card.dragging {
-    opacity: 0.4;
-    transform: scale(0.95);
 }
 
 .card .color-bar{
@@ -318,7 +291,7 @@ select option {
     flex-direction:column;
     justify-content:flex-start;
     overflow:hidden;
-    min-width: 0;
+    min-width: 0; /* GARANTE QUE O CONTEÚDO NÃO EXTRAPOLE O CARD EM FLEXBOX */
 }
 
 .card h3{
@@ -326,8 +299,8 @@ select option {
     margin-bottom:12px;
     color:#fff;
     font-weight: 700;
-    padding-right: 80px; 
-    word-break: break-word; 
+    padding-right: 80px;
+    word-break: break-word;
 }
 
 .card p{
@@ -369,7 +342,7 @@ select option {
 .card-actions img{
     width:16px;
     height:16px;
-    filter:invert(1); 
+    filter:invert(1); /* Inverte para branco */
     opacity:0.8;
     transition:opacity 0.2s;
 }
@@ -381,7 +354,7 @@ select option {
     opacity:1;
 }
 
-/* ================= MODAIS ================= */
+/* ================= MODAL ================= */
 
 .modal-backdrop{
     display:none;
@@ -469,8 +442,6 @@ select option {
 .btn-green {
     background: #10b981;
     color: #fff;
-    border: none;
-    cursor: pointer;
 }
 
 .btn-green:hover {
@@ -583,28 +554,6 @@ select option {
     opacity: 0.9;
 }
 
-/* Fila de Disparo */
-.fila-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: rgba(255,255,255,0.05);
-    padding: 10px 15px;
-    border-radius: 10px;
-    margin-bottom: 8px;
-    border: 1px solid rgba(255,255,255,0.05);
-}
-.fila-item span {
-    font-size: 14px;
-    font-weight: 500;
-}
-.btn-enviar-msg {
-    padding: 6px 12px;
-    font-size: 12px;
-    border-radius: 6px;
-    transition: 0.3s;
-}
-
 </style>
 
 <script type="module">
@@ -667,6 +616,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const mainContent = document.querySelector(".main");
 
     if(sidebar && mainContent){
+
         sidebar.addEventListener('mouseenter', () => {
             sidebar.classList.add('expanded');
             mainContent.classList.add('blur');
@@ -721,15 +671,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let currentUser = null;
 
-    /* ================= VARIÁVEIS AGENTE WHATSAPP ================= */
-    const btnAgente = document.getElementById('btnAgente');
-    const modalAgenteBackdrop = document.getElementById('modalAgenteBackdrop');
-    const btnFecharAgente = document.getElementById('btnFecharAgente');
-    const btnCarregarFila = document.getElementById('btnCarregarFila');
-    const agenteMensagem = document.getElementById('agenteMensagem');
-    const agenteFilaContainer = document.getElementById('agenteFilaContainer');
-    const agenteLista = document.getElementById('agenteLista');
-
     /* ================= TOAST ================= */
 
     function showToast(msg){
@@ -768,14 +709,18 @@ document.addEventListener('DOMContentLoaded', () => {
     /* ================= FIRESTORE ================= */
 
     async function getClientes(){
+
         if(!currentUser){
             return [];
         }
+
         const q = query(
             collection(db,"clientes"),
             where("userId","==",currentUser.uid)
         );
+
         const snapshot = await getDocs(q);
+
         return snapshot.docs.map(docData => ({
             id: docData.id,
             ...docData.data()
@@ -783,9 +728,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function saveCliente(cliente){
+
         if(!currentUser){
             return;
         }
+
         cliente.userId = currentUser.uid;
 
         if(cliente.id){
@@ -798,86 +745,6 @@ document.addEventListener('DOMContentLoaded', () => {
             );
             cliente.id = docRef.id;
         }
-    }
-
-    /* ================= LÓGICA DO AGENTE BOT ================= */
-    
-    if (btnAgente) {
-        btnAgente.onclick = () => {
-            modalAgenteBackdrop.style.display = 'flex';
-            agenteFilaContainer.style.display = 'none';
-            agenteLista.innerHTML = '';
-        };
-    }
-
-    if (btnFecharAgente) {
-        btnFecharAgente.onclick = () => {
-            modalAgenteBackdrop.style.display = 'none';
-        };
-    }
-
-    if (btnCarregarFila) {
-        btnCarregarFila.onclick = async () => {
-            const template = agenteMensagem.value.trim();
-            
-            if (!template) {
-                showToast("Por favor, digite uma mensagem padrão.");
-                return;
-            }
-
-            btnCarregarFila.innerText = "Carregando...";
-            const clientes = await getClientes();
-            
-            const listaFria = clientes.filter(c => c.status === 'lista-fria' && c.numeros);
-
-            btnCarregarFila.innerText = "Carregar Lista Fria";
-
-            if (listaFria.length === 0) {
-                showToast("Nenhum cliente com telefone na Lista Fria.");
-                agenteFilaContainer.style.display = 'none';
-                return;
-            }
-
-            agenteLista.innerHTML = '';
-            
-            listaFria.forEach(cliente => {
-                const numerosLimpos = cliente.numeros
-                    .split(',')
-                    .map(n => n.replace(/\D/g, ''))
-                    .filter(n => n !== '');
-                
-                if (numerosLimpos.length === 0) return;
-
-                const divFila = document.createElement('div');
-                divFila.className = 'fila-item';
-
-                const spanNome = document.createElement('span');
-                spanNome.innerText = cliente.nome + (numerosLimpos.length > 1 ? ` (${numerosLimpos.length} números)` : '');
-
-                const btnEnviar = document.createElement('button');
-                btnEnviar.className = 'btn btn-green btn-enviar-msg';
-                btnEnviar.innerHTML = numerosLimpos.length > 1 ? `Enviar para todos (${numerosLimpos.length}) ↗` : 'Enviar ↗';
-
-                btnEnviar.onclick = () => {
-                    const mensagemFinal = template.replace(/{nome}/g, cliente.nome);
-                    
-                    numerosLimpos.forEach(num => {
-                        const waUrl = `https://wa.me/55${num}?text=${encodeURIComponent(mensagemFinal)}`;
-                        window.open(waUrl, '_blank');
-                    });
-
-                    btnEnviar.innerHTML = '✓ Enviados';
-                    btnEnviar.style.background = '#4b5563'; 
-                    btnEnviar.disabled = true;
-                };
-
-                divFila.appendChild(spanNome);
-                divFila.appendChild(btnEnviar);
-                agenteLista.appendChild(divFila);
-            });
-
-            agenteFilaContainer.style.display = 'block';
-        };
     }
 
     /* ================= UPLOAD DE DOCUMENTOS ================= */
@@ -923,7 +790,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!files.length || !currentUser) return;
         
         uploadProgress.style.display = 'block';
-        uploadProgress.style.color = '#f59e0b';
+        uploadProgress.style.color = '#f59e0b'; // Amarelo enquanto carrega
         uploadProgress.innerText = `Enviando ${files.length} arquivo(s)... Aguarde.`;
         
         let errorOccurred = false;
@@ -944,11 +811,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } finally {
             if (errorOccurred) {
-                uploadProgress.style.color = '#ef4444';
+                uploadProgress.style.color = '#ef4444'; // Vermelho
                 uploadProgress.innerText = 'Erro de permissão no Firebase. Arquivo não salvo.';
                 setTimeout(() => { uploadProgress.style.display = 'none'; }, 5000);
             } else {
-                uploadProgress.style.color = '#10b981';
+                uploadProgress.style.color = '#10b981'; // Verde
                 uploadProgress.innerText = 'Upload concluído com sucesso!';
                 setTimeout(() => { uploadProgress.style.display = 'none'; }, 2000);
             }
@@ -957,7 +824,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    /* ================= MODAL DE CLIENTES ================= */
+    /* ================= MODAL ================= */
 
     function openModal(edit = false, data = null){
 
@@ -1185,6 +1052,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <p><strong>Valor:</strong> R$ ${cliente.valor || 0}</p>
         `;
 
+        // Renderiza os links de documentos no card
         if (Array.isArray(cliente.documentos) && cliente.documentos.length > 0) {
             const docsDiv = document.createElement('div');
             docsDiv.style.marginTop = "12px";
@@ -1194,14 +1062,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 const link = document.createElement('a');
                 link.href = "javascript:void(0)";
                 
+                // --- AJUSTES DE ESTILO APLICADOS AQUI PARA O TEXTO NÃO QUEBRAR O CARD ---
                 link.style.display = "block";
                 link.style.fontSize = "13px";
                 link.style.color = "#60a5fa"; 
                 link.style.textDecoration = "none";
                 link.style.margin = "4px 0";
-                link.style.whiteSpace = "nowrap";      
-                link.style.overflow = "hidden";        
-                link.style.textOverflow = "ellipsis";  
+                link.style.whiteSpace = "nowrap";       // Evita que o texto quebre pra linha de baixo
+                link.style.overflow = "hidden";         // Oculta o que ultrapassar
+                link.style.textOverflow = "ellipsis";   // Adiciona os três pontinhos (...)
+                // ------------------------------------------------------------------------
                 
                 link.innerHTML = `📄 ${arquivo.name} <span style="font-size:10px; color:#9ca3af; margin-left: 5px;">(Baixar)</span>`;
                 
@@ -1231,19 +1101,24 @@ document.addEventListener('DOMContentLoaded', () => {
     /* ================= TELEFONE ================= */
 
     function ligar(numero){
+
         if(!numero){
             showToast("Número não informado");
             return;
         }
+
         window.open(`tel:${numero.replace(/\D/g,'')}`);
     }
 
     function whatsapp(numero){
+
         if(!numero){
             showToast("Número não informado");
             return;
         }
+
         const num = numero.replace(/\D/g,'');
+
         window.open(`https://wa.me/55${num}`,'_blank');
     }
 
@@ -1258,7 +1133,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 col.innerHTML = `
                     <div class="col-header-actions">
                         <h2 style="margin-bottom:0;">LISTA FRIA</h2>
-                        <button class="btn-robot" title="Ativar Robô" onclick="document.getElementById('btnAgente').click()">
+                        <button class="btn-robot" title="Ativar Robô">
                             <img src="https://img.icons8.com/ios-glyphs/30/000000/bot.png" alt="Robô"/>
                         </button>
                     </div>
@@ -1281,7 +1156,7 @@ document.addEventListener('DOMContentLoaded', () => {
         filtragemAplicada();
     }
 
-   /* ================= FORM ================= */
+    /* ================= FORM ================= */
 
     clientForm.onsubmit = async function(e){
 
@@ -1300,41 +1175,6 @@ document.addEventListener('DOMContentLoaded', () => {
         .map(input => input.value.trim())
         .filter(valor => valor);
 
-        // 👇 INÍCIO DA ATUALIZAÇÃO: VERIFICAÇÃO GLOBAL DE PROCESSO DUPLICADO 👇
-        if (processos.length > 0) {
-            // Puxa TODOS os clientes de TODOS os usuários no banco de dados
-            const queryTodos = query(collection(db, "clientes"));
-            const snapshotTodos = await getDocs(queryTodos);
-            const todosClientes = snapshotTodos.docs.map(docData => ({
-                id: docData.id,
-                ...docData.data()
-            }));
-
-            let processoDuplicado = null;
-
-            for (let proc of processos) {
-                const clienteExistente = todosClientes.find(c => {
-                    // Se estiver editando o cliente, ignora ele mesmo na checagem
-                    if (clientForm.dataset.editId && c.id === clientForm.dataset.editId) return false;
-                    
-                    // Verifica se a string de processos do cliente no banco inclui o processo digitado
-                    return c.processo && c.processo.includes(proc);
-                });
-
-                if (clienteExistente) {
-                    processoDuplicado = proc;
-                    break; // Para o loop assim que achar um repetido
-                }
-            }
-
-            // Se achou duplicata, avisa e trava o salvamento
-            if (processoDuplicado) {
-                showToast(`Erro: O processo ${processoDuplicado} já está cadastrado no sistema!`);
-                return; // Impede o envio do formulário
-            }
-        }
-        // 👆 FIM DA ATUALIZAÇÃO 👆
-
         const telefones = Array.from(
             document.querySelectorAll('.inputTelefone')
         )
@@ -1342,75 +1182,82 @@ document.addEventListener('DOMContentLoaded', () => {
         .filter(valor => valor);
 
         const novo = {
+
             nome: nome,
+
             cpf: inputCPF.value.trim(),
-            obs: inputObs.value.trim().substring(0,300),
+
+            obs: inputObs.value
+                .trim()
+                .substring(0,300),
+
             status: inputStatus.value,
+
             numeros: telefones.join(', '),
+
             processo: processos.join(', '),
+
             classe: inputClasse.value,
+
             valor: inputValor.value,
+
             estado: inputEstado.value,
-            documentos: currentDocs,
-            dataCadastro: new Date().toISOString()
+
+            documentos: currentDocs
         };
 
         if(clientForm.dataset.editId){
+
             novo.id = clientForm.dataset.editId;
+
             await saveCliente(novo);
+
             showToast("Cliente atualizado!");
+
         }else{
+
             await saveCliente(novo);
+
             showToast("Cliente adicionado!");
         }
 
         closeModal();
+
         render();
     };
 
-    /* ================= DRAG AND DROP MELHORADO ================= */
+    btnAdd.onclick = () => {
+        openModal();
+    };
+
+    btnCancel.onclick = () => {
+        closeModal();
+    };
+
+    /* ================= DRAG ================= */
 
     let draggedCard = null;
 
     function addDragEvents(card){
+
         card.addEventListener('dragstart', () => {
             draggedCard = card;
-            // Delay para o visual do fantasma nativo não quebrar
-            setTimeout(() => card.classList.add('dragging'), 0);
+            card.style.opacity = '.5';
         });
 
         card.addEventListener('dragend', () => {
             draggedCard = null;
-            card.classList.remove('dragging');
-            
-            // Remove o efeito de hover de todas as colunas
-            document.querySelectorAll('.column').forEach(c => {
-                c.classList.remove('drag-over');
-            });
+            card.style.opacity = '1';
         });
     }
 
     document.querySelectorAll('.column').forEach(col => {
-        
-        // Efeito visual quando entra na coluna
-        col.addEventListener('dragenter', e => {
-            e.preventDefault();
-            if (draggedCard) {
-                col.classList.add('drag-over');
-            }
-        });
 
         col.addEventListener('dragover', e => {
-            e.preventDefault(); // Necessário para o evento de 'drop' disparar
-        });
-
-        // Tira o efeito quando sai da coluna
-        col.addEventListener('dragleave', e => {
-            col.classList.remove('drag-over');
+            e.preventDefault();
         });
 
         col.addEventListener('drop', async () => {
-            col.classList.remove('drag-over');
 
             if(!draggedCard){
                 return;
@@ -1435,10 +1282,12 @@ document.addEventListener('DOMContentLoaded', () => {
     /* ================= FILTROS ================= */
 
     function filtragemAplicada(){
+
         const q = searchInput.value.toLowerCase();
         const filterS = filterStatus.value;
 
         Object.values(cardsMap).forEach(card => {
+
             const matchSearch = card.dataset.nome.includes(q);
             const matchStatus = !filterS || card.dataset.status === filterS;
 
@@ -1455,15 +1304,9 @@ document.addEventListener('DOMContentLoaded', () => {
     /* ================= LOGIN ================= */
 
     onAuthStateChanged(auth, user => {
+
         if(user){
             currentUser = user;
-            
-            // EXIBE O EMAIL DO USUÁRIO LOGADO NO TOPO
-            const emailDisplay = document.getElementById('userEmailDisplay');
-            if (emailDisplay) {
-                emailDisplay.innerHTML = `👤 ${user.email}`;
-            }
-
             render();
         }else{
             window.location.href = "login.html";
@@ -1489,6 +1332,11 @@ document.addEventListener('DOMContentLoaded', () => {
         <span>CRM</span>
     </button>
 
+    <button onclick="window.location.href='relatorios.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/combo-chart.png"/>
+        <span>Relatórios</span>
+    </button>
+
     <button onclick="window.location.href='agenda.html'">
         <img src="https://img.icons8.com/ios-filled/50/ffffff/calendar.png"/>
         <span>Agenda</span>
@@ -1499,14 +1347,19 @@ document.addEventListener('DOMContentLoaded', () => {
         <span>Contatos</span>
     </button>
 
-    <button onclick="window.location.href='funil-geral.html'">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/filter.png"/>
-        <span>Funil Geral</span>
+    <button onclick="window.location.href='clientes.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/user-group-man-man.png"/>
+        <span>Clientes</span>
     </button>
-   
-    <button onclick="window.location.href='adm.html'">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/admin-settings-male.png"/>
-        <span>ADM</span>
+
+    <button onclick="window.location.href='processos.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/file.png"/>
+        <span>Processos</span>
+    </button>
+
+    <button onclick="window.location.href='app.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/phone.png"/>
+        <span>App</span>
     </button>
 
     <button>
@@ -1519,14 +1372,12 @@ document.addEventListener('DOMContentLoaded', () => {
 <div class="main">
 
 <header>
-    <div style="display: flex; align-items: center; gap: 20px;">
-        <h1>CRM</h1>
-        <div id="userEmailDisplay" class="user-info"></div>
-    </div>
+
+    <h1>CRM</h1>
 
     <div style="display: flex; gap: 12px; align-items: center;">
-        <button id="btnAgente" class="btn btn-green" style="padding: 10px 18px; border-radius: 12px; font-weight: 600;">
-            🤖 Agente de Whatsapp
+        <button id="btnAgente" class="btn btn-green">
+            Agente de Whatsapp
         </button>
         
         <button id="btnAdd" class="btn primary">
@@ -1580,117 +1431,149 @@ document.addEventListener('DOMContentLoaded', () => {
 </div>
 
 <div class="modal-backdrop" id="modalBackdrop">
-    <div class="modal">
-        <h3 id="modalTitle">Novo Cliente</h3>
-        <form id="clientForm">
-            <div class="row">
-                <input id="inputNome" placeholder="Nome do cliente" required />
-            </div>
-            <div class="row">
-                <input id="inputCPF" placeholder="CPF/CNPJ" />
-            </div>
-            <div id="telefonesContainer"></div>
-            <div class="row">
-                <button type="button" class="btn ghost" id="btnAddTelefone">+ Adicionar Telefone</button>
-            </div>
-            <div class="row">
-                <select id="inputClasse">
-                    <option value="Outros">Outros</option>
-                    <option value="Busca e Apreensão">Busca e Apreensão</option>
-                    <option value="Execução">Execução</option>
-                    <option value="Renegociação">Renegociação</option>
-                </select>
-            </div>
-            <div class="row">
-                <input id="inputValor" type="number" placeholder="Valor (R$)" />
-            </div>
-            <div class="row">
-                <select id="inputEstado">
-                    <option value="Acre">Acre</option>
-                    <option value="Alagoas">Alagoas</option>
-                    <option value="Amapá">Amapá</option>
-                    <option value="Amazonas">Amazonas</option>
-                    <option value="Bahia">Bahia</option>
-                    <option value="Ceará">Ceará</option>
-                    <option value="Distrito Federal">Distrito Federal</option>
-                    <option value="Espírito Santo">Espírito Santo</option>
-                    <option value="Goiás">Goiás</option>
-                    <option value="Maranhão">Maranhão</option>
-                    <option value="Mato Grosso">Mato Grosso</option>
-                    <option value="Mato Grosso do Sul">Mato Grosso do Sul</option>
-                    <option value="Minas Gerais">Minas Gerais</option>
-                    <option value="Pará">Pará</option>
-                    <option value="Paraíba">Paraíba</option>
-                    <option value="Paraná">Paraná</option>
-                    <option value="Pernambuco">Pernambuco</option>
-                    <option value="Piauí">Piauí</option>
-                    <option value="Rio de Janeiro" selected>Rio de Janeiro</option>
-                    <option value="Rio Grande do Norte">Rio Grande do Norte</option>
-                    <option value="Rio Grande do Sul">Rio Grande do Sul</option>
-                    <option value="Rondônia">Rondônia</option>
-                    <option value="Roraima">Roraima</option>
-                    <option value="Santa Catarina">Santa Catarina</option>
-                    <option value="São Paulo">São Paulo</option>
-                    <option value="Sergipe">Sergipe</option>
-                    <option value="Tocantins">Tocantins</option>
-                </select>
-            </div>
-            <div id="processosContainer"></div>
-            <div class="docs-section">
-                <h4>Documentos do Cliente</h4>
-                <div id="docsList"></div>
-                <input type="file" id="inputFile" style="display: none;" multiple />
-                <button type="button" class="btn ghost" id="btnTriggerFile" style="margin-top: 8px;">📁 Anexar Arquivos</button>
-                <div id="uploadProgress" style="font-size: 12px; color: #10b981; margin-top: 5px; display: none;"></div>
-            </div>
-            <div class="row">
-                <textarea id="inputObs" maxlength="300" placeholder="Observações (máx. 300 caracteres)"></textarea>
-            </div>
-            <div class="row">
-                <select id="inputStatus">
-                    <option value="lista-fria">Lista Fria</option>
-                    <option value="negociacao">Negociação</option>
-                    <option value="contrato-assinado">Contrato Assinado</option>
-                    <option value="fechado">Fechado</option>
-                </select>
-            </div>
-            <div class="actions">
-                <button type="submit" class="btn primary">Salvar</button>
-                <button type="button" class="btn ghost" id="btnCancel">Cancelar</button>
-            </div>
-        </form>
+
+<div class="modal">
+
+<h3 id="modalTitle">
+    Novo Cliente
+</h3>
+
+<form id="clientForm">
+
+    <div class="row">
+        <input
+            id="inputNome"
+            placeholder="Nome do cliente"
+            required
+        />
     </div>
+
+    <div class="row">
+        <input
+            id="inputCPF"
+            placeholder="CPF/CNPJ"
+        />
+    </div>
+
+    <div id="telefonesContainer"></div>
+
+    <div class="row">
+
+        <button
+            type="button"
+            class="btn ghost"
+            id="btnAddTelefone"
+        >
+            + Adicionar Telefone
+        </button>
+
+    </div>
+
+    <div class="row">
+
+        <select id="inputClasse">
+            <option value="Outros">Outros</option>
+            <option value="Busca e Apreensão">Busca e Apreensão</option>
+            <option value="Execução">Execução</option>
+            <option value="Renegociação">Renegociação</option>
+        </select>
+
+    </div>
+
+    <div class="row">
+        <input
+            id="inputValor"
+            type="number"
+            placeholder="Valor (R$)"
+        />
+    </div>
+
+    <div class="row">
+
+    <select id="inputEstado">
+        <option value="Acre">Acre</option>
+        <option value="Alagoas">Alagoas</option>
+        <option value="Amapá">Amapá</option>
+        <option value="Amazonas">Amazonas</option>
+        <option value="Bahia">Bahia</option>
+        <option value="Ceará">Ceará</option>
+        <option value="Distrito Federal">Distrito Federal</option>
+        <option value="Espírito Santo">Espírito Santo</option>
+        <option value="Goiás">Goiás</option>
+        <option value="Maranhão">Maranhão</option>
+        <option value="Mato Grosso">Mato Grosso</option>
+        <option value="Mato Grosso do Sul">Mato Grosso do Sul</option>
+        <option value="Minas Gerais">Minas Gerais</option>
+        <option value="Pará">Pará</option>
+        <option value="Paraíba">Paraíba</option>
+        <option value="Paraná">Paraná</option>
+        <option value="Pernambuco">Pernambuco</option>
+        <option value="Piauí">Piauí</option>
+        <option value="Rio de Janeiro" selected>Rio de Janeiro</option>
+        <option value="Rio Grande do Norte">Rio Grande do Norte</option>
+        <option value="Rio Grande do Sul">Rio Grande do Sul</option>
+        <option value="Rondônia">Rondônia</option>
+        <option value="Roraima">Roraima</option>
+        <option value="Santa Catarina">Santa Catarina</option>
+        <option value="São Paulo">São Paulo</option>
+        <option value="Sergipe">Sergipe</option>
+        <option value="Tocantins">Tocantins</option>
+    </select>
+
+</div>
+    <div id="processosContainer"></div>
+
+    <div class="docs-section">
+        <h4>Documentos do Cliente</h4>
+        <div id="docsList"></div>
+        <input type="file" id="inputFile" style="display: none;" multiple />
+        
+        <button type="button" class="btn ghost" id="btnTriggerFile" style="margin-top: 8px;">
+            📁 Anexar Arquivos
+        </button>
+        <div id="uploadProgress" style="font-size: 12px; color: #10b981; margin-top: 5px; display: none;"></div>
+    </div>
+
+    <div class="row">
+        <textarea
+            id="inputObs"
+            maxlength="300"
+            placeholder="Observações (máx. 300 caracteres)"
+        ></textarea>
+    </div>
+
+    <div class="row">
+        <select id="inputStatus">
+            <option value="lista-fria">Lista Fria</option>
+            <option value="negociacao">Negociação</option>
+            <option value="contrato-assinado">Contrato Assinado</option>
+            <option value="fechado">Fechado</option>
+        </select>
+    </div>
+
+    <div class="actions">
+
+        <button
+            type="submit"
+            class="btn primary"
+        >
+            Salvar
+        </button>
+
+        <button
+            type="button"
+            class="btn ghost"
+            id="btnCancel"
+        >
+            Cancelar
+        </button>
+
+    </div>
+
+</form>
+
 </div>
 
-<div class="modal-backdrop" id="modalAgenteBackdrop">
-    <div class="modal">
-        <h3 style="margin-bottom: 5px;"> Agente de WhatsApp</h3>
-        
-        <div style="background: rgba(245, 158, 11, 0.1); border-left: 3px solid #f59e0b; padding: 10px; margin-bottom: 15px; border-radius: 4px;">
-            <p style="font-size: 12px; color: #fcd34d; margin: 0;">
-                <strong>Aviso:</strong> Se um cliente tiver múltiplos números, o seu navegador pode bloquear a abertura das abas extras. Caso isso aconteça, clique no ícone de "Pop-up bloqueado" na barra de endereços lá em cima e selecione <strong>"Sempre permitir pop-ups"</strong>.
-            </p>
-        </div>
-
-        <p style="font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 20px;">
-            Digite a mensagem base. Escreva <strong>{nome}</strong> para que o sistema troque automaticamente pelo nome do cliente.
-        </p>
-        
-        <div class="row">
-            <textarea id="agenteMensagem" rows="5" placeholder="Olá {nome}, tudo bem? Vi que seu caso..." style="background: rgba(255,255,255,0.05);"></textarea>
-        </div>
-
-        <div class="actions">
-            <button class="btn primary" id="btnCarregarFila">Carregar Lista Fria</button>
-            <button class="btn ghost" id="btnFecharAgente">Fechar</button>
-        </div>
-
-        <div id="agenteFilaContainer" style="margin-top: 25px; display: none;">
-            <h4 style="margin-bottom: 12px; font-size: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">Fila de Disparo</h4>
-            <div id="agenteLista" style="max-height: 250px; overflow-y: auto; padding-right: 5px;">
-                </div>
-        </div>
-    </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -1703,3 +1586,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
