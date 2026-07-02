@@ -8,7 +8,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
-
 *{
     margin:0;
     padding:0;
@@ -45,7 +44,6 @@ body{
 }
 
 /* ================= SIDEBAR ================= */
-
 .sidebar{
     width:80px;
     display:flex;
@@ -133,8 +131,20 @@ body{
     color:#fff;
 }
 
-/* ================= MAIN ================= */
+/* Estilo customizado para o botão de sair vermelho */
+.sidebar button.btn-sair-crm {
+    margin-top: auto;
+    color: #f87171;
+}
+.sidebar button.btn-sair-crm:hover {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+.sidebar button.btn-sair-crm img {
+    filter: invert(25%) sepia(90%) saturate(4000%) hue-rotate(350deg) brightness(95%) contrast(100%);
+}
 
+/* ================= MAIN ================= */
 .main{
     flex:1;
     display:flex;
@@ -164,8 +174,27 @@ header h1{
     font-weight:800;
 }
 
-/* ================= SEARCH ================= */
+/* Estilo do container do nome do usuário logado */
+.user-profile-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 8px 16px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 14px;
+    font-weight: 500;
+}
 
+.user-profile-status .user-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #10b981;
+    border-radius: 50%;
+}
+
+/* ================= SEARCH ================= */
 .search-bar{
     padding:15px 30px;
     background:transparent;
@@ -218,7 +247,6 @@ select option {
 }
 
 /* ================= KANBAN ================= */
-
 .kanban-container{
     flex:1;
     overflow-x:auto;
@@ -256,7 +284,6 @@ select option {
 }
 
 /* ================= CARDS ================= */
-
 .card{
     display:flex;
     background:rgba(255,255,255,0.07);
@@ -291,7 +318,7 @@ select option {
     flex-direction:column;
     justify-content:flex-start;
     overflow:hidden;
-    min-width: 0; /* GARANTE QUE O CONTEÚDO NÃO EXTRAPOLE O CARD EM FLEXBOX */
+    min-width: 0; 
 }
 
 .card h3{
@@ -342,7 +369,7 @@ select option {
 .card-actions img{
     width:16px;
     height:16px;
-    filter:invert(1); /* Inverte para branco */
+    filter:invert(1); 
     opacity:0.8;
     transition:opacity 0.2s;
 }
@@ -355,7 +382,6 @@ select option {
 }
 
 /* ================= MODAL ================= */
-
 .modal-backdrop{
     display:none;
     position:fixed;
@@ -409,7 +435,6 @@ select option {
 }
 
 /* ================= BUTTONS ================= */
-
 .btn{
     padding:10px 18px;
     border-radius:12px;
@@ -451,7 +476,6 @@ select option {
 }
 
 /* ================= DINÂMICOS ================= */
-
 .processo-row{
     display:flex;
     gap:8px;
@@ -463,7 +487,6 @@ select option {
 }
 
 /* ================= TOAST ================= */
-
 .toast{
     position:fixed;
     right:30px;
@@ -553,13 +576,109 @@ select option {
     filter: invert(1);
     opacity: 0.9;
 }
-
 </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h2>AMR ADV</h2>
+        <button title="Clientes"><img src="https://img.icons8.com/ios-glyphs/30/000000/group.png"/><span>Clientes</span></button>
+        
+        <button id="btnSair" class="btn-sair-crm" title="Sair do CRM">
+            <img src="https://img.icons8.com/ios-glyphs/30/000000/logout-rounded.png"/>
+            <span>Sair</span>
+        </button>
+    </div>
+
+    <div class="main">
+        <header>
+            <h1>CRM AMR ADV</h1>
+            <div class="user-profile-status">
+                <div class="user-dot"></div>
+                <span id="userDisplay">Carregando...</span>
+            </div>
+        </header>
+
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Buscar cliente pelo nome...">
+            <select id="filterStatus">
+                <option value="todos">Todos os Status</option>
+                <option value="lista-fria">Lista Fria</option>
+                <option value="negociacao">Negociação</option>
+                <option value="contrato-assinado">Contrato Assinado</option>
+                <option value="fechado">Fechado</option>
+            </select>
+            <button id="btnAdd" class="btn primary">Novo Cliente</button>
+        </div>
+
+        <div class="kanban-container">
+            <div class="kanban">
+                <div class="column" id="lista-fria">
+                    <div class="col-header-actions">
+                        <h2>LISTA FRIA</h2>
+                        <button class="btn-robot" title="Ativar Robô"><img src="https://img.icons8.com/ios-glyphs/30/000000/bot.png"/></button>
+                    </div>
+                </div>
+                <div class="column" id="negociacao"><h2>NEGOCIAÇÃO</h2></div>
+                <div class="column" id="contrato-assinado"><h2>CONTRATO ASSINADO</h2></div>
+                <div class="column" id="fechado"><h2>FECHADO</h2></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-backdrop" id="modalBackdrop">
+        <div class="modal">
+            <h3 id="modalTitle">Novo Cliente</h3>
+            <form id="clientForm">
+                <div class="row"><input type="text" id="inputNome" placeholder="Nome Completo"></div>
+                <div class="row"><input type="text" id="inputCPF" placeholder="CPF"></div>
+                <div class="row">
+                    <select id="inputStatus">
+                        <option value="lista-fria">Lista Fria</option>
+                        <option value="negociacao">Negociação</option>
+                        <option value="contrato-assinado">Contrato Assinado</option>
+                        <option value="fechado">Fechado</option>
+                    </select>
+                </div>
+                <div class="row"><input type="text" id="inputClasse" placeholder="Classe da Ação"></div>
+                <div class="row"><input type="number" id="inputValor" placeholder="Valor da Causa (R$)"></div>
+                <div class="row"><input type="text" id="inputEstado" placeholder="Estado (UF)"></div>
+                
+                <div class="row">
+                    <label style="font-size:13px; opacity:0.8;">Telefones:</label>
+                    <div id="telefonesContainer"></div>
+                    <button type="button" id="btnAddTelefone" class="btn ghost" style="margin-top:5px; width:100%;">+ Adicionar Telefone</button>
+                </div>
+
+                <div class="row">
+                    <label style="font-size:13px; opacity:0.8;">Processos:</label>
+                    <div id="processosContainer"></div>
+                </div>
+
+                <div class="row"><textarea id="inputObs" placeholder="Observações internas..."></textarea></div>
+
+                <div class="docs-section">
+                    <h4>Documentações</h4>
+                    <input type="file" id="inputFile" multiple style="display: none;">
+                    <button type="button" id="btnTriggerFile" class="btn ghost" style="width: 100%;">Upload de Documentos</button>
+                    <div id="uploadProgress" style="font-size:12px; margin-top:5px; display:none;"></div>
+                    <div id="docsList" style="margin-top: 10px;"></div>
+                </div>
+
+                <div class="actions">
+                    <button type="button" id="btnCancel" class="btn ghost">Cancelar</button>
+                    <button type="submit" class="btn primary btn-green">Salvar Cliente</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <audio id="coinSound" src="https://assets.mixkit.co/active_storage/sfx/2019/2019-84.wav"></audio>
 
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-
 import {
     getFirestore,
     collection,
@@ -574,7 +693,8 @@ import {
 
 import {
     getAuth,
-    onAuthStateChanged
+    onAuthStateChanged,
+    signOut
 } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
 
 import {
@@ -585,7 +705,6 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js";
 
 /* ================= FIREBASE ================= */
-
 const firebaseConfig = {
     apiKey: "AIzaSyAFJJAqVf3ge0WDHBpmS9E6sXKvnjuFkhw",
     authDomain: "dapapp-38637.firebaseapp.com",
@@ -609,14 +728,12 @@ try {
 window.firebaseDB = db;
 
 /* ================= APP ================= */
-
 document.addEventListener('DOMContentLoaded', () => {
 
     const sidebar = document.querySelector(".sidebar");
     const mainContent = document.querySelector(".main");
 
     if(sidebar && mainContent){
-
         sidebar.addEventListener('mouseenter', () => {
             sidebar.classList.add('expanded');
             mainContent.classList.add('blur');
@@ -671,8 +788,61 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let currentUser = null;
 
-    /* ================= TOAST ================= */
+    /* ================= MONITORAMENTO DE AUTENTICAÇÃO ================= */
+    onAuthStateChanged(auth, (user) => {
+        const userDisplay = document.getElementById('userDisplay');
+        if (user) {
+            currentUser = user;
+            if (userDisplay) {
+                // Exibe o Nome cadastrado ou o Email caso o DisplayName não esteja preenchido
+                userDisplay.innerText = user.displayName || user.email.split('@')[0];
+            }
+            render();
+        } else {
+            currentUser = null;
+            if (userDisplay) userDisplay.innerText = "Desconectado";
+            showToast("Você não está autenticado.");
+        }
+    });
 
+    /* ================= EVENTO DO BOTÃO SAIR ================= */
+    const btnSair = document.getElementById('btnSair');
+    if (btnSair) {
+        btnSair.onclick = async () => {
+            try {
+                await signOut(auth);
+                showToast("Sessão encerrada!");
+            } catch (error) {
+                console.error("Erro ao deslogar:", error);
+                showToast("Erro ao sair da conta.");
+            }
+        };
+    }
+
+    /* ================= FILTRAGEM DE CARDS ================= */
+    function filtragemAplicada() {
+        const termo = searchInput.value.toLowerCase().trim();
+        const filtro = filterStatus.value;
+
+        document.querySelectorAll('.card').forEach(card => {
+            const nomeCard = card.dataset.nome || '';
+            const statusCard = card.dataset.status || '';
+
+            const matchesSearch = nomeCard.includes(termo);
+            const matchesStatus = (filtro === 'todos' || statusCard === filtro);
+
+            if (matchesSearch && matchesStatus) {
+                card.style.display = 'flex';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+    }
+
+    if (searchInput) searchInput.oninput = filtragemAplicada;
+    if (filterStatus) filterStatus.onchange = filtragemAplicada;
+
+    /* ================= TOAST ================= */
     function showToast(msg){
         toastEl.innerText = msg;
         toastEl.style.display = 'block';
@@ -707,9 +877,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     /* ================= FIRESTORE ================= */
-
     async function getClientes(){
-
         if(!currentUser){
             return [];
         }
@@ -728,7 +896,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function saveCliente(cliente){
-
         if(!currentUser){
             return;
         }
@@ -748,7 +915,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /* ================= UPLOAD DE DOCUMENTOS ================= */
-
     function renderDocsList() {
         docsList.innerHTML = '';
         if (currentDocs.length === 0) {
@@ -790,7 +956,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!files.length || !currentUser) return;
         
         uploadProgress.style.display = 'block';
-        uploadProgress.style.color = '#f59e0b'; // Amarelo enquanto carrega
+        uploadProgress.style.color = '#f59e0b'; 
         uploadProgress.innerText = `Enviando ${files.length} arquivo(s)... Aguarde.`;
         
         let errorOccurred = false;
@@ -811,11 +977,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         } finally {
             if (errorOccurred) {
-                uploadProgress.style.color = '#ef4444'; // Vermelho
+                uploadProgress.style.color = '#ef4444'; 
                 uploadProgress.innerText = 'Erro de permissão no Firebase. Arquivo não salvo.';
                 setTimeout(() => { uploadProgress.style.display = 'none'; }, 5000);
             } else {
-                uploadProgress.style.color = '#10b981'; // Verde
+                uploadProgress.style.color = '#10b981'; 
                 uploadProgress.innerText = 'Upload concluído com sucesso!';
                 setTimeout(() => { uploadProgress.style.display = 'none'; }, 2000);
             }
@@ -825,19 +991,14 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     /* ================= MODAL ================= */
-
     function openModal(edit = false, data = null){
-
         modalBackdrop.style.display = 'flex';
-
-        document.getElementById('modalTitle').innerText =
-            edit ? "Editar Cliente" : "Novo Cliente";
+        document.getElementById('modalTitle').innerText = edit ? "Editar Cliente" : "Novo Cliente";
 
         processosContainer.innerHTML = '';
         telefonesContainer.innerHTML = '';
 
         if(edit && data){
-
             inputNome.value = data.nome || "";
             inputCPF.value = data.cpf || "";
             inputObs.value = data.obs || "";
@@ -846,24 +1007,15 @@ document.addEventListener('DOMContentLoaded', () => {
             inputValor.value = data.valor || "";
             inputEstado.value = data.estado || "São Paulo";
 
-            const processos = data.processo
-                ? data.processo.split(',').map(p => p.trim())
-                : [''];
-
+            const processos = data.processo ? data.processo.split(',').map(p => p.trim()) : [''];
             processos.forEach(p => addProcessoField(p));
 
-            const telefones = data.numeros
-                ? data.numeros.split(',').map(t => t.trim())
-                : [''];
-
+            const telefones = data.numeros ? data.numeros.split(',').map(t => t.trim()) : [''];
             telefones.forEach(t => addTelefoneField(t));
 
             currentDocs = Array.isArray(data.documentos) ? [...data.documentos] : [];
-
             clientForm.dataset.editId = data.id;
-
         }else{
-
             addProcessoField();
             addTelefoneField();
 
@@ -876,10 +1028,8 @@ document.addEventListener('DOMContentLoaded', () => {
             inputEstado.value = "São Paulo";
 
             currentDocs = [];
-
             delete clientForm.dataset.editId;
         }
-
         renderDocsList();
     }
 
@@ -889,9 +1039,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /* ================= PROCESSOS ================= */
-
     function addProcessoField(value = ""){
-
         const row = document.createElement('div');
         row.className = 'processo-row';
 
@@ -900,35 +1048,26 @@ document.addEventListener('DOMContentLoaded', () => {
         input.placeholder = '0000000-00.0000.0.00.0000';
         input.value = value;
 
-        const btnAdd = document.createElement('button');
-        btnAdd.type = 'button';
-        btnAdd.className = 'btn ghost';
-        btnAdd.textContent = '+';
-
-        btnAdd.onclick = () => {
-            addProcessoField();
-        };
+        const btnAddField = document.createElement('button');
+        btnAddField.type = 'button';
+        btnAddField.className = 'btn ghost';
+        btnAddField.textContent = '+';
+        btnAddField.onclick = () => { addProcessoField(); };
 
         const btnRemove = document.createElement('button');
         btnRemove.type = 'button';
         btnRemove.className = 'btn ghost';
         btnRemove.textContent = '-';
-
-        btnRemove.onclick = () => {
-            row.remove();
-        };
+        btnRemove.onclick = () => { row.remove(); };
 
         row.appendChild(input);
-        row.appendChild(btnAdd);
+        row.appendChild(btnAddField);
         row.appendChild(btnRemove);
-
         processosContainer.appendChild(row);
     }
 
     /* ================= TELEFONES ================= */
-
     function addTelefoneField(value = ""){
-
         const row = document.createElement('div');
         row.className = 'processo-row';
 
@@ -937,114 +1076,76 @@ document.addEventListener('DOMContentLoaded', () => {
         input.placeholder = 'Telefone / WhatsApp';
         input.value = value;
 
-        const btnAdd = document.createElement('button');
-        btnAdd.type = 'button';
-        btnAdd.className = 'btn ghost';
-        btnAdd.textContent = '+';
-
-        btnAdd.onclick = () => {
-            addTelefoneField();
-        };
+        const btnAddField = document.createElement('button');
+        btnAddField.type = 'button';
+        btnAddField.className = 'btn ghost';
+        btnAddField.textContent = '+';
+        btnAddField.onclick = () => { addTelefoneField(); };
 
         const btnRemove = document.createElement('button');
         btnRemove.type = 'button';
         btnRemove.className = 'btn ghost';
         btnRemove.textContent = '-';
-
-        btnRemove.onclick = () => {
-            row.remove();
-        };
+        btnRemove.onclick = () => { row.remove(); };
 
         row.appendChild(input);
-        row.appendChild(btnAdd);
+        row.appendChild(btnAddField);
         row.appendChild(btnRemove);
-
         telefonesContainer.appendChild(row);
     }
 
-    btnAddTelefone.onclick = () => {
-        addTelefoneField();
-    };
+    btnAddTelefone.onclick = () => { addTelefoneField(); };
 
     /* ================= CARDS ================= */
-
     function criarCard(cliente){
-
         const status = cliente.status || 'lista-fria';
-
         const col = document.getElementById(status);
-
-        if(!col){
-            return;
-        }
+        if(!col) return;
 
         const card = document.createElement('div');
-
         card.className = `card ${status}`;
-
         card.dataset.id = cliente.id;
         card.dataset.status = status;
         card.dataset.nome = cliente.nome.toLowerCase();
-
         card.draggable = true;
 
         const colorBar = document.createElement('div');
         colorBar.className = 'color-bar';
-
         card.appendChild(colorBar);
 
         /* ================= ACTIONS ================= */
-
         const actionsDiv = document.createElement('div');
         actionsDiv.className = 'card-actions';
 
         const btnCall = document.createElement('button');
-
         btnCall.onclick = (e) => {
             e.stopPropagation();
-            const numero = cliente.numeros
-                ? cliente.numeros.split(',')[0].trim()
-                : '';
+            const numero = cliente.numeros ? cliente.numeros.split(',')[0].trim() : '';
             ligar(numero);
         };
-
-        btnCall.innerHTML =
-            '<img src="https://img.icons8.com/ios-glyphs/30/000000/phone.png"/>';
+        btnCall.innerHTML = '<img src="https://img.icons8.com/ios-glyphs/30/000000/phone.png"/>';
 
         const btnWa = document.createElement('button');
-
         btnWa.onclick = (e) => {
             e.stopPropagation();
-            const numero = cliente.numeros
-                ? cliente.numeros.split(',')[0].trim()
-                : '';
+            const numero = cliente.numeros ? cliente.numeros.split(',')[0].trim() : '';
             whatsapp(numero);
         };
-
-        btnWa.innerHTML =
-            '<img src="https://img.icons8.com/ios-glyphs/30/000000/whatsapp.png"/>';
+        btnWa.innerHTML = '<img src="https://img.icons8.com/ios-glyphs/30/000000/whatsapp.png"/>';
 
         actionsDiv.appendChild(btnCall);
         actionsDiv.appendChild(btnWa);
-
         card.appendChild(actionsDiv);
 
         /* ================= CONTENT ================= */
-
         const contentDiv = document.createElement('div');
         contentDiv.className = 'card-content';
 
-        const processosArray = cliente.processo
-            ? cliente.processo.split(',').map(p => p.trim())
-            : [];
-
-        const primeiroProcesso = processosArray.length > 0
-            ? processosArray[0]
-            : '-';
+        const processosArray = cliente.processo ? cliente.processo.split(',').map(p => p.trim()) : [];
+        const primeiroProcesso = processosArray.length > 0 ? processosArray[0] : '-';
 
         contentDiv.innerHTML = `
             <h3>${cliente.nome}</h3>
-
             <p><strong>CPF:</strong> ${cliente.cpf || '-'}</p>
             <p><strong>Classe:</strong> ${cliente.classe || '-'}</p>
             <p><strong>Estado:</strong> ${cliente.estado || '-'}</p>
@@ -1052,7 +1153,6 @@ document.addEventListener('DOMContentLoaded', () => {
             <p><strong>Valor:</strong> R$ ${cliente.valor || 0}</p>
         `;
 
-        // Renderiza os links de documentos no card
         if (Array.isArray(cliente.documentos) && cliente.documentos.length > 0) {
             const docsDiv = document.createElement('div');
             docsDiv.style.marginTop = "12px";
@@ -1061,17 +1161,14 @@ document.addEventListener('DOMContentLoaded', () => {
             cliente.documentos.forEach(arquivo => {
                 const link = document.createElement('a');
                 link.href = "javascript:void(0)";
-                
-                // --- AJUSTES DE ESTILO APLICADOS AQUI PARA O TEXTO NÃO QUEBRAR O CARD ---
                 link.style.display = "block";
                 link.style.fontSize = "13px";
                 link.style.color = "#60a5fa"; 
                 link.style.textDecoration = "none";
                 link.style.margin = "4px 0";
-                link.style.whiteSpace = "nowrap";       // Evita que o texto quebre pra linha de baixo
-                link.style.overflow = "hidden";         // Oculta o que ultrapassar
-                link.style.textOverflow = "ellipsis";   // Adiciona os três pontinhos (...)
-                // ------------------------------------------------------------------------
+                link.style.whiteSpace = "nowrap";       
+                link.style.overflow = "hidden";         
+                link.style.textOverflow = "ellipsis";   
                 
                 link.innerHTML = `📄 ${arquivo.name} <span style="font-size:10px; color:#9ca3af; margin-left: 5px;">(Baixar)</span>`;
                 
@@ -1079,55 +1176,42 @@ document.addEventListener('DOMContentLoaded', () => {
                     e.stopPropagation();
                     window.forceDownload(arquivo.url, arquivo.name, e);
                 };
-                
                 docsDiv.appendChild(link);
             });
             contentDiv.appendChild(docsDiv);
         }
 
         card.appendChild(contentDiv);
-
-        card.onclick = () => {
-            openModal(true, cliente);
-        };
+        card.onclick = () => { openModal(true, cliente); };
 
         addDragEvents(card);
-
         col.appendChild(card);
-
         cardsMap[cliente.id] = card;
     }
 
     /* ================= TELEFONE ================= */
-
     function ligar(numero){
-
         if(!numero){
             showToast("Número não informado");
             return;
         }
-
         window.open(`tel:${numero.replace(/\D/g,'')}`);
     }
 
     function whatsapp(numero){
-
         if(!numero){
             showToast("Número não informado");
             return;
         }
-
         const num = numero.replace(/\D/g,'');
-
         window.open(`https://wa.me/55${num}`,'_blank');
     }
 
     /* ================= RENDER ================= */
-
     async function render(){
-
         STATUS.forEach(status => {
             const col = document.getElementById(status);
+            if(!col) return;
             
             if (status === 'lista-fria') {
                 col.innerHTML = `
@@ -1143,25 +1227,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        for(const k in cardsMap){
-            delete cardsMap[k];
-        }
+        for(const k in cardsMap){ delete cardsMap[k]; }
 
         const clientes = await getClientes();
-
-        for(const cliente of clientes){
-            criarCard(cliente);
-        }
+        for(const cliente of clientes){ criarCard(cliente); }
 
         filtragemAplicada();
     }
 
-    /* ================= FORM ================= */
-
+    /* ================= FORM SUBMIT ================= */
     clientForm.onsubmit = async function(e){
-
         e.preventDefault();
-
         const nome = inputNome.value.trim();
 
         if(!nome){
@@ -1169,77 +1245,45 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const processos = Array.from(
-            document.querySelectorAll('.inputProcesso')
-        )
-        .map(input => input.value.trim())
-        .filter(valor => valor);
+        const processos = Array.from(document.querySelectorAll('.inputProcesso'))
+            .map(input => input.value.trim()).filter(valor => valor);
 
-        const telefones = Array.from(
-            document.querySelectorAll('.inputTelefone')
-        )
-        .map(input => input.value.trim())
-        .filter(valor => valor);
+        const telefones = Array.from(document.querySelectorAll('.inputTelefone'))
+            .map(input => input.value.trim()).filter(valor => valor);
 
         const novo = {
-
             nome: nome,
-
             cpf: inputCPF.value.trim(),
-
-            obs: inputObs.value
-                .trim()
-                .substring(0,300),
-
+            obs: inputObs.value.trim().substring(0,300),
             status: inputStatus.value,
-
             numeros: telefones.join(', '),
-
             processo: processos.join(', '),
-
             classe: inputClasse.value,
-
             valor: inputValor.value,
-
             estado: inputEstado.value,
-
             documentos: currentDocs
         };
 
         if(clientForm.dataset.editId){
-
             novo.id = clientForm.dataset.editId;
-
             await saveCliente(novo);
-
             showToast("Cliente atualizado!");
-
         }else{
-
             await saveCliente(novo);
-
             showToast("Cliente adicionado!");
         }
 
         closeModal();
-
         render();
     };
 
-    btnAdd.onclick = () => {
-        openModal();
-    };
+    btnAdd.onclick = () => { openModal(); };
+    btnCancel.onclick = () => { closeModal(); };
 
-    btnCancel.onclick = () => {
-        closeModal();
-    };
-
-    /* ================= DRAG ================= */
-
+    /* ================= DRAG AND DROP ================= */
     let draggedCard = null;
 
     function addDragEvents(card){
-
         card.addEventListener('dragstart', () => {
             draggedCard = card;
             card.style.opacity = '.5';
@@ -1252,16 +1296,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     document.querySelectorAll('.column').forEach(col => {
-
-        col.addEventListener('dragover', e => {
-            e.preventDefault();
-        });
-
+        col.addEventListener('dragover', e => { e.preventDefault(); });
         col.addEventListener('drop', async () => {
-
-            if(!draggedCard){
-                return;
-            }
+            if(!draggedCard) return;
 
             const id = draggedCard.dataset.id;
             const status = col.id;
@@ -1273,311 +1310,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 coinSound.currentTime = 0;
                 coinSound.play();
             }
-
             render();
-            showToast("Status atualizado");
         });
-    });
-
-    /* ================= FILTROS ================= */
-
-    function filtragemAplicada(){
-
-        const q = searchInput.value.toLowerCase();
-        const filterS = filterStatus.value;
-
-        Object.values(cardsMap).forEach(card => {
-
-            const matchSearch = card.dataset.nome.includes(q);
-            const matchStatus = !filterS || card.dataset.status === filterS;
-
-            card.style.display =
-                (matchSearch && matchStatus)
-                ? 'flex'
-                : 'none';
-        });
-    }
-
-    searchInput.oninput = filtragemAplicada;
-    filterStatus.onchange = filtragemAplicada;
-
-    /* ================= LOGIN ================= */
-
-    onAuthStateChanged(auth, user => {
-
-        if(user){
-            currentUser = user;
-            render();
-        }else{
-            window.location.href = "login.html";
-        }
     });
 
 });
-
 </script>
-
-</head>
-
-<body>
-
-<div class="sidebar">
-
-    <h2 onclick="window.location.href='dashboard.html'">
-        AMR ADV
-    </h2>
-
-    <button onclick="window.location.href='crm.html'">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/dashboard.png"/>
-        <span>CRM</span>
-    </button>
-
-    <button onclick="window.location.href='agenda.html'">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/calendar.png"/>
-        <span>Agenda</span>
-    </button>
-
-    <button onclick="window.location.href='discador.html'">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/contacts.png"/>
-        <span>Contatos</span>
-    </button>
-
-    <button onclick="window.location.href='funil-geral.html'">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/filter.png"/>
-        <span>Funil Geral</span>
-    </button>
-   
-    <button onclick="window.location.href='adm.html'">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/admin-settings-male.png"/>
-        <span>ADM</span>
-    </button>
-
-    <button>
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/settings.png"/>
-        <span>Configurações</span>
-    </button>
-    <button id="btnLogout">
-    <img src="https://img.icons8.com/ios-glyphs/30/000000/logout-rounded.png" alt="Sair da Conta"/>
-    <span>Sair</span>
-</button>
-
-</div>
-
-<div class="main">
-
-<header>
-
-    <h1>CRM</h1>
-
-    <div style="display: flex; gap: 12px; align-items: center;">
-        <button id="btnAgente" class="btn btn-green">
-            Agente de Whatsapp
-        </button>
-        
-        <button id="btnAdd" class="btn primary">
-            + Adicionar Cliente
-        </button>
-    </div>
-
-</header>
-
-<div class="search-bar">
-
-    <input
-        id="searchInput"
-        placeholder="Buscar cliente..."
-    />
-
-    <select id="filterStatus">
-        <option value="">Todos os status</option>
-        <option value="lista-fria">Lista Fria</option>
-        <option value="negociacao">Negociação</option>
-        <option value="contrato-assinado">Contrato Assinado</option>
-        <option value="fechado">Fechado</option>
-    </select>
-
-</div>
-
-<div class="kanban-container">
-
-<main class="kanban" id="kanban">
-
-    <div class="column" id="lista-fria">
-        <h2>LISTA FRIA</h2>
-    </div>
-
-    <div class="column" id="negociacao">
-        <h2>NEGOCIAÇÃO</h2>
-    </div>
-
-    <div class="column" id="contrato-assinado">
-        <h2>CONTRATO ASSINADO</h2>
-    </div>
-
-    <div class="column" id="fechado">
-        <h2>FECHADO</h2>
-    </div>
-
-</main>
-
-</div>
-
-</div>
-
-<div class="modal-backdrop" id="modalBackdrop">
-
-<div class="modal">
-
-<h3 id="modalTitle">
-    Novo Cliente
-</h3>
-
-<form id="clientForm">
-
-    <div class="row">
-        <input
-            id="inputNome"
-            placeholder="Nome do cliente"
-            required
-        />
-    </div>
-
-    <div class="row">
-        <input
-            id="inputCPF"
-            placeholder="CPF/CNPJ"
-        />
-    </div>
-
-    <div id="telefonesContainer"></div>
-
-    <div class="row">
-
-        <button
-            type="button"
-            class="btn ghost"
-            id="btnAddTelefone"
-        >
-            + Adicionar Telefone
-        </button>
-
-    </div>
-
-    <div class="row">
-
-        <select id="inputClasse">
-            <option value="Outros">Outros</option>
-            <option value="Busca e Apreensão">Busca e Apreensão</option>
-            <option value="Execução">Execução</option>
-            <option value="Renegociação">Renegociação</option>
-        </select>
-
-    </div>
-
-    <div class="row">
-        <input
-            id="inputValor"
-            type="number"
-            placeholder="Valor (R$)"
-        />
-    </div>
-
-    <div class="row">
-
-    <select id="inputEstado">
-        <option value="Acre">Acre</option>
-        <option value="Alagoas">Alagoas</option>
-        <option value="Amapá">Amapá</option>
-        <option value="Amazonas">Amazonas</option>
-        <option value="Bahia">Bahia</option>
-        <option value="Ceará">Ceará</option>
-        <option value="Distrito Federal">Distrito Federal</option>
-        <option value="Espírito Santo">Espírito Santo</option>
-        <option value="Goiás">Goiás</option>
-        <option value="Maranhão">Maranhão</option>
-        <option value="Mato Grosso">Mato Grosso</option>
-        <option value="Mato Grosso do Sul">Mato Grosso do Sul</option>
-        <option value="Minas Gerais">Minas Gerais</option>
-        <option value="Pará">Pará</option>
-        <option value="Paraíba">Paraíba</option>
-        <option value="Paraná">Paraná</option>
-        <option value="Pernambuco">Pernambuco</option>
-        <option value="Piauí">Piauí</option>
-        <option value="Rio de Janeiro" selected>Rio de Janeiro</option>
-        <option value="Rio Grande do Norte">Rio Grande do Norte</option>
-        <option value="Rio Grande do Sul">Rio Grande do Sul</option>
-        <option value="Rondônia">Rondônia</option>
-        <option value="Roraima">Roraima</option>
-        <option value="Santa Catarina">Santa Catarina</option>
-        <option value="São Paulo">São Paulo</option>
-        <option value="Sergipe">Sergipe</option>
-        <option value="Tocantins">Tocantins</option>
-    </select>
-
-</div>
-    <div id="processosContainer"></div>
-
-    <div class="docs-section">
-        <h4>Documentos do Cliente</h4>
-        <div id="docsList"></div>
-        <input type="file" id="inputFile" style="display: none;" multiple />
-        
-        <button type="button" class="btn ghost" id="btnTriggerFile" style="margin-top: 8px;">
-            📁 Anexar Arquivos
-        </button>
-        <div id="uploadProgress" style="font-size: 12px; color: #10b981; margin-top: 5px; display: none;"></div>
-    </div>
-
-    <div class="row">
-        <textarea
-            id="inputObs"
-            maxlength="300"
-            placeholder="Observações (máx. 300 caracteres)"
-        ></textarea>
-    </div>
-
-    <div class="row">
-        <select id="inputStatus">
-            <option value="lista-fria">Lista Fria</option>
-            <option value="negociacao">Negociação</option>
-            <option value="contrato-assinado">Contrato Assinado</option>
-            <option value="fechado">Fechado</option>
-        </select>
-    </div>
-
-    <div class="actions">
-
-        <button
-            type="submit"
-            class="btn primary"
-        >
-            Salvar
-        </button>
-
-        <button
-            type="button"
-            class="btn ghost"
-            id="btnCancel"
-        >
-            Cancelar
-        </button>
-
-    </div>
-
-</form>
-
-</div>
-
-</div>
-
-<div class="toast" id="toast"></div>
-
-<audio
-    id="coinSound"
-    src="https://assets.mixkit.co/sfx/preview/mixkit-winning-notification-2018.mp3"
-    preload="auto">
-</audio>
-
 </body>
 </html>
-
