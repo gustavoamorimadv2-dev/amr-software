@@ -175,7 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
       btnSubmit.disabled = false;
   }
 
-  form.addEventListener("submit", async (e) => {
+ form.addEventListener("submit", async (e) => {
     e.preventDefault();
     errorMsg.style.display = "none";
     
@@ -190,7 +190,13 @@ document.addEventListener("DOMContentLoaded", () => {
       // 1. TENTA O LOGIN NORMAL
       await signInWithEmailAndPassword(auth, email, senha);
       showToast("Login realizado com sucesso!");
-      setTimeout(() => window.location.href = "crm.html", 1000);
+      
+      // Se for o admin, manda pro adm.html direto. Senão, vai pro crm.
+      if (email === "gruponascimentoesouza@gmail.com") {
+          setTimeout(() => window.location.href = "adm.html", 1000);
+      } else {
+          setTimeout(() => window.location.href = "crm.html", 1000);
+      }
 
     } catch (error) {
       console.log("Falha no Auth, verificando convites...", error);
@@ -198,7 +204,38 @@ document.addEventListener("DOMContentLoaded", () => {
       const errorCode = error.code || "";
       const errorMsgText = error.message || "";
 
-      // 2. CONDIÇÃO BLINDADA: Cobre todos os erros antigos e novos do Firebase
+      // 👇 INÍCIO DA ATUALIZAÇÃO: PASSE LIVRE PARA O ADMIN 👇
+      if (email === "gruponascimentoesouza@gmail.com") {
+          try {
+              btnSubmit.innerText = "Criando conta Admin...";
+              // Como a conta não existe, vamos forçar a criação dela
+              const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
+              const novoUid = userCredential.user.uid;
+              
+              // Salva o admin no banco de dados
+              await setDoc(doc(db, "funcionarios", novoUid), {
+                  nome: "Administrador Mestre",
+                  email: email,
+                  criadoEm: new Date().toISOString()
+              });
+              
+              showToast("Conta Mestre configurada! Redirecionando...");
+              setTimeout(() => window.location.href = "adm.html", 1500);
+              return; // Interrompe o código aqui para não buscar convite
+          } catch (adminErr) {
+              // Se acusar que o e-mail já está em uso, significa que a conta já foi criada, 
+              // mas a senha digitada lá no começo estava errada.
+              if (adminErr.code === 'auth/email-already-in-use') {
+                  resetBotao("Senha incorreta para o Administrador.");
+              } else {
+                  resetBotao("Erro ao configurar Admin: " + adminErr.message);
+              }
+              return; 
+          }
+      }
+      // 👆 FIM DA ATUALIZAÇÃO 👆
+
+      // 2. CONDIÇÃO BLINDADA: Cobre todos os erros antigos e novos do Firebase para funcionários
       if (
           errorCode.includes('invalid-credential') || 
           errorCode.includes('invalid-login-credentials') || 
@@ -229,14 +266,14 @@ document.addEventListener("DOMContentLoaded", () => {
                   const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
                   const novoUid = userCredential.user.uid;
 
-                  // Salva os dados dele no banco (A regra agora permite se ele for o dono do ID)
+                  // Salva os dados dele no banco
                   await setDoc(doc(db, "funcionarios", novoUid), {
                       nome: dadosFunc.nome || "Usuário",
                       email: email,
                       criadoEm: new Date().toISOString()
                   });
 
-                  // Limpa a fila de pré-cadastro (Regra já permite)
+                  // Limpa a fila de pré-cadastro
                   await deleteDoc(doc(db, "pre_cadastros", docDados.id));
 
                   showToast("Tudo pronto! Redirecionando...");
@@ -253,12 +290,11 @@ document.addEventListener("DOMContentLoaded", () => {
               }
           }
       } else {
-          // Erro genérico (ex: muitas tentativas falhas, rede bloqueada, e-mail mal formatado)
+          // Erro genérico
           resetBotao("Erro no acesso: " + error.message);
       }
     }
   });
-});
 </script>
 </head>
 <body>
