@@ -1235,9 +1235,12 @@ document.addEventListener('DOMContentLoaded', () => {
         filtragemAplicada();
     }
 
-    /* ================= FORM SUBMIT ================= */
+    /* ================= FORM ================= */
+
     clientForm.onsubmit = async function(e){
+
         e.preventDefault();
+
         const nome = inputNome.value.trim();
 
         if(!nome){
@@ -1245,11 +1248,52 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const processos = Array.from(document.querySelectorAll('.inputProcesso'))
-            .map(input => input.value.trim()).filter(valor => valor);
+        const processos = Array.from(
+            document.querySelectorAll('.inputProcesso')
+        )
+        .map(input => input.value.trim())
+        .filter(valor => valor);
 
-        const telefones = Array.from(document.querySelectorAll('.inputTelefone'))
-            .map(input => input.value.trim()).filter(valor => valor);
+        // 👇 INÍCIO DA ATUALIZAÇÃO: VERIFICAÇÃO GLOBAL DE PROCESSO DUPLICADO 👇
+        if (processos.length > 0) {
+            // Puxa TODOS os clientes de TODOS os usuários no banco de dados
+            const queryTodos = query(collection(db, "clientes"));
+            const snapshotTodos = await getDocs(queryTodos);
+            const todosClientes = snapshotTodos.docs.map(docData => ({
+                id: docData.id,
+                ...docData.data()
+            }));
+
+            let processoDuplicado = null;
+
+            for (let proc of processos) {
+                const clienteExistente = todosClientes.find(c => {
+                    // Se estiver editando o cliente, ignora ele mesmo na checagem
+                    if (clientForm.dataset.editId && c.id === clientForm.dataset.editId) return false;
+                    
+                    // Verifica se a string de processos do cliente no banco inclui o processo digitado
+                    return c.processo && c.processo.includes(proc);
+                });
+
+                if (clienteExistente) {
+                    processoDuplicado = proc;
+                    break; // Para o loop assim que achar um repetido
+                }
+            }
+
+            // Se achou duplicata, avisa e trava o salvamento
+            if (processoDuplicado) {
+                showToast(`Erro: O processo ${processoDuplicado} já está cadastrado no sistema!`);
+                return; // Impede o envio do formulário
+            }
+        }
+        // 👆 FIM DA ATUALIZAÇÃO 👆
+
+        const telefones = Array.from(
+            document.querySelectorAll('.inputTelefone')
+        )
+        .map(input => input.value.trim())
+        .filter(valor => valor);
 
         const novo = {
             nome: nome,
@@ -1261,7 +1305,8 @@ document.addEventListener('DOMContentLoaded', () => {
             classe: inputClasse.value,
             valor: inputValor.value,
             estado: inputEstado.value,
-            documentos: currentDocs
+            documentos: currentDocs,
+            dataCadastro: new Date().toISOString()
         };
 
         if(clientForm.dataset.editId){
@@ -1276,45 +1321,6 @@ document.addEventListener('DOMContentLoaded', () => {
         closeModal();
         render();
     };
-
-    btnAdd.onclick = () => { openModal(); };
-    btnCancel.onclick = () => { closeModal(); };
-
-    /* ================= DRAG AND DROP ================= */
-    let draggedCard = null;
-
-    function addDragEvents(card){
-        card.addEventListener('dragstart', () => {
-            draggedCard = card;
-            card.style.opacity = '.5';
-        });
-
-        card.addEventListener('dragend', () => {
-            draggedCard = null;
-            card.style.opacity = '1';
-        });
-    }
-
-    document.querySelectorAll('.column').forEach(col => {
-        col.addEventListener('dragover', e => { e.preventDefault(); });
-        col.addEventListener('drop', async () => {
-            if(!draggedCard) return;
-
-            const id = draggedCard.dataset.id;
-            const status = col.id;
-            const docRef = doc(db,"clientes",id);
-
-            await updateDoc(docRef,{ status });
-
-            if(status === "fechado"){
-                coinSound.currentTime = 0;
-                coinSound.play();
-            }
-            render();
-        });
-    });
-
-});
 </script>
 </body>
 </html>
