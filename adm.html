@@ -180,11 +180,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const inputTarefaFuncId = document.getElementById('inputTarefaFuncId');
 
     // Abre Modal Funcionário
-    btnNovo.onclick = () => {
-        formFunc.reset();
-        modalFunc.style.display = 'flex';
+    if(btnNovo) {
+        btnNovo.onclick = () => {
+            formFunc.reset();
+            modalFunc.style.display = 'flex';
+        }
     }
-    btnCancelFunc.onclick = () => modalFunc.style.display = 'none';
+    if(btnCancelFunc) {
+        btnCancelFunc.onclick = () => modalFunc.style.display = 'none';
+    }
 
     window.abrirModalTarefa = (funcId, funcNome) => {
         formTarefa.reset();
@@ -194,10 +198,14 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('inputTarefaPrazo').min = hoje;
         modalTarefa.style.display = 'flex';
     };
-    btnCancelTarefa.onclick = () => modalTarefa.style.display = 'none';
+
+    if(btnCancelTarefa) {
+        btnCancelTarefa.onclick = () => modalTarefa.style.display = 'none';
+    }
 
     // Carregar Dashboard (Funcionários Ativos + Pré-cadastros Aguardando Primeiro Acesso)
     async function carregarDashboard() {
+        if(!gridFuncionarios) return;
         gridFuncionarios.innerHTML = '<p style="color: rgba(255,255,255,0.5);">Carregando dados da equipe...</p>';
 
         try {
@@ -233,7 +241,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const card = document.createElement('div');
                     card.className = 'func-card';
                     
-                    // Altera a cor do status na interface para ajudar na gestão do Admin
+                    // Altera a cor do status na interface
                     const corStatus = func.statusConta === 'Ativo' ? '#10b981' : '#f59e0b';
 
                     card.innerHTML = `
@@ -280,6 +288,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Carregar Lista de Tarefas Gerais
     async function carregarTarefas() {
+        if(!listaTarefas) return;
         listaTarefas.innerHTML = '<p style="color: rgba(255,255,255,0.5); font-size: 13px;">Carregando tarefas...</p>';
         try {
             const tarefasSnap = await getDocs(collection(db, "tarefas"));
@@ -319,132 +328,124 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ENVIAR PRÉ-CADASTRO COMPATIVEL COM LOGIN SEGURO
-    formFunc.onSubmit = async (e) => {
-        e.preventDefault();
-        const nome = document.getElementById('inputNome').value.trim();
-        const email = document.getElementById('inputEmail').value.trim().toLowerCase();
-        const senha = document.getElementById('inputSenha').value;
-        const btnSalvar = formFunc.querySelector('button[type="submit"]');
-        
-        btnSalvar.innerText = 'Salvando...';
-        btnSalvar.disabled = true;
-
-        try {
-            // Filtros de segurança locais preliminares
-            const qAtivos = await getDocs(query(collection(db, "funcionarios"), where("email", "==", email)));
-            const qPre = await getDocs(query(collection(db, "pre_cadastros"), where("email", "==", email)));
+    if(formFunc) {
+        formFunc.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nome = document.getElementById('inputNome').value.trim();
+            const email = document.getElementById('inputEmail').value.trim().toLowerCase();
+            const senha = document.getElementById('inputSenha').value;
+            const btnSalvar = formFunc.querySelector('button[type="submit"]');
             
-            if(!qAtivos.empty || !qPre.empty) {
-                showToast("Este e-mail já está cadastrado no sistema!");
+            btnSalvar.innerText = 'Salvando...';
+            btnSalvar.disabled = true;
+
+            try {
+                const qAtivos = await getDocs(query(collection(db, "funcionarios"), where("email", "==", email)));
+                const qPre = await getDocs(query(collection(db, "pre_cadastros"), where("email", "==", email)));
+                
+                if(!qAtivos.empty || !qPre.empty) {
+                    showToast("Este e-mail já está cadastrado no sistema!");
+                    btnSalvar.innerText = 'Salvar';
+                    btnSalvar.disabled = false;
+                    return;
+                }
+
+                const idGeradoTemp = doc(collection(db, "pre_cadastros")).id;
+
+                await setDoc(doc(db, "pre_cadastros", idGeradoTemp), {
+                    nome: nome,
+                    email: email,
+                    senhaPadrao: senha, 
+                    dataRegistro: new Date().toISOString()
+                });
+
+                showToast("Funcionário pré-cadastrado com sucesso!");
+                modalFunc.style.display = 'none';
+                carregarDashboard();
+            } catch (error) {
+                console.error(error);
+                showToast("Erro ao processar o pré-cadastro.");
+            } finally {
                 btnSalvar.innerText = 'Salvar';
                 btnSalvar.disabled = false;
-                return;
             }
-
-            // Cria um ID temporário seguro para o documento do link
-            const idGeradoTemp = doc(collection(db, "pre_cadastros")).id;
-
-            // Salva na ponte temporária do Firestore. O Login saberá capturar e criar o Auth limpo.
-            await setDoc(doc(db, "pre_cadastros", idGeradoTemp), {
-                nome: nome,
-                email: email,
-                senhaPadrao: senha, // Salva criptografado/pleno temporariamente para o auto-registro inicial
-                dataRegistro: new Date().toISOString()
-            });
-
-            showToast("Funcionário pré-cadastrado com sucesso!");
-            modalFunc.style.display = 'none';
-            carregarDashboard();
-        } catch (error) {
-            console.error(error);
-            showToast("Erro ao processar o pré-cadastro.");
-        } finally {
-            btnSalvar.innerText = 'Salvar';
-            btnSalvar.disabled = false;
-        }
+        });
     }
-    // Garante compatibilidade caso o onSubmit com camelCase falhe no navegador
-    formFunc.onsubmit = formFunc.onSubmit;
 
     // Salvar Nova Tarefa
-    formTarefa.onsubmit = async (e) => {
-        e.preventDefault();
-        const titulo = document.getElementById('inputTarefaTitulo').value.trim();
-        const descricao = document.getElementById('inputTarefaDesc').value.trim();
-        const prazo = document.getElementById('inputTarefaPrazo').value;
-        const funcionarioId = inputTarefaFuncId.value;
-        const btnSalvar = formTarefa.querySelector('button[type="submit"]');
+    if(formTarefa) {
+        formTarefa.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const titulo = document.getElementById('inputTarefaTitulo').value.trim();
+            const descricao = document.getElementById('inputTarefaDesc').value.trim();
+            const prazo = document.getElementById('inputTarefaPrazo').value;
+            const funcionarioId = inputTarefaFuncId.value;
+            const btnSalvar = formTarefa.querySelector('button[type="submit"]');
 
-        if(!funcionarioId) return showToast("Erro: Funcionário não identificado.");
+            if(!funcionarioId) return showToast("Erro: Funcionário não identificado.");
 
-        btnSalvar.innerText = 'Salvando...';
-        btnSalvar.disabled = true;
+            btnSalvar.innerText = 'Salvando...';
+            btnSalvar.disabled = true;
 
-        try {
-            await addDoc(collection(db, "tarefas"), {
-                titulo: titulo,
-                descricao: descricao,
-                prazo: prazo,
-                funcionarioId: funcionarioId,
-                adminId: currentUser.uid,
-                dataCriacao: new Date().toISOString(),
-                status: 'pendente'
-            });
+            try {
+                await addDoc(collection(db, "tarefas"), {
+                    titulo: titulo,
+                    descricao: descricao,
+                    prazo: prazo,
+                    funcionarioId: funcionarioId,
+                    adminId: currentUser.uid,
+                    dataCriacao: new Date().toISOString(),
+                    status: 'pendente'
+                });
 
-            showToast("Tarefa enviada para o funcionário!");
-            modalTarefa.style.display = 'none';
-            carregarTarefas();
-        } catch (error) {
-            console.error(error);
-            showToast("Erro ao delegar tarefa.");
-        } finally {
-            btnSalvar.innerText = 'Salvar Tarefa';
-            btnSalvar.disabled = false;
-        }
+                showToast("Tarefa enviada para o funcionário!");
+                modalTarefa.style.display = 'none';
+                carregarTarefas();
+            } catch (error) {
+                console.error(error);
+                showToast("Erro ao delegar tarefa.");
+            } finally {
+                btnSalvar.innerText = 'Salvar Tarefa';
+                btnSalvar.disabled = false;
+            }
+        });
     }
 
-   /* ================= LOGIN E CONTROLE DE MENU ================= */
+    // ================= VERIFICAÇÃO DE ACESSO RESTRITO ADM =================
     onAuthStateChanged(auth, user => {
         if(user){
-            currentUser = user;
-            
-            // TRAVA DA SIDEBAR: Só mostra se for o email do admin
-            const sidebar = document.querySelector('.sidebar');
-            if (sidebar) {
-                if (user.email && user.email.toLowerCase() === "gruponascimentoesouza@gmail.com") {
-                    sidebar.style.display = 'flex'; // Mostra a barra lateral
-                } else {
-                    sidebar.style.display = 'none'; // Garante que fique escondida para os funcionários
+            // Verifica se é o admin master
+            if(user.email && user.email.toLowerCase() === "gruponascimentoesouza@gmail.com") {
+                currentUser = user;
+                
+                // Libera a barra lateral (Sidebar) para o Administrador
+                if(sidebar) {
+                    sidebar.style.display = 'flex';
                 }
+                
+                // Carrega os dados da tela
+                carregarDashboard();
+            } else {
+                // Se for funcionário, chuta para o CRM
+                alert("⛔ Acesso Negado: Esta página é restrita apenas para a Administração.");
+                window.location.href = "crm.html"; 
             }
-
-            // EXIBE O EMAIL DO USUÁRIO LOGADO NO TOPO
-            const emailDisplay = document.getElementById('userEmailDisplay');
-            if (emailDisplay) {
-                emailDisplay.innerHTML = `👤 ${user.email}`;
-            }
-
-            // Continua carregando os dados da página
-            if (typeof render === "function") render(); 
-            if (typeof carregarDashboard === "function") carregarDashboard();
-
         }else{
             window.location.href = "login.html";
         }
     });
+
+});
 </script>
 </head>
 <body>
 
+<!-- SIDEBAR COM DISPLAY NONE POR PADRÃO -->
 <div class="sidebar" style="display: none;">
     <h2 onclick="window.location.href='dashboard.html'">AMR ADV</h2>
     <button onclick="window.location.href='crm.html'">
         <img src="https://img.icons8.com/ios-filled/50/ffffff/dashboard.png"/>
         <span>CRM</span>
-    </button>
-    <button onclick="window.location.href='relatorios.html'">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/combo-chart.png"/>
-        <span>Relatórios</span>
     </button>
     <button onclick="window.location.href='agenda.html'">
         <img src="https://img.icons8.com/ios-filled/50/ffffff/calendar.png"/>
@@ -454,11 +455,11 @@ document.addEventListener('DOMContentLoaded', () => {
         <img src="https://img.icons8.com/ios-filled/50/ffffff/manager.png"/>
         <span>Painel ADM</span>
     </button>
-        <button onclick="window.location.href='andamento.html'">
+    <button onclick="window.location.href='andamento.html'">
         <img src="https://img.icons8.com/ios-filled/50/ffffff/task.png"/>
         <span>Andamento</span>
     </button>
-      <button onclick="window.location.href='processos.html'">
+    <button onclick="window.location.href='processos.html'">
         <img src="https://img.icons8.com/ios-filled/50/ffffff/file.png"/>
         <span>Processos</span>
     </button>
@@ -466,11 +467,10 @@ document.addEventListener('DOMContentLoaded', () => {
         <img src="https://img.icons8.com/ios-filled/50/ffffff/user-group-man-man.png"/>
         <span>Clientes</span>
     </button>
-        <button onclick="window.location.href='relatorios.html'">
+    <button onclick="window.location.href='relatorios.html'">
         <img src="https://img.icons8.com/ios-filled/50/ffffff/combo-chart.png"/>
         <span>Relatórios</span>
     </button>
-    
 </div>
 
 <div class="main">
