@@ -1281,7 +1281,7 @@ document.addEventListener('DOMContentLoaded', () => {
         filtragemAplicada();
     }
 
-    /* ================= FORM ================= */
+   /* ================= FORM ================= */
 
     clientForm.onsubmit = async function(e){
 
@@ -1299,6 +1299,41 @@ document.addEventListener('DOMContentLoaded', () => {
         )
         .map(input => input.value.trim())
         .filter(valor => valor);
+
+        // 👇 INÍCIO DA ATUALIZAÇÃO: VERIFICAÇÃO GLOBAL DE PROCESSO DUPLICADO 👇
+        if (processos.length > 0) {
+            // Puxa TODOS os clientes de TODOS os usuários no banco de dados
+            const queryTodos = query(collection(db, "clientes"));
+            const snapshotTodos = await getDocs(queryTodos);
+            const todosClientes = snapshotTodos.docs.map(docData => ({
+                id: docData.id,
+                ...docData.data()
+            }));
+
+            let processoDuplicado = null;
+
+            for (let proc of processos) {
+                const clienteExistente = todosClientes.find(c => {
+                    // Se estiver editando o cliente, ignora ele mesmo na checagem
+                    if (clientForm.dataset.editId && c.id === clientForm.dataset.editId) return false;
+                    
+                    // Verifica se a string de processos do cliente no banco inclui o processo digitado
+                    return c.processo && c.processo.includes(proc);
+                });
+
+                if (clienteExistente) {
+                    processoDuplicado = proc;
+                    break; // Para o loop assim que achar um repetido
+                }
+            }
+
+            // Se achou duplicata, avisa e trava o salvamento
+            if (processoDuplicado) {
+                showToast(`Erro: O processo ${processoDuplicado} já está cadastrado no sistema!`);
+                return; // Impede o envio do formulário
+            }
+        }
+        // 👆 FIM DA ATUALIZAÇÃO 👆
 
         const telefones = Array.from(
             document.querySelectorAll('.inputTelefone')
@@ -1331,14 +1366,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         closeModal();
         render();
-    };
-
-    btnAdd.onclick = () => {
-        openModal();
-    };
-
-    btnCancel.onclick = () => {
-        closeModal();
     };
 
     /* ================= DRAG AND DROP MELHORADO ================= */
