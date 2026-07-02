@@ -403,20 +403,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-   /* ================= VERIFICAÇÃO DE ACESSO RESTRITO ADM ================= */
+   /* ================= LOGIN E CONTROLE DE MENU ================= */
     onAuthStateChanged(auth, user => {
         if(user){
-            // Verifica se o e-mail logado é exatamente o autorizado
-            if(user.email && user.email.toLowerCase() === "gruponascimentoesouza@gmail.com") {
-                currentUser = user;
-                carregarDashboard();
-            } else {
-                // Se for outro funcionário, mostra alerta e chuta de volta pro CRM
-                alert("⛔ Acesso Negado: Esta página é restrita apenas para a Administração.");
-                window.location.href = "crm.html"; 
+            currentUser = user;
+            
+            // TRAVA DA SIDEBAR: Só mostra se for o email do admin
+            const sidebar = document.querySelector('.sidebar');
+            if (sidebar) {
+                if (user.email && user.email.toLowerCase() === "gruponascimentoesouza@gmail.com") {
+                    sidebar.style.display = 'flex'; // Mostra a barra lateral
+                } else {
+                    sidebar.style.display = 'none'; // Garante que fique escondida para os funcionários
+                }
             }
+
+            // EXIBE O EMAIL DO USUÁRIO LOGADO NO TOPO
+            const emailDisplay = document.getElementById('userEmailDisplay');
+            if (emailDisplay) {
+                emailDisplay.innerHTML = `👤 ${user.email}`;
+            }
+
+            // Continua carregando os dados da página
+            if (typeof render === "function") render(); 
+            if (typeof carregarDashboard === "function") carregarDashboard();
+
         }else{
-            // Se ninguém estiver logado, manda pro login
             window.location.href = "login.html";
         }
     });
@@ -424,7 +436,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </head>
 <body>
 
-<div class="sidebar">
+<div class="sidebar" style="display: none;">
     <h2 onclick="window.location.href='dashboard.html'">AMR ADV</h2>
     <button onclick="window.location.href='crm.html'">
         <img src="https://img.icons8.com/ios-filled/50/ffffff/dashboard.png"/>
