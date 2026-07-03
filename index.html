@@ -36,7 +36,6 @@ body{
     display:flex;
     height:100vh;
     overflow:hidden;
-    /* Fundo Escuro com Gradientes */
     background:
         radial-gradient(circle at top left,#2f3f73 0%,transparent 30%),
         radial-gradient(circle at bottom right,#0f766e 0%,transparent 25%),
@@ -56,7 +55,6 @@ body{
     transition:width 0.4s ease;
     position:relative;
     z-index:10;
-    /* Efeito Glassmorphism */
     backdrop-filter:blur(30px);
     background:rgba(255,255,255,0.06);
     border-right:1px solid rgba(255,255,255,0.08);
@@ -338,11 +336,14 @@ select option {
     font-weight: 600;
 }
 
-.dia-1 .color-bar{ background:#3b82f6; }
-.dia-2 .color-bar{ background:#10b981; }
-.dia-3 .color-bar{ background:#f59e0b; }
-.dia-4 .color-bar{ background:#8b5cf6; }
-.dia-5 .color-bar{ background:#ef4444; }
+/* CORES DOS CARDS */
+.lista-fria .color-bar{ background:#3b82f6; } /* Azul */
+.dia-2 .color-bar{ background:#10b981; } /* Verde claro */
+.dia-3 .color-bar{ background:#f59e0b; } /* Amarelo */
+.dia-4 .color-bar{ background:#8b5cf6; } /* Roxo */
+.dia-5 .color-bar{ background:#ef4444; } /* Vermelho */
+.contrato-assinado .color-bar{ background:#0284c7; } /* Azul escuro */
+.fechado .color-bar{ background:#16a34a; } /* Verde escuro */
 
 .card-actions{
     position:absolute;
@@ -677,12 +678,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Colunas Ajustadas
     const STATUS = [
-        'dia-1',
+        'lista-fria',
         'dia-2',
         'dia-3',
         'dia-4',
-        'dia-5'
+        'dia-5',
+        'contrato-assinado',
+        'fechado'
     ];
 
     const cardsMap = {};
@@ -849,12 +853,12 @@ document.addEventListener('DOMContentLoaded', () => {
             btnCarregarFila.innerText = "Carregando...";
             const clientes = await getClientes();
             
-            const listaFria = clientes.filter(c => c.status === 'dia-1' && c.numeros);
+            const listaFria = clientes.filter(c => c.status === 'lista-fria' && c.numeros);
 
-            btnCarregarFila.innerText = "Carregar Dia 1";
+            btnCarregarFila.innerText = "Carregar Lista Fria";
 
             if (listaFria.length === 0) {
-                showToast("Nenhum cliente com telefone no Dia 1.");
+                showToast("Nenhum cliente com telefone na Lista Fria.");
                 agenteFilaContainer.style.display = 'none';
                 return;
             }
@@ -1028,7 +1032,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             clientForm.dataset.editId = data.id;
 
-            // Mostrar campos escondidos (Criado por, Fechado por, Dia do pipeline, Data Criação)
             infoExtra.style.display = 'block';
             const dataCadStr = data.dataCadastro ? new Date(data.dataCadastro).toLocaleString('pt-BR') : 'Desconhecida';
             const diaCalc = getDiaPipeline(data.dataCadastro);
@@ -1149,7 +1152,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function criarCard(cliente){
 
-        const status = cliente.status || 'dia-1';
+        const status = cliente.status || 'lista-fria';
 
         const col = document.getElementById(status);
 
@@ -1164,6 +1167,9 @@ document.addEventListener('DOMContentLoaded', () => {
         card.dataset.id = cliente.id;
         card.dataset.status = status;
         card.dataset.nome = cliente.nome.toLowerCase();
+        
+        // Verifica na renderização se o card possui documento anexado para liberação do arraste
+        card.dataset.hasDocs = (Array.isArray(cliente.documentos) && cliente.documentos.length > 0) ? 'true' : 'false';
 
         card.draggable = true;
 
@@ -1303,17 +1309,19 @@ document.addEventListener('DOMContentLoaded', () => {
         STATUS.forEach(status => {
             const col = document.getElementById(status);
             
-            if (status === 'dia-1') {
+            if (status === 'lista-fria') {
                 col.innerHTML = `
                     <div class="col-header-actions">
-                        <h2 style="margin-bottom:0;">DIA 1</h2>
+                        <h2 style="margin-bottom:0;">LISTA FRIA</h2>
                         <button class="btn-robot" title="Ativar Robô" onclick="document.getElementById('btnAgente').click()">
                             <img src="https://img.icons8.com/ios-glyphs/30/000000/bot.png" alt="Robô"/>
                         </button>
                     </div>
                 `;
+            } else if (status === 'dia-2') {
+                col.innerHTML = `<h2>EM NEGOCIAÇÃO (DIA 2)</h2>`;
             } else {
-                col.innerHTML = `<h2>${status.replace('-',' ').toUpperCase()}</h2>`;
+                col.innerHTML = `<h2>${status.replace('-', ' ').toUpperCase()}</h2>`;
             }
         });
 
@@ -1329,18 +1337,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 cliente.dataCadastro = new Date().toISOString();
             }
 
+            // Normalização para dados antigos caso tenha salvado como dia-1
+            if (cliente.status === 'dia-1') {
+                cliente.status = 'lista-fria';
+            }
+
             const diaCalc = getDiaPipeline(cliente.dataCadastro);
 
-            if (diaCalc > 5) {
+            // Respeita o envio pro Funil Geral se passar de 5 dias e não estiver contratado/fechado
+            if (diaCalc > 5 && cliente.status !== 'contrato-assinado' && cliente.status !== 'fechado') {
                 if (cliente.status !== 'funil-geral') {
                     cliente.status = 'funil-geral';
                     const docRef = doc(db, "clientes", cliente.id);
                     updateDoc(docRef, { status: 'funil-geral' });
                 }
                 continue; 
-            } else {
-                const statusCalc = `dia-${diaCalc}`;
-                if (cliente.status !== statusCalc && cliente.status !== 'funil-geral') {
+            }
+
+            // Se o card NÃO foi avançado manualmente para Contrato Assinado ou Fechado, o CRM movimenta os dias sozinho
+            if (cliente.status !== 'contrato-assinado' && cliente.status !== 'fechado' && cliente.status !== 'funil-geral') {
+                let statusCalc = 'lista-fria';
+                if (diaCalc === 2) statusCalc = 'dia-2';
+                else if (diaCalc === 3) statusCalc = 'dia-3';
+                else if (diaCalc === 4) statusCalc = 'dia-4';
+                else if (diaCalc === 5) statusCalc = 'dia-5';
+                
+                if (cliente.status !== statusCalc) {
                     cliente.status = statusCalc;
                     const docRef = doc(db, "clientes", cliente.id);
                     updateDoc(docRef, { status: statusCalc });
@@ -1374,7 +1396,6 @@ document.addEventListener('DOMContentLoaded', () => {
         .map(input => input.value.trim())
         .filter(valor => valor);
 
-        // 👇 INÍCIO DA ATUALIZAÇÃO: VERIFICAÇÃO GLOBAL DE PROCESSO DUPLICADO 👇
         if (processos.length > 0) {
             const queryTodos = query(collection(db, "clientes"));
             const snapshotTodos = await getDocs(queryTodos);
@@ -1402,7 +1423,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 return; 
             }
         }
-        // 👆 FIM DA ATUALIZAÇÃO 👆
 
         const telefones = Array.from(
             document.querySelectorAll('.inputTelefone')
@@ -1431,13 +1451,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 novo.criadoPor = antigo.criadoPor || "";
                 novo.fechadoPor = antigo.fechadoPor || "";
                 novo.dataCadastro = antigo.dataCadastro || new Date().toISOString();
-                novo.status = antigo.status || "dia-1";
+                novo.status = antigo.status || "lista-fria";
             }
             await saveCliente(novo);
             showToast("Cliente atualizado!");
         }else{
             novo.dataCadastro = new Date().toISOString();
-            novo.status = "dia-1";
+            novo.status = "lista-fria";
             await saveCliente(novo);
             showToast("Cliente adicionado!");
         }
@@ -1446,7 +1466,7 @@ document.addEventListener('DOMContentLoaded', () => {
         render();
     };
 
-    /* ================= DRAG AND DROP MELHORADO ================= */
+    /* ================= DRAG AND DROP MELHORADO COM REGRAS E BLOQUEIOS ================= */
 
     let draggedCard = null;
 
@@ -1490,7 +1510,49 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            showToast("O CRM agora é automático. Os cards movem sozinhos a cada 24h.");
+            const novoStatus = col.id;
+            const currentStatus = draggedCard.dataset.status;
+            const hasDocs = draggedCard.dataset.hasDocs === 'true';
+
+            // Mesma coluna
+            if (novoStatus === currentStatus) return;
+
+            // Regra: Fechado não pode ser retrocedido
+            if (currentStatus === 'fechado') {
+                showToast("Negado: Um contrato 'Fechado' não pode retroceder no funil.");
+                return;
+            }
+
+            // Regra: Funcionário só arrasta para contrato-assinado ou fechado.
+            if (novoStatus !== 'contrato-assinado' && novoStatus !== 'fechado') {
+                showToast("Avanço automático! Você só tem permissão para arrastar manualmente para 'Contrato Assinado' ou 'Fechado'.");
+                return;
+            }
+
+            // Regra: Contrato Assinado EXIGE documento
+            if (novoStatus === 'contrato-assinado') {
+                if (!hasDocs) {
+                    showToast("Bloqueado: Para mover para 'Contrato Assinado', você deve anexar o documento do cliente no card.");
+                    return;
+                }
+            }
+
+            // Regra: Fechado EXIGE vir de contrato-assinado
+            if (novoStatus === 'fechado') {
+                if (currentStatus !== 'contrato-assinado') {
+                    showToast("Bloqueado: O card precisa passar primeiro por 'Contrato Assinado' antes de ser finalizado.");
+                    return;
+                }
+            }
+
+            // Se passou em todas as regras de bloqueio, atualiza
+            const docRef = doc(db, "clientes", draggedCard.dataset.id);
+            await updateDoc(docRef, { 
+                status: novoStatus,
+                fechadoPor: novoStatus === 'fechado' ? (currentUser ? currentUser.email : '') : ""
+            });
+            
+            showToast("Sucesso! Card movimentado e salvo.");
             render();
         });
     });
@@ -1612,11 +1674,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     <select id="filterStatus">
         <option value="">Todos os status</option>
-        <option value="dia-1">Dia 1</option>
+        <option value="lista-fria">Lista Fria</option>
         <option value="dia-2">Dia 2</option>
         <option value="dia-3">Dia 3</option>
         <option value="dia-4">Dia 4</option>
         <option value="dia-5">Dia 5</option>
+        <option value="contrato-assinado">Contrato Assinado</option>
+        <option value="fechado">Fechado</option>
     </select>
 
 </div>
@@ -1625,24 +1689,32 @@ document.addEventListener('DOMContentLoaded', () => {
 
 <main class="kanban" id="kanban">
 
-    <div class="column" id="dia-1">
-        <h2>DIA 1</h2>
+    <div class="column" id="lista-fria">
+        <!-- Renderizado pelo script -->
     </div>
 
     <div class="column" id="dia-2">
-        <h2>DIA 2</h2>
+        <!-- Renderizado pelo script -->
     </div>
 
     <div class="column" id="dia-3">
-        <h2>DIA 3</h2>
+        <!-- Renderizado pelo script -->
     </div>
 
     <div class="column" id="dia-4">
-        <h2>DIA 4</h2>
+        <!-- Renderizado pelo script -->
     </div>
 
     <div class="column" id="dia-5">
-        <h2>DIA 5</h2>
+        <!-- Renderizado pelo script -->
+    </div>
+
+    <div class="column" id="contrato-assinado">
+        <!-- Renderizado pelo script -->
+    </div>
+
+    <div class="column" id="fechado">
+        <!-- Renderizado pelo script -->
     </div>
 
 </main>
@@ -1748,7 +1820,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
 
         <div class="actions">
-            <button class="btn primary" id="btnCarregarFila">Carregar Dia 1</button>
+            <button class="btn primary" id="btnCarregarFila">Carregar Lista Fria</button>
             <button class="btn ghost" id="btnFecharAgente">Fechar</button>
         </div>
 
