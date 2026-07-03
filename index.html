@@ -625,7 +625,8 @@ import {
 
 import {
     getAuth,
-    onAuthStateChanged
+    onAuthStateChanged,
+    signOut
 } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
 
 import {
@@ -700,6 +701,31 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const btnAdd = document.getElementById('btnAdd');
     const btnCancel = document.getElementById('btnCancel');
+    
+    // Configuração dos botões Adicionar e Cancelar que não estavam funcionando
+    if(btnAdd){
+        btnAdd.onclick = () => {
+            openModal(false);
+        };
+    }
+    
+    if(btnCancel){
+        btnCancel.onclick = () => {
+            closeModal();
+        };
+    }
+
+    // Configuração do botão Sair
+    const btnSair = document.getElementById('btnSair');
+    if (btnSair) {
+        btnSair.onclick = () => {
+            signOut(auth).then(() => {
+                window.location.href = "login.html";
+            }).catch((error) => {
+                showToast("Erro ao sair: " + error.message);
+            });
+        };
+    }
 
     const searchInput = document.getElementById('searchInput');
     const filterStatus = document.getElementById('filterStatus');
@@ -1512,6 +1538,12 @@ document.addEventListener('DOMContentLoaded', () => {
     <button>
         <img src="https://img.icons8.com/ios-filled/50/ffffff/settings.png"/>
         <span>Configurações</span>
+    </button>
+
+    <!-- NOVO BOTÃO DE SAIR -->
+    <button id="btnSair" style="margin-top: auto; margin-bottom: 20px;">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/exit.png"/>
+        <span>Sair</span>
     </button>
 
 </div>
