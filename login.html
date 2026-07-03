@@ -3,1735 +3,331 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CRM AMR ADV</title>
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
+<title>Login - CRM AMR ADV</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&display=swap" rel="stylesheet">
 <style>
-
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:'Inter',sans-serif;
-}
-
-/* Custom Scrollbar */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.02); 
-}
-::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1); 
-    border-radius: 10px;
-}
-::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2); 
-}
-
-body{
-    display:flex;
-    height:100vh;
-    overflow:hidden;
-    /* Fundo Escuro com Gradientes */
-    background:
-        radial-gradient(circle at top left,#2f3f73 0%,transparent 30%),
-        radial-gradient(circle at bottom right,#0f766e 0%,transparent 25%),
-        linear-gradient(135deg,#0f172a,#111827,#020617);
-    color: #fff;
-}
-
-/* ================= SIDEBAR ================= */
-
-.sidebar{
-    width:80px;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    padding:20px 0;
-    flex-shrink:0;
-    transition:width 0.4s ease;
-    position:relative;
-    z-index:10;
-    /* Efeito Glassmorphism */
-    backdrop-filter:blur(30px);
-    background:rgba(255,255,255,0.06);
-    border-right:1px solid rgba(255,255,255,0.08);
-    box-shadow:0 0 40px rgba(0,0,0,0.25);
-}
-
-.sidebar.expanded{
-    width:240px;
-}
-
-.sidebar h2{
-    font-size:22px;
-    font-weight:800;
-    color:#fff;
-    letter-spacing:1px;
-    margin-bottom:30px;
-    text-align:center;
-    cursor:pointer;
-    width:100%;
-    white-space:nowrap;
-    overflow:hidden;
-    transition:opacity 0.3s;
-    opacity:0;
-}
-
-.sidebar.expanded h2{
-    opacity:1;
-}
-
-.sidebar button{
-    width:calc(100% - 20px);
-    background:transparent;
-    border:none;
-    color:rgba(255,255,255,0.7);
-    display:flex;
-    align-items:center;
-    gap:15px;
-    padding:12px 15px;
-    margin:5px 10px;
-    cursor:pointer;
-    border-radius:14px;
-    transition:all 0.3s;
-    font-size:14px;
-    white-space:nowrap;
-    overflow:hidden;
-}
-
-.sidebar button img{
-    width:24px;
-    height:24px;
-    filter:invert(1) opacity(0.7);
-    flex-shrink:0;
-    transition:transform 0.3s, filter 0.3s;
-}
-
-.sidebar button span{
-    display:inline-block;
-    opacity:0;
-    transition:opacity 0.3s;
-    font-weight:600;
-}
-
-.sidebar.expanded button span{
-    opacity:1;
-}
-
-.sidebar button:hover img{
-    transform:scale(1.1);
-    filter:invert(1) opacity(1);
-}
-
-.sidebar button:hover{
-    background:rgba(255,255,255,0.1);
-    color:#fff;
-}
-
-/* ================= MAIN ================= */
-
-.main{
-    flex:1;
-    display:flex;
-    flex-direction:column;
-    overflow:hidden;
-    transition:filter 0.3s;
-}
-
-.main.blur{
-    filter:blur(5px) brightness(0.7);
-}
-
-header{
-    height:70px;
-    background:transparent;
-    border-bottom:1px solid rgba(255,255,255,0.08);
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:0 30px;
-    flex-shrink:0;
-}
-
-header h1{
-    font-size:24px;
-    color:#fff;
-    font-weight:800;
-}
-
-.user-info {
-    font-size: 13px;
-    color: rgba(255, 255, 255, 0.8);
-    background: rgba(255, 255, 255, 0.05);
-    padding: 6px 12px;
-    border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-/* ================= SEARCH ================= */
-
-.search-bar{
-    padding:15px 30px;
-    background:transparent;
-    border-bottom:1px solid rgba(255,255,255,0.08);
-    display:flex;
-    gap:15px;
-    align-items:center;
-    flex-shrink:0;
-}
-
-.search-bar input,
-.search-bar select,
-.modal input,
-.modal textarea,
-.modal select {
-    padding:12px 16px;
-    background:rgba(255,255,255,0.08);
-    border:1px solid rgba(255,255,255,0.1);
-    border-radius:12px;
-    color:#fff;
-    font-size: 14px;
-    outline: none;
-    transition: 0.3s;
-    backdrop-filter: blur(10px);
-}
-
-.search-bar input:focus,
-.search-bar select:focus,
-.modal input:focus,
-.modal textarea:focus,
-.modal select:focus {
-    background:rgba(255,255,255,0.15);
-    border-color: rgba(255,255,255,0.3);
-}
-
-.search-bar input::placeholder,
-.modal input::placeholder,
-.modal textarea::placeholder {
-    color: rgba(255,255,255,0.5);
-}
-
-.search-bar input{
-    flex:1;
-}
-
-select option {
-    background: #111827;
-    color: #fff;
-}
-
-/* ================= KANBAN ================= */
-
-.kanban-container{
-    flex:1;
-    overflow-x:auto;
-    padding:20px 30px;
-}
-
-.kanban{
-    display:flex;
-    gap:20px;
-    min-width:max-content;
-    height:100%;
-}
-
-.column{
-    background:rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.05);
-    backdrop-filter: blur(10px);
-    border-radius:20px;
-    padding:15px;
-    min-width:320px;
-    max-height:100%;
-    display:flex;
-    flex-direction:column;
-    gap:15px;
-    overflow-y:auto;
-    /* Transições suaves para a interação de drag and drop */
-    transition: background-color 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
-}
-
-/* Feedback visual quando arrastar um card por cima da coluna */
-.column.drag-over {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.3);
-    transform: scale(1.02);
-}
-
-.column h2{
-    margin-bottom:10px;
-    font-size:14px;
-    color:#fff;
-    font-weight: 700;
-    letter-spacing: 1px;
-    opacity: 0.8;
-    pointer-events: none; /* Previne bug visual no drag and drop */
-}
-
-/* ================= CARDS ================= */
-
-.card{
-    display:flex;
-    background:rgba(255,255,255,0.07);
-    border: 1px solid rgba(255,255,255,0.08);
-    backdrop-filter: blur(15px);
-    border-radius:16px;
-    box-shadow:0 8px 30px rgba(0,0,0,0.2);
-    cursor:pointer;
-    overflow:hidden;
-    transition:transform 0.2s, background 0.2s;
-    position:relative;
-    flex-direction:row;
-    width:100%;
-    min-height:200px;
-}
-
-.card:hover{
-    transform:translateY(-4px);
-    background:rgba(255,255,255,0.1);
-}
-
-/* Feedback visual do card sendo arrastado */
-.card.dragging {
-    opacity: 0.4;
-    transform: scale(0.95);
-}
-
-.card .color-bar{
-    width:6px;
-    height:100%;
-    border-radius:16px 0 0 16px;
+* { margin:0; padding:0; box-sizing:border-box; font-family: 'Segoe UI', sans-serif; }
+
+body {
+  display:flex;
+  min-height:100vh;
+  background:#000;
+}
+
+/* SIDEBAR LOGIN */
+.sidebar-login {
+  width:400px;
+  background:#1e1e2f;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:40px;
+  color:#fff;
+  z-index:2;
+  position:relative;
+}
+
+.sidebar-login h1 {
+  font-family:'Poppins', sans-serif;
+  font-size:28px;
+  margin-bottom:10px;
+  text-align:center;
+}
+
+.sidebar-login p {
+  font-size:14px;
+  text-align:center;
+  margin-bottom:30px;
+  color:#bbb;
+}
+
+.input-group {
+  display:flex;
+  flex-direction:column;
+  gap:15px;
+}
+
+.input-group input {
+  padding:12px;
+  border-radius:10px;
+  border:none;
+  font-size:15px;
+  outline:none;
+}
+
+button {
+  padding:12px;
+  background:#fff;
+  color:#1e1e2f;
+  border:none;
+  border-radius:10px;
+  font-size:16px;
+  cursor:pointer;
+  transition:all 0.3s ease;
+}
+button:hover { background:#eaeaea; }
+button:disabled { background: #ccc; cursor: not-allowed; }
+
+.error {
+  color:#ff7675;
+  font-size:13px;
+  display:none;
+  margin-top: 5px;
+  line-height: 1.4;
+}
+
+/* ÁREA DO VÍDEO */
+.video-container {
+  flex:1;
+  position:relative;
+  overflow:hidden;
+}
+
+.video-container video {
+  position:absolute;
+  top:50%;
+  left:50%;
+  min-width:100%;
+  min-height:100%;
+  transform:translate(-50%, -50%);
+  object-fit:cover;
+  filter:brightness(0.5);
+}
+
+/* TEXTO NO TOPO DO VÍDEO */
+.video-overlay {
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  padding:30px 0;
+  text-align:center;
+  z-index:2;
+}
+
+.video-overlay h2 {
+  font-size:28px;
+  font-family:'Poppins', sans-serif;
+  font-weight:600;
+  color:#fff;
+  text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+}
+
+.toast {
+  position:fixed;
+  bottom:20px;
+  right:20px;
+  background:#222;
+  color:#fff;
+  padding:12px 20px;
+  border-radius:8px;
+  display:none;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  z-index: 999;
 }
-
-.card-content{
-    padding:20px;
-    flex:1;
-    display:flex;
-    flex-direction:column;
-    justify-content:flex-start;
-    overflow:hidden;
-    min-width: 0;
-}
-
-.card h3{
-    font-size:18px;
-    margin-bottom:12px;
-    color:#fff;
-    font-weight: 700;
-    padding-right: 80px; 
-    word-break: break-word; 
-}
-
-.card p{
-    font-size:13px;
-    color:rgba(255,255,255,0.7);
-    margin:5px 0;
-}
-
-.card p strong {
-    color: #fff;
-    font-weight: 600;
-}
-
-.lista-fria .color-bar{ background:#3b82f6; }
-.negociacao .color-bar{ background:#f59e0b; }
-.contrato-assinado .color-bar{ background:#8b5cf6; }
-.fechado .color-bar{ background:#10b981; }
-
-.card-actions{
-    position:absolute;
-    top:15px;
-    right:15px;
-    display:flex;
-    gap:10px;
-}
-
-.card-actions button{
-    background:rgba(255,255,255,0.1);
-    border:1px solid rgba(255,255,255,0.05);
-    border-radius: 8px;
-    cursor:pointer;
-    padding:6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: 0.3s;
-}
-
-.card-actions img{
-    width:16px;
-    height:16px;
-    filter:invert(1); 
-    opacity:0.8;
-    transition:opacity 0.2s;
-}
-
-.card-actions button:hover{
-    background:rgba(255,255,255,0.2);
-}
-.card-actions button:hover img{
-    opacity:1;
-}
-
-/* ================= MODAIS ================= */
-
-.modal-backdrop{
-    display:none;
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,0.6);
-    backdrop-filter: blur(8px);
-    justify-content:center;
-    align-items:center;
-    z-index:50;
-}
-
-.modal{
-    background:#0f172a;
-    border: 1px solid rgba(255,255,255,0.1);
-    padding:24px;
-    border-radius:24px;
-    min-width:320px;
-    max-width:500px;
-    width:100%;
-    box-shadow:0 20px 50px rgba(0,0,0,0.5);
-    max-height:90vh;
-    overflow-y:auto;
-}
-
-.modal h3{
-    margin-bottom:20px;
-    font-size: 20px;
-    font-weight: 700;
-}
-
-.modal .row{
-    margin-bottom:14px;
-}
-
-.modal input,
-.modal textarea,
-.modal select{
-    width:100%;
-}
-
-.modal textarea{
-    min-height:100px;
-    resize:vertical;
-}
-
-.modal .actions{
-    display:flex;
-    gap:10px;
-    justify-content:flex-end;
-    margin-top:20px;
-}
-
-/* ================= BUTTONS ================= */
-
-.btn{
-    padding:10px 18px;
-    border-radius:12px;
-    border:0;
-    cursor:pointer;
-    font-weight: 600;
-    font-size: 14px;
-    transition: 0.3s;
-}
-
-.btn.primary{
-    background:#fff;
-    color:#111827;
-}
-
-.btn.primary:hover{
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(255,255,255,0.2);
-}
-
-.btn.ghost{
-    background:rgba(255,255,255,0.12);
-    color:#fff;
-}
-
-.btn.ghost:hover{
-    background:rgba(255,255,255,0.2);
-}
-
-.btn-green {
-    background: #10b981;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-}
-
-.btn-green:hover {
-    background: #059669;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
-}
-
-/* ================= DINÂMICOS ================= */
-
-.processo-row{
-    display:flex;
-    gap:8px;
-    margin-bottom:10px;
-}
-
-.processo-row input{
-    flex:1;
-}
-
-/* ================= TOAST ================= */
-
-.toast{
-    position:fixed;
-    right:30px;
-    bottom:30px;
-    background:rgba(255,255,255,0.1);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.1);
-    color:#fff;
-    padding:12px 20px;
-    border-radius:12px;
-    box-shadow:0 10px 30px rgba(0,0,0,.4);
-    display:none;
-    z-index:60;
-    font-weight: 500;
-}
-
-/* ================= DOCUMENTOS UPLOAD ================= */
-.docs-section {
-    border: 1px dashed rgba(255,255,255,0.2);
-    background: rgba(255,255,255,0.03);
-    padding: 15px;
-    border-radius: 12px;
-    margin-bottom: 14px;
-}
-.docs-section h4 {
-    font-size: 14px;
-    margin-bottom: 12px;
-    color: #fff;
-}
-.doc-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: rgba(255,255,255,0.08);
-    padding: 10px;
-    border-radius: 8px;
-    margin-bottom: 8px;
-    font-size: 13px;
-}
-.doc-item a {
-    color: #60a5fa;
-    text-decoration: none;
-    word-break: break-all;
-    flex: 1;
-}
-.doc-item a:hover {
-    text-decoration: underline;
-}
-.doc-item button {
-    background: transparent;
-    border: none;
-    color: #ef4444;
-    cursor: pointer;
-    font-weight: bold;
-    padding: 4px 8px;
-    border-radius: 4px;
-    transition: 0.2s;
-    margin-left: 10px;
-}
-.doc-item button:hover {
-    background: rgba(239, 68, 68, 0.1);
-}
-
-.col-header-actions {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-}
-.btn-robot {
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.05);
-    border-radius: 8px;
-    cursor: pointer;
-    padding: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: 0.3s;
-}
-.btn-robot:hover {
-    background: rgba(255,255,255,0.2);
-}
-.btn-robot img {
-    width: 20px;
-    height: 20px;
-    filter: invert(1);
-    opacity: 0.9;
-}
-
-/* Fila de Disparo */
-.fila-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: rgba(255,255,255,0.05);
-    padding: 10px 15px;
-    border-radius: 10px;
-    margin-bottom: 8px;
-    border: 1px solid rgba(255,255,255,0.05);
-}
-.fila-item span {
-    font-size: 14px;
-    font-weight: 500;
-}
-.btn-enviar-msg {
-    padding: 6px 12px;
-    font-size: 12px;
-    border-radius: 6px;
-    transition: 0.3s;
-}
-
 </style>
 
 <script type="module">
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-
-import {
-    getFirestore,
-    collection,
-    addDoc,
-    getDocs,
-    doc,
-    setDoc,
-    updateDoc,
-    query,
-    where
-} from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
-
-import {
-    getAuth,
-    onAuthStateChanged,
-    signOut
-} from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
-
-import {
-    getStorage,
-    ref,
-    uploadBytes,
-    getDownloadURL
-} from "https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js";
-
-/* ================= FIREBASE ================= */
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+import { getFirestore, doc, setDoc, collection, query, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyAFJJAqVf3ge0WDHBpmS9E6sXKvnjuFkhw",
-    authDomain: "dapapp-38637.firebaseapp.com",
-    projectId: "dapapp-38637",
-    storageBucket: "dapapp-38637.firebasestorage.app",
-    messagingSenderId: "628852295313",
-    appId: "1:628852295313:web:1234567890abcdef123456"
+  apiKey: "AIzaSyAFJJAqVf3ge0WDHBpmS9E6sXKvnjuFkhw",
+  authDomain: "dapapp-38637.firebaseapp.com",
+  projectId: "dapapp-38637",
+  storageBucket: "dapapp-38637.firebasestorage.app", 
+  messagingSenderId: "628852295313",
+  appId: "1:628852295313:web:1234567890abcdef123456"
 };
 
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 const auth = getAuth(app);
-let storage;
+const db = getFirestore(app);
 
-try {
-    storage = getStorage(app);
-} catch (error) {
-    console.error("Storage indisponível:", error);
-}
-
-window.firebaseDB = db;
-
-/* ================= APP ================= */
-
-document.addEventListener('DOMContentLoaded', () => {
-
-    const sidebar = document.querySelector(".sidebar");
-    const mainContent = document.querySelector(".main");
-
-    if(sidebar && mainContent){
-        sidebar.addEventListener('mouseenter', () => {
-            sidebar.classList.add('expanded');
-            mainContent.classList.add('blur');
-        });
-
-        sidebar.addEventListener('mouseleave', () => {
-            sidebar.classList.remove('expanded');
-            mainContent.classList.remove('blur');
-        });
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    const email=(user.email||"").toLowerCase();
+    if(email==="gruponascimentoesouza@gmail.com"){
+      window.location.replace("adm.html");
+    }else{
+      window.location.replace("index.html");
     }
-
-    const STATUS = [
-        'lista-fria',
-        'negociacao',
-        'contrato-assinado',
-        'fechado'
-    ];
-
-    const cardsMap = {};
-
-    const modalBackdrop = document.getElementById('modalBackdrop');
-    const clientForm = document.getElementById('clientForm');
-
-    const inputNome = document.getElementById('inputNome');
-    const inputCPF = document.getElementById('inputCPF');
-    const inputObs = document.getElementById('inputObs');
-    const inputStatus = document.getElementById('inputStatus');
-    const inputClasse = document.getElementById('inputClasse');
-    const inputValor = document.getElementById('inputValor');
-    const inputEstado = document.getElementById('inputEstado');
-
-    const btnAdd = document.getElementById('btnAdd');
-    const btnCancel = document.getElementById('btnCancel');
-    
-    // Configuração dos botões Adicionar e Cancelar que não estavam funcionando
-    if(btnAdd){
-        btnAdd.onclick = () => {
-            openModal(false);
-        };
-    }
-    
-    if(btnCancel){
-        btnCancel.onclick = () => {
-            closeModal();
-        };
-    }
-
-    // Configuração do botão Sair
-    const btnSair = document.getElementById('btnSair');
-    if (btnSair) {
-        btnSair.onclick = () => {
-            signOut(auth).then(() => {
-                window.location.href = "login.html";
-            }).catch((error) => {
-                showToast("Erro ao sair: " + error.message);
-            });
-        };
-    }
-
-    const searchInput = document.getElementById('searchInput');
-    const filterStatus = document.getElementById('filterStatus');
-
-    const toastEl = document.getElementById('toast');
-    const coinSound = document.getElementById('coinSound');
-
-    const processosContainer = document.getElementById('processosContainer');
-
-    const telefonesContainer = document.getElementById('telefonesContainer');
-    const btnAddTelefone = document.getElementById('btnAddTelefone');
-
-    /* ================= VARIÁVEIS DOCUMENTOS ================= */
-    const inputFile = document.getElementById('inputFile');
-    const btnTriggerFile = document.getElementById('btnTriggerFile');
-    const docsList = document.getElementById('docsList');
-    const uploadProgress = document.getElementById('uploadProgress');
-    let currentDocs = [];
-
-    let currentUser = null;
-
-    /* ================= VARIÁVEIS AGENTE WHATSAPP ================= */
-    const btnAgente = document.getElementById('btnAgente');
-    const modalAgenteBackdrop = document.getElementById('modalAgenteBackdrop');
-    const btnFecharAgente = document.getElementById('btnFecharAgente');
-    const btnCarregarFila = document.getElementById('btnCarregarFila');
-    const agenteMensagem = document.getElementById('agenteMensagem');
-    const agenteFilaContainer = document.getElementById('agenteFilaContainer');
-    const agenteLista = document.getElementById('agenteLista');
-
-    /* ================= TOAST ================= */
-
-    function showToast(msg){
-        toastEl.innerText = msg;
-        toastEl.style.display = 'block';
-        clearTimeout(toastEl._t);
-        toastEl._t = setTimeout(() => {
-            toastEl.style.display = 'none';
-        },3000);
-    }
-
-    /* ================= FORÇAR DOWNLOAD DE DOCUMENTO ================= */
-    window.forceDownload = async function(url, filename, event) {
-        if(event) {
-            event.preventDefault();
-            event.stopPropagation();
-        }
-        showToast("Iniciando download...");
-        try {
-            const response = await fetch(url);
-            const blob = await response.blob();
-            const objectUrl = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = objectUrl;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            window.URL.revokeObjectURL(objectUrl);
-        } catch (error) {
-            console.warn("Bloqueio de CORS. Abrindo em nova aba para download manual.", error);
-            window.open(url, '_blank');
-        }
-    };
-
-    /* ================= FIRESTORE ================= */
-
-    async function getClientes(){
-        if(!currentUser){
-            return [];
-        }
-        const q = query(
-            collection(db,"clientes"),
-            where("userId","==",currentUser.uid)
-        );
-        const snapshot = await getDocs(q);
-        return snapshot.docs.map(docData => ({
-            id: docData.id,
-            ...docData.data()
-        }));
-    }
-
-    async function saveCliente(cliente){
-        if(!currentUser){
-            return;
-        }
-        cliente.userId = currentUser.uid;
-
-        if(cliente.id){
-            const docRef = doc(db,"clientes",cliente.id);
-            await setDoc(docRef,cliente);
-        }else{
-            const docRef = await addDoc(
-                collection(db,"clientes"),
-                cliente
-            );
-            cliente.id = docRef.id;
-        }
-    }
-
-    /* ================= LÓGICA DO AGENTE BOT ================= */
-    
-    if (btnAgente) {
-        btnAgente.onclick = () => {
-            modalAgenteBackdrop.style.display = 'flex';
-            agenteFilaContainer.style.display = 'none';
-            agenteLista.innerHTML = '';
-        };
-    }
-
-    if (btnFecharAgente) {
-        btnFecharAgente.onclick = () => {
-            modalAgenteBackdrop.style.display = 'none';
-        };
-    }
-
-    if (btnCarregarFila) {
-        btnCarregarFila.onclick = async () => {
-            const template = agenteMensagem.value.trim();
-            
-            if (!template) {
-                showToast("Por favor, digite uma mensagem padrão.");
-                return;
-            }
-
-            btnCarregarFila.innerText = "Carregando...";
-            const clientes = await getClientes();
-            
-            const listaFria = clientes.filter(c => c.status === 'lista-fria' && c.numeros);
-
-            btnCarregarFila.innerText = "Carregar Lista Fria";
-
-            if (listaFria.length === 0) {
-                showToast("Nenhum cliente com telefone na Lista Fria.");
-                agenteFilaContainer.style.display = 'none';
-                return;
-            }
-
-            agenteLista.innerHTML = '';
-            
-            listaFria.forEach(cliente => {
-                const numerosLimpos = cliente.numeros
-                    .split(',')
-                    .map(n => n.replace(/\D/g, ''))
-                    .filter(n => n !== '');
-                
-                if (numerosLimpos.length === 0) return;
-
-                const divFila = document.createElement('div');
-                divFila.className = 'fila-item';
-
-                const spanNome = document.createElement('span');
-                spanNome.innerText = cliente.nome + (numerosLimpos.length > 1 ? ` (${numerosLimpos.length} números)` : '');
-
-                const btnEnviar = document.createElement('button');
-                btnEnviar.className = 'btn btn-green btn-enviar-msg';
-                btnEnviar.innerHTML = numerosLimpos.length > 1 ? `Enviar para todos (${numerosLimpos.length}) ↗` : 'Enviar ↗';
-
-                btnEnviar.onclick = () => {
-                    const mensagemFinal = template.replace(/{nome}/g, cliente.nome);
-                    
-                    numerosLimpos.forEach(num => {
-                        const waUrl = `https://wa.me/55${num}?text=${encodeURIComponent(mensagemFinal)}`;
-                        window.open(waUrl, '_blank');
-                    });
-
-                    btnEnviar.innerHTML = '✓ Enviados';
-                    btnEnviar.style.background = '#4b5563'; 
-                    btnEnviar.disabled = true;
-                };
-
-                divFila.appendChild(spanNome);
-                divFila.appendChild(btnEnviar);
-                agenteLista.appendChild(divFila);
-            });
-
-            agenteFilaContainer.style.display = 'block';
-        };
-    }
-
-    /* ================= UPLOAD DE DOCUMENTOS ================= */
-
-    function renderDocsList() {
-        docsList.innerHTML = '';
-        if (currentDocs.length === 0) {
-            docsList.innerHTML = '<span style="color:rgba(255,255,255,0.5); font-size:12px;">Nenhum documento anexado.</span>';
-            return;
-        }
-
-        currentDocs.forEach((arquivo, index) => {
-            const div = document.createElement('div');
-            div.className = 'doc-item';
-            
-            div.innerHTML = `<a href="javascript:void(0)" onclick="window.forceDownload('${arquivo.url}', '${arquivo.name}', event)" title="Baixar documento">📄 ${arquivo.name} <span style="font-size:10px; color:#9ca3af; margin-left: 5px;">(Baixar)</span></a>`;
-            
-            const btnRemove = document.createElement('button');
-            btnRemove.type = 'button';
-            btnRemove.innerText = 'X';
-            btnRemove.title = "Remover documento";
-            btnRemove.onclick = () => {
-                currentDocs.splice(index, 1);
-                renderDocsList();
-            };
-
-            div.appendChild(btnRemove);
-            docsList.appendChild(div);
-        });
-    }
-
-    btnTriggerFile.onclick = () => {
-        inputFile.click();
-    };
-
-    inputFile.onchange = async (e) => {
-        if (!storage) {
-            showToast("Erro: Serviço de arquivos do Firebase não configurado");
-            return;
-        }
-
-        const files = Array.from(e.target.files);
-        if (!files.length || !currentUser) return;
-        
-        uploadProgress.style.display = 'block';
-        uploadProgress.style.color = '#f59e0b';
-        uploadProgress.innerText = `Enviando ${files.length} arquivo(s)... Aguarde.`;
-        
-        let errorOccurred = false;
-
-        try {
-            for (let file of files) {
-                try {
-                    const uniqueName = Date.now() + "_" + file.name;
-                    const storageRef = ref(storage, `documentos/${currentUser.uid}/${uniqueName}`);
-                    await uploadBytes(storageRef, file);
-                    const url = await getDownloadURL(storageRef);
-                    currentDocs.push({ name: file.name, url: url });
-                } catch (error) {
-                    console.error("Erro no upload do arquivo:", error);
-                    errorOccurred = true;
-                    showToast("Erro ao enviar: " + file.name);
-                }
-            }
-        } finally {
-            if (errorOccurred) {
-                uploadProgress.style.color = '#ef4444';
-                uploadProgress.innerText = 'Erro de permissão no Firebase. Arquivo não salvo.';
-                setTimeout(() => { uploadProgress.style.display = 'none'; }, 5000);
-            } else {
-                uploadProgress.style.color = '#10b981';
-                uploadProgress.innerText = 'Upload concluído com sucesso!';
-                setTimeout(() => { uploadProgress.style.display = 'none'; }, 2000);
-            }
-            inputFile.value = ''; 
-            renderDocsList();
-        }
-    };
-
-    /* ================= MODAL DE CLIENTES ================= */
-
-    function openModal(edit = false, data = null){
-
-        modalBackdrop.style.display = 'flex';
-
-        document.getElementById('modalTitle').innerText =
-            edit ? "Editar Cliente" : "Novo Cliente";
-
-        processosContainer.innerHTML = '';
-        telefonesContainer.innerHTML = '';
-
-        if(edit && data){
-
-            inputNome.value = data.nome || "";
-            inputCPF.value = data.cpf || "";
-            inputObs.value = data.obs || "";
-            inputStatus.value = data.status || "lista-fria";
-            inputClasse.value = data.classe || "Outros";
-            inputValor.value = data.valor || "";
-            inputEstado.value = data.estado || "São Paulo";
-
-            const processos = data.processo
-                ? data.processo.split(',').map(p => p.trim())
-                : [''];
-
-            processos.forEach(p => addProcessoField(p));
-
-            const telefones = data.numeros
-                ? data.numeros.split(',').map(t => t.trim())
-                : [''];
-
-            telefones.forEach(t => addTelefoneField(t));
-
-            currentDocs = Array.isArray(data.documentos) ? [...data.documentos] : [];
-
-            clientForm.dataset.editId = data.id;
-
-        }else{
-
-            addProcessoField();
-            addTelefoneField();
-
-            inputNome.value = "";
-            inputCPF.value = "";
-            inputObs.value = "";
-            inputStatus.value = "lista-fria";
-            inputClasse.value = "Outros";
-            inputValor.value = "";
-            inputEstado.value = "São Paulo";
-
-            currentDocs = [];
-
-            delete clientForm.dataset.editId;
-        }
-
-        renderDocsList();
-    }
-
-    function closeModal(){
-        modalBackdrop.style.display = 'none';
-        uploadProgress.style.display = 'none';
-    }
-
-    /* ================= PROCESSOS ================= */
-
-    function addProcessoField(value = ""){
-
-        const row = document.createElement('div');
-        row.className = 'processo-row';
-
-        const input = document.createElement('input');
-        input.className = 'inputProcesso';
-        input.placeholder = '0000000-00.0000.0.00.0000';
-        input.value = value;
-
-        const btnAdd = document.createElement('button');
-        btnAdd.type = 'button';
-        btnAdd.className = 'btn ghost';
-        btnAdd.textContent = '+';
-
-        btnAdd.onclick = () => {
-            addProcessoField();
-        };
-
-        const btnRemove = document.createElement('button');
-        btnRemove.type = 'button';
-        btnRemove.className = 'btn ghost';
-        btnRemove.textContent = '-';
-
-        btnRemove.onclick = () => {
-            row.remove();
-        };
-
-        row.appendChild(input);
-        row.appendChild(btnAdd);
-        row.appendChild(btnRemove);
-
-        processosContainer.appendChild(row);
-    }
-
-    /* ================= TELEFONES ================= */
-
-    function addTelefoneField(value = ""){
-
-        const row = document.createElement('div');
-        row.className = 'processo-row';
-
-        const input = document.createElement('input');
-        input.className = 'inputTelefone';
-        input.placeholder = 'Telefone / WhatsApp';
-        input.value = value;
-
-        const btnAdd = document.createElement('button');
-        btnAdd.type = 'button';
-        btnAdd.className = 'btn ghost';
-        btnAdd.textContent = '+';
-
-        btnAdd.onclick = () => {
-            addTelefoneField();
-        };
-
-        const btnRemove = document.createElement('button');
-        btnRemove.type = 'button';
-        btnRemove.className = 'btn ghost';
-        btnRemove.textContent = '-';
-
-        btnRemove.onclick = () => {
-            row.remove();
-        };
-
-        row.appendChild(input);
-        row.appendChild(btnAdd);
-        row.appendChild(btnRemove);
-
-        telefonesContainer.appendChild(row);
-    }
-
-    btnAddTelefone.onclick = () => {
-        addTelefoneField();
-    };
-
-    /* ================= CARDS ================= */
-
-    function criarCard(cliente){
-
-        const status = cliente.status || 'lista-fria';
-
-        const col = document.getElementById(status);
-
-        if(!col){
-            return;
-        }
-
-        const card = document.createElement('div');
-
-        card.className = `card ${status}`;
-
-        card.dataset.id = cliente.id;
-        card.dataset.status = status;
-        card.dataset.nome = cliente.nome.toLowerCase();
-
-        card.draggable = true;
-
-        const colorBar = document.createElement('div');
-        colorBar.className = 'color-bar';
-
-        card.appendChild(colorBar);
-
-        /* ================= ACTIONS ================= */
-
-        const actionsDiv = document.createElement('div');
-        actionsDiv.className = 'card-actions';
-
-        const btnCall = document.createElement('button');
-
-        btnCall.onclick = (e) => {
-            e.stopPropagation();
-            const numero = cliente.numeros
-                ? cliente.numeros.split(',')[0].trim()
-                : '';
-            ligar(numero);
-        };
-
-        btnCall.innerHTML =
-            '<img src="https://img.icons8.com/ios-glyphs/30/000000/phone.png"/>';
-
-        const btnWa = document.createElement('button');
-
-        btnWa.onclick = (e) => {
-            e.stopPropagation();
-            const numero = cliente.numeros
-                ? cliente.numeros.split(',')[0].trim()
-                : '';
-            whatsapp(numero);
-        };
-
-        btnWa.innerHTML =
-            '<img src="https://img.icons8.com/ios-glyphs/30/000000/whatsapp.png"/>';
-
-        actionsDiv.appendChild(btnCall);
-        actionsDiv.appendChild(btnWa);
-
-        card.appendChild(actionsDiv);
-
-        /* ================= CONTENT ================= */
-
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'card-content';
-
-        const processosArray = cliente.processo
-            ? cliente.processo.split(',').map(p => p.trim())
-            : [];
-
-        const primeiroProcesso = processosArray.length > 0
-            ? processosArray[0]
-            : '-';
-
-        contentDiv.innerHTML = `
-            <h3>${cliente.nome}</h3>
-
-            <p><strong>CPF:</strong> ${cliente.cpf || '-'}</p>
-            <p><strong>Classe:</strong> ${cliente.classe || '-'}</p>
-            <p><strong>Estado:</strong> ${cliente.estado || '-'}</p>
-            <p><strong>Processo:</strong> ${primeiroProcesso}</p>
-            <p><strong>Valor:</strong> R$ ${cliente.valor || 0}</p>
-        `;
-
-        if (Array.isArray(cliente.documentos) && cliente.documentos.length > 0) {
-            const docsDiv = document.createElement('div');
-            docsDiv.style.marginTop = "12px";
-            docsDiv.innerHTML = `<p style="font-weight: 600; color: #fff; margin-bottom: 5px;">Documentos Anexos:</p>`;
-            
-            cliente.documentos.forEach(arquivo => {
-                const link = document.createElement('a');
-                link.href = "javascript:void(0)";
-                
-                link.style.display = "block";
-                link.style.fontSize = "13px";
-                link.style.color = "#60a5fa"; 
-                link.style.textDecoration = "none";
-                link.style.margin = "4px 0";
-                link.style.whiteSpace = "nowrap";      
-                link.style.overflow = "hidden";        
-                link.style.textOverflow = "ellipsis";  
-                
-                link.innerHTML = `📄 ${arquivo.name} <span style="font-size:10px; color:#9ca3af; margin-left: 5px;">(Baixar)</span>`;
-                
-                link.onclick = (e) => {
-                    e.stopPropagation();
-                    window.forceDownload(arquivo.url, arquivo.name, e);
-                };
-                
-                docsDiv.appendChild(link);
-            });
-            contentDiv.appendChild(docsDiv);
-        }
-
-        card.appendChild(contentDiv);
-
-        card.onclick = () => {
-            openModal(true, cliente);
-        };
-
-        addDragEvents(card);
-
-        col.appendChild(card);
-
-        cardsMap[cliente.id] = card;
-    }
-
-    /* ================= TELEFONE ================= */
-
-    function ligar(numero){
-        if(!numero){
-            showToast("Número não informado");
-            return;
-        }
-        window.open(`tel:${numero.replace(/\D/g,'')}`);
-    }
-
-    function whatsapp(numero){
-        if(!numero){
-            showToast("Número não informado");
-            return;
-        }
-        const num = numero.replace(/\D/g,'');
-        window.open(`https://wa.me/55${num}`,'_blank');
-    }
-
-    /* ================= RENDER ================= */
-
-    async function render(){
-
-        STATUS.forEach(status => {
-            const col = document.getElementById(status);
-            
-            if (status === 'lista-fria') {
-                col.innerHTML = `
-                    <div class="col-header-actions">
-                        <h2 style="margin-bottom:0;">LISTA FRIA</h2>
-                        <button class="btn-robot" title="Ativar Robô" onclick="document.getElementById('btnAgente').click()">
-                            <img src="https://img.icons8.com/ios-glyphs/30/000000/bot.png" alt="Robô"/>
-                        </button>
-                    </div>
-                `;
-            } else {
-                col.innerHTML = `<h2>${status.replace('-',' ').toUpperCase()}</h2>`;
-            }
-        });
-
-        for(const k in cardsMap){
-            delete cardsMap[k];
-        }
-
-        const clientes = await getClientes();
-
-        for(const cliente of clientes){
-            criarCard(cliente);
-        }
-
-        filtragemAplicada();
-    }
-
-   /* ================= FORM ================= */
-
-    clientForm.onsubmit = async function(e){
-
-        e.preventDefault();
-
-        const nome = inputNome.value.trim();
-
-        if(!nome){
-            showToast("Nome obrigatório");
-            return;
-        }
-
-        const processos = Array.from(
-            document.querySelectorAll('.inputProcesso')
-        )
-        .map(input => input.value.trim())
-        .filter(valor => valor);
-
-        // 👇 INÍCIO DA ATUALIZAÇÃO: VERIFICAÇÃO GLOBAL DE PROCESSO DUPLICADO 👇
-        if (processos.length > 0) {
-            // Puxa TODOS os clientes de TODOS os usuários no banco de dados
-            const queryTodos = query(collection(db, "clientes"));
-            const snapshotTodos = await getDocs(queryTodos);
-            const todosClientes = snapshotTodos.docs.map(docData => ({
-                id: docData.id,
-                ...docData.data()
-            }));
-
-            let processoDuplicado = null;
-
-            for (let proc of processos) {
-                const clienteExistente = todosClientes.find(c => {
-                    // Se estiver editando o cliente, ignora ele mesmo na checagem
-                    if (clientForm.dataset.editId && c.id === clientForm.dataset.editId) return false;
-                    
-                    // Verifica se a string de processos do cliente no banco inclui o processo digitado
-                    return c.processo && c.processo.includes(proc);
-                });
-
-                if (clienteExistente) {
-                    processoDuplicado = proc;
-                    break; // Para o loop assim que achar um repetido
-                }
-            }
-
-            // Se achou duplicata, avisa e trava o salvamento
-            if (processoDuplicado) {
-                showToast(`Erro: O processo ${processoDuplicado} já está cadastrado no sistema!`);
-                return; // Impede o envio do formulário
-            }
-        }
-        // 👆 FIM DA ATUALIZAÇÃO 👆
-
-        const telefones = Array.from(
-            document.querySelectorAll('.inputTelefone')
-        )
-        .map(input => input.value.trim())
-        .filter(valor => valor);
-
-        const novo = {
-            nome: nome,
-            cpf: inputCPF.value.trim(),
-            obs: inputObs.value.trim().substring(0,300),
-            status: inputStatus.value,
-            numeros: telefones.join(', '),
-            processo: processos.join(', '),
-            classe: inputClasse.value,
-            valor: inputValor.value,
-            estado: inputEstado.value,
-            documentos: currentDocs,
-            dataCadastro: new Date().toISOString()
-        };
-
-        if(clientForm.dataset.editId){
-            novo.id = clientForm.dataset.editId;
-            await saveCliente(novo);
-            showToast("Cliente atualizado!");
-        }else{
-            await saveCliente(novo);
-            showToast("Cliente adicionado!");
-        }
-
-        closeModal();
-        render();
-    };
-
-    /* ================= DRAG AND DROP MELHORADO ================= */
-
-    let draggedCard = null;
-
-    function addDragEvents(card){
-        card.addEventListener('dragstart', () => {
-            draggedCard = card;
-            // Delay para o visual do fantasma nativo não quebrar
-            setTimeout(() => card.classList.add('dragging'), 0);
-        });
-
-        card.addEventListener('dragend', () => {
-            draggedCard = null;
-            card.classList.remove('dragging');
-            
-            // Remove o efeito de hover de todas as colunas
-            document.querySelectorAll('.column').forEach(c => {
-                c.classList.remove('drag-over');
-            });
-        });
-    }
-
-    document.querySelectorAll('.column').forEach(col => {
-        
-        // Efeito visual quando entra na coluna
-        col.addEventListener('dragenter', e => {
-            e.preventDefault();
-            if (draggedCard) {
-                col.classList.add('drag-over');
-            }
-        });
-
-        col.addEventListener('dragover', e => {
-            e.preventDefault(); // Necessário para o evento de 'drop' disparar
-        });
-
-        // Tira o efeito quando sai da coluna
-        col.addEventListener('dragleave', e => {
-            col.classList.remove('drag-over');
-        });
-
-        col.addEventListener('drop', async () => {
-            col.classList.remove('drag-over');
-
-            if(!draggedCard){
-                return;
-            }
-
-            const id = draggedCard.dataset.id;
-            const status = col.id;
-            const docRef = doc(db,"clientes",id);
-
-            await updateDoc(docRef,{ status });
-
-            if(status === "fechado"){
-                coinSound.currentTime = 0;
-                coinSound.play();
-            }
-
-            render();
-            showToast("Status atualizado");
-        });
-    });
-
-    /* ================= FILTROS ================= */
-
-    function filtragemAplicada(){
-        const q = searchInput.value.toLowerCase();
-        const filterS = filterStatus.value;
-
-        Object.values(cardsMap).forEach(card => {
-            const matchSearch = card.dataset.nome.includes(q);
-            const matchStatus = !filterS || card.dataset.status === filterS;
-
-            card.style.display =
-                (matchSearch && matchStatus)
-                ? 'flex'
-                : 'none';
-        });
-    }
-
-    searchInput.oninput = filtragemAplicada;
-    filterStatus.onchange = filtragemAplicada;
-
-    /* ================= LOGIN ================= */
-
-    onAuthStateChanged(auth, user => {
-        if(user){
-            currentUser = user;
-            
-            // EXIBE O EMAIL DO USUÁRIO LOGADO NO TOPO
-            const emailDisplay = document.getElementById('userEmailDisplay');
-            if (emailDisplay) {
-                emailDisplay.innerHTML = `👤 ${user.email}`;
-            }
-
-            render();
-        }else{
-            window.location.href = "login.html";
-        }
-    });
-
+  }
 });
 
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("loginForm");
+  const emailInput = document.getElementById("email");
+  const passwordInput = document.getElementById("password");
+  const errorMsg = document.getElementById("errorMsg");
+  const toast = document.getElementById("toast");
+  const video = document.getElementById("bgVideo");
+  const btnSubmit = form.querySelector("button[type='submit']");
+
+  video.muted = true;
+  video.play().catch(() => {
+    document.body.addEventListener("click", () => video.play(), { once: true });
+  });
+
+  function showToast(msg){
+    toast.innerText = msg;
+    toast.style.display = 'block';
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => toast.style.display = 'none', 4000);
+  }
+
+  function resetBotao(mensagemErro = null) {
+    if(mensagemErro) {
+      errorMsg.innerText = mensagemErro;
+      errorMsg.style.display = "block";
+    }
+    btnSubmit.innerText = "Entrar";
+    btnSubmit.disabled = false;
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    errorMsg.style.display = "none";
+    
+    // Força o minúsculo para evitar bugs com letras maiúsculas
+    const email = emailInput.value.trim().toLowerCase();
+    const senha = passwordInput.value;
+
+    btnSubmit.innerText = "Autenticando...";
+    btnSubmit.disabled = true;
+
+    try {
+      // 1. TENTA O LOGIN NORMAL
+      await signInWithEmailAndPassword(auth, email, senha);
+      showToast("Login realizado com sucesso!");
+      
+      // Redirecionamento condicional (Admin x Funcionário)
+      if (email === "gruponascimentoesouza@gmail.com") {
+        setTimeout(() => window.location.replace("adm.html"), 1000);
+      } else {
+        setTimeout(() => window.location.replace("index.html"), 1000);
+      }
+
+    } catch (error) {
+      console.log("Falha no Auth, verificando convites...", error);
+      
+      const errorCode = error.code || "";
+      const errorMsgText = error.message || "";
+
+      // 2. PASSE LIVRE PARA O ADMINISTRADOR MESTRE
+      if (email === "gruponascimentoesouza@gmail.com") {
+        try {
+          btnSubmit.innerText = "Criando conta Admin...";
+          // Tenta criar a conta
+          const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
+          const novoUid = userCredential.user.uid;
+          
+          // Salva o admin no banco de dados
+          await setDoc(doc(db, "funcionarios", novoUid), {
+            nome: "Administrador Mestre",
+            email: email,
+            criadoEm: new Date().toISOString()
+          });
+          
+          showToast("Conta Mestre configurada! Redirecionando...");
+          setTimeout(() => window.location.replace("adm.html"), 1500);
+          return; 
+        } catch (adminErr) {
+          if (adminErr.code === 'auth/email-already-in-use') {
+            resetBotao("Senha incorreta para o Administrador.");
+          } else {
+            resetBotao("Erro ao configurar Admin: " + adminErr.message);
+          }
+          return; 
+        }
+      }
+
+      // 3. FLUXO NORMAL DE FUNCIONÁRIOS
+      if (
+        errorCode.includes('invalid-credential') || 
+        errorCode.includes('invalid-login-credentials') || 
+        errorCode.includes('user-not-found') || 
+        errorCode.includes('wrong-password') ||
+        errorMsgText.includes('invalid-credential') ||
+        errorMsgText.includes('invalid-login-credentials')
+      ) {
+        try {
+          btnSubmit.innerText = "Verificando convite...";
+          
+          const qPre = query(
+            collection(db, "pre_cadastros"), 
+            where("email", "==", email), 
+            where("senhaPadrao", "==", senha)
+          );
+          
+          const preSnap = await getDocs(qPre);
+
+          if (!preSnap.empty) {
+            const docDados = preSnap.docs[0];
+            const dadosFunc = docDados.data();
+
+            showToast("Configurando seu primeiro acesso...");
+            btnSubmit.innerText = "Criando conta...";
+
+            // Cria o usuário na Autenticação (Auth)
+            const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
+            const novoUid = userCredential.user.uid;
+
+            // Salva os dados dele no banco
+            await setDoc(doc(db, "funcionarios", novoUid), {
+              nome: dadosFunc.nome || "Usuário",
+              email: email,
+              criadoEm: new Date().toISOString()
+            });
+
+            // Limpa a fila de pré-cadastro
+            await deleteDoc(doc(db, "pre_cadastros", docDados.id));
+
+            showToast("Tudo pronto! Redirecionando...");
+            setTimeout(() => window.location.replace("index.html"), 1500);
+          } else {
+            resetBotao("E-mail ou senha inválidos. Não foi encontrado nenhum convite para este e-mail.");
+          }
+        } catch (errDb) {
+          console.error("Erro no fluxo de convite: ", errDb);
+          if(errDb.code === 'permission-denied') {
+            resetBotao("As regras de banco de dados do Firebase bloquearam a criação da conta. Avise o Administrador.");
+          } else {
+            resetBotao("Erro de conexão ao configurar a conta. Tente novamente.");
+          }
+        }
+      } else {
+        // Erro genérico
+        resetBotao("Erro no acesso: " + error.message);
+      }
+    }
+  });
+});
 </script>
-
 </head>
-
 <body>
+  <div class="sidebar-login">
+    <h1>AMR ADV</h1>
+    <p>Bem-vindo ao seu CRM. Faça login para continuar.</p>
+    <form id="loginForm" class="input-group">
+      <input type="email" id="email" placeholder="E-mail" required />
+      <input type="password" id="password" placeholder="Senha" required />
+      <span id="errorMsg" class="error"></span>
+      <button type="submit">Entrar</button>
+    </form>
+  </div>
 
-<div class="sidebar">
-
-    <h2 onclick="window.location.href='dashboard.html'">
-        AMR ADV
-    </h2>
-
-    <button onclick="window.location.href='crm.html'">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/dashboard.png"/>
-        <span>CRM</span>
-    </button>
-
-    <button onclick="window.location.href='agenda.html'">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/calendar.png"/>
-        <span>Agenda</span>
-    </button>
-
-    <button onclick="window.location.href='discador.html'">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/contacts.png"/>
-        <span>Contatos</span>
-    </button>
-
-    <button onclick="window.location.href='funil-geral.html'">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/filter.png"/>
-        <span>Funil Geral</span>
-    </button>
-   
-    <button onclick="window.location.href='adm.html'">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/admin-settings-male.png"/>
-        <span>ADM</span>
-    </button>
-
-    <button>
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/settings.png"/>
-        <span>Configurações</span>
-    </button>
-
-    <!-- NOVO BOTÃO DE SAIR -->
-    <button id="btnSair" style="margin-top: auto; margin-bottom: 20px;">
-        <img src="https://img.icons8.com/ios-filled/50/ffffff/exit.png"/>
-        <span>Sair</span>
-    </button>
-
-</div>
-
-<div class="main">
-
-<header>
-    <div style="display: flex; align-items: center; gap: 20px;">
-        <h1>CRM</h1>
-        <div id="userEmailDisplay" class="user-info"></div>
+  <div class="video-container">
+    <video id="bgVideo" autoplay muted loop playsinline>
+      <source src="videotrem.mp4" type="video/mp4">
+      Seu navegador não suporta vídeo.
+    </video>
+    <div class="video-overlay">
+      <h2>Gerencie sua advocacia de forma inteligente</h2>
     </div>
+  </div>
 
-    <div style="display: flex; gap: 12px; align-items: center;">
-        <button id="btnAgente" class="btn btn-green" style="padding: 10px 18px; border-radius: 12px; font-weight: 600;">
-            🤖 Agente de Whatsapp
-        </button>
-        
-        <button id="btnAdd" class="btn primary">
-            + Adicionar Cliente
-        </button>
-    </div>
-
-</header>
-
-<div class="search-bar">
-
-    <input
-        id="searchInput"
-        placeholder="Buscar cliente..."
-    />
-
-    <select id="filterStatus">
-        <option value="">Todos os status</option>
-        <option value="lista-fria">Lista Fria</option>
-        <option value="negociacao">Negociação</option>
-        <option value="contrato-assinado">Contrato Assinado</option>
-        <option value="fechado">Fechado</option>
-    </select>
-
-</div>
-
-<div class="kanban-container">
-
-<main class="kanban" id="kanban">
-
-    <div class="column" id="lista-fria">
-        <h2>LISTA FRIA</h2>
-    </div>
-
-    <div class="column" id="negociacao">
-        <h2>NEGOCIAÇÃO</h2>
-    </div>
-
-    <div class="column" id="contrato-assinado">
-        <h2>CONTRATO ASSINADO</h2>
-    </div>
-
-    <div class="column" id="fechado">
-        <h2>FECHADO</h2>
-    </div>
-
-</main>
-
-</div>
-
-</div>
-
-<div class="modal-backdrop" id="modalBackdrop">
-    <div class="modal">
-        <h3 id="modalTitle">Novo Cliente</h3>
-        <form id="clientForm">
-            <div class="row">
-                <input id="inputNome" placeholder="Nome do cliente" required />
-            </div>
-            <div class="row">
-                <input id="inputCPF" placeholder="CPF/CNPJ" />
-            </div>
-            <div id="telefonesContainer"></div>
-            <div class="row">
-                <button type="button" class="btn ghost" id="btnAddTelefone">+ Adicionar Telefone</button>
-            </div>
-            <div class="row">
-                <select id="inputClasse">
-                    <option value="Outros">Outros</option>
-                    <option value="Busca e Apreensão">Busca e Apreensão</option>
-                    <option value="Execução">Execução</option>
-                    <option value="Renegociação">Renegociação</option>
-                </select>
-            </div>
-            <div class="row">
-                <input id="inputValor" type="number" placeholder="Valor (R$)" />
-            </div>
-            <div class="row">
-                <select id="inputEstado">
-                    <option value="Acre">Acre</option>
-                    <option value="Alagoas">Alagoas</option>
-                    <option value="Amapá">Amapá</option>
-                    <option value="Amazonas">Amazonas</option>
-                    <option value="Bahia">Bahia</option>
-                    <option value="Ceará">Ceará</option>
-                    <option value="Distrito Federal">Distrito Federal</option>
-                    <option value="Espírito Santo">Espírito Santo</option>
-                    <option value="Goiás">Goiás</option>
-                    <option value="Maranhão">Maranhão</option>
-                    <option value="Mato Grosso">Mato Grosso</option>
-                    <option value="Mato Grosso do Sul">Mato Grosso do Sul</option>
-                    <option value="Minas Gerais">Minas Gerais</option>
-                    <option value="Pará">Pará</option>
-                    <option value="Paraíba">Paraíba</option>
-                    <option value="Paraná">Paraná</option>
-                    <option value="Pernambuco">Pernambuco</option>
-                    <option value="Piauí">Piauí</option>
-                    <option value="Rio de Janeiro" selected>Rio de Janeiro</option>
-                    <option value="Rio Grande do Norte">Rio Grande do Norte</option>
-                    <option value="Rio Grande do Sul">Rio Grande do Sul</option>
-                    <option value="Rondônia">Rondônia</option>
-                    <option value="Roraima">Roraima</option>
-                    <option value="Santa Catarina">Santa Catarina</option>
-                    <option value="São Paulo">São Paulo</option>
-                    <option value="Sergipe">Sergipe</option>
-                    <option value="Tocantins">Tocantins</option>
-                </select>
-            </div>
-            <div id="processosContainer"></div>
-            <div class="docs-section">
-                <h4>Documentos do Cliente</h4>
-                <div id="docsList"></div>
-                <input type="file" id="inputFile" style="display: none;" multiple />
-                <button type="button" class="btn ghost" id="btnTriggerFile" style="margin-top: 8px;">📁 Anexar Arquivos</button>
-                <div id="uploadProgress" style="font-size: 12px; color: #10b981; margin-top: 5px; display: none;"></div>
-            </div>
-            <div class="row">
-                <textarea id="inputObs" maxlength="300" placeholder="Observações (máx. 300 caracteres)"></textarea>
-            </div>
-            <div class="row">
-                <select id="inputStatus">
-                    <option value="lista-fria">Lista Fria</option>
-                    <option value="negociacao">Negociação</option>
-                    <option value="contrato-assinado">Contrato Assinado</option>
-                    <option value="fechado">Fechado</option>
-                </select>
-            </div>
-            <div class="actions">
-                <button type="submit" class="btn primary">Salvar</button>
-                <button type="button" class="btn ghost" id="btnCancel">Cancelar</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<div class="modal-backdrop" id="modalAgenteBackdrop">
-    <div class="modal">
-        <h3 style="margin-bottom: 5px;"> Agente de WhatsApp</h3>
-        
-        <div style="background: rgba(245, 158, 11, 0.1); border-left: 3px solid #f59e0b; padding: 10px; margin-bottom: 15px; border-radius: 4px;">
-            <p style="font-size: 12px; color: #fcd34d; margin: 0;">
-                <strong>Aviso:</strong> Se um cliente tiver múltiplos números, o seu navegador pode bloquear a abertura das abas extras. Caso isso aconteça, clique no ícone de "Pop-up bloqueado" na barra de endereços lá em cima e selecione <strong>"Sempre permitir pop-ups"</strong>.
-            </p>
-        </div>
-
-        <p style="font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 20px;">
-            Digite a mensagem base. Escreva <strong>{nome}</strong> para que o sistema troque automaticamente pelo nome do cliente.
-        </p>
-        
-        <div class="row">
-            <textarea id="agenteMensagem" rows="5" placeholder="Olá {nome}, tudo bem? Vi que seu caso..." style="background: rgba(255,255,255,0.05);"></textarea>
-        </div>
-
-        <div class="actions">
-            <button class="btn primary" id="btnCarregarFila">Carregar Lista Fria</button>
-            <button class="btn ghost" id="btnFecharAgente">Fechar</button>
-        </div>
-
-        <div id="agenteFilaContainer" style="margin-top: 25px; display: none;">
-            <h4 style="margin-bottom: 12px; font-size: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">Fila de Disparo</h4>
-            <div id="agenteLista" style="max-height: 250px; overflow-y: auto; padding-right: 5px;">
-                </div>
-        </div>
-    </div>
-</div>
-
-<div class="toast" id="toast"></div>
-
-<audio
-    id="coinSound"
-    src="https://assets.mixkit.co/sfx/preview/mixkit-winning-notification-2018.mp3"
-    preload="auto">
-</audio>
-
+  <div class="toast" id="toast"></div>
 </body>
 </html>
