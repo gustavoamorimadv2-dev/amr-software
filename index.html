@@ -255,11 +255,9 @@ select option {
     flex-direction:column;
     gap:15px;
     overflow-y:auto;
-    /* Transições suaves para a interação de drag and drop */
     transition: background-color 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
 }
 
-/* Feedback visual quando arrastar um card por cima da coluna */
 .column.drag-over {
     background: rgba(255, 255, 255, 0.08);
     border-color: rgba(255, 255, 255, 0.3);
@@ -273,7 +271,7 @@ select option {
     font-weight: 700;
     letter-spacing: 1px;
     opacity: 0.8;
-    pointer-events: none; /* Previne bug visual no drag and drop */
+    pointer-events: none;
 }
 
 /* ================= CARDS ================= */
@@ -299,7 +297,6 @@ select option {
     background:rgba(255,255,255,0.1);
 }
 
-/* Feedback visual do card sendo arrastado */
 .card.dragging {
     opacity: 0.4;
     transform: scale(0.95);
@@ -714,7 +711,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    // Configuração do botão Sair
     const btnSair = document.getElementById('btnSair');
     if (btnSair) {
         btnSair.onclick = () => {
@@ -766,7 +762,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },3000);
     }
 
-    /* ================= FORÇAR DOWNLOAD DE DOCUMENTO ================= */
+    /* ================= FORÇAR DOWNLOAD ================= */
     window.forceDownload = async function(url, filename, event) {
         if(event) {
             event.preventDefault();
@@ -1325,7 +1321,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .map(input => input.value.trim())
         .filter(valor => valor);
 
-        // 👇 INÍCIO DA ATUALIZAÇÃO: VERIFICAÇÃO GLOBAL DE PROCESSO DUPLICADO 👇
+        // VERIFICAÇÃO GLOBAL DE PROCESSO DUPLICADO
         if (processos.length > 0) {
             const queryTodos = query(collection(db, "clientes"));
             const snapshotTodos = await getDocs(queryTodos);
@@ -1350,10 +1346,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (processoDuplicado) {
                 showToast(`Erro: O processo ${processoDuplicado} já está cadastrado no sistema!`);
-                return; 
+                return;
             }
         }
-        // 👆 FIM DA ATUALIZAÇÃO 👆
 
         const telefones = Array.from(
             document.querySelectorAll('.inputTelefone')
@@ -1388,7 +1383,7 @@ document.addEventListener('DOMContentLoaded', () => {
         render();
     };
 
-    /* ================= DRAG AND DROP MELHORADO ================= */
+    /* ================= DRAG AND DROP ================= */
 
     let draggedCard = null;
 
@@ -1481,9 +1476,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             render();
         }else{
-            // REDIRECIONAMENTO COMENTADO PARA EVITAR TELA BRANCA EM TESTES
-            // window.location.href = "login.html";
-            console.log("Usuário não autenticado. Redirecionamento bloqueado para testes.");
+            window.location.href = "login.html";
         }
     });
 
@@ -1501,7 +1494,7 @@ document.addEventListener('DOMContentLoaded', () => {
         AMR ADV
     </h2>
 
-    <button onclick="window.location.href='crm.html'">
+    <button onclick="window.location.href='index.html'">
         <img src="https://img.icons8.com/ios-filled/50/ffffff/dashboard.png"/>
         <span>CRM</span>
     </button>
@@ -1531,7 +1524,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <span>Configurações</span>
     </button>
 
-    <!-- NOVO BOTÃO DE SAIR -->
+    <!-- BOTÃO DE SAIR -->
     <button id="btnSair" style="margin-top: auto; margin-bottom: 20px;">
         <img src="https://img.icons8.com/ios-filled/50/ffffff/exit.png"/>
         <span>Sair</span>
