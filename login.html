@@ -274,7 +274,7 @@ document.addEventListener("DOMContentLoaded", () => {
             await deleteDoc(doc(db, "pre_cadastros", docDados.id));
 
             showToast("Tudo pronto! Redirecionando...");
-            setTimeout(() => window.location.href = "crm.html", 1500);
+            setTimeout(() => window.location.href = "index.html", 1500);
           } else {
             resetBotao("E-mail ou senha inválidos. Não foi encontrado nenhum convite para este e-mail.");
           }
