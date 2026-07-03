@@ -1209,6 +1209,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <p><strong>Estado:</strong> ${cliente.estado || '-'}</p>
             <p><strong>Processo:</strong> ${primeiroProcesso}</p>
             <p><strong>Valor:</strong> R$ ${cliente.valor || 0}</p>
+            <p><strong>Criado por:</strong> ${cliente.criadoPor || '-'}</p>
+            ${cliente.fechadoPor?`<p><strong>Fechado por:</strong> ${cliente.fechadoPor}</p>`:''}
         `;
 
         if (Array.isArray(cliente.documentos) && cliente.documentos.length > 0) {
@@ -1378,11 +1380,15 @@ document.addEventListener('DOMContentLoaded', () => {
             valor: inputValor.value,
             estado: inputEstado.value,
             documentos: currentDocs,
-            dataCadastro: new Date().toISOString()
+            dataCadastro: new Date().toISOString(),
+            criadoPor: currentUser ? (currentUser.email || "") : "",
+            fechadoPor: ""
         };
 
         if(clientForm.dataset.editId){
             novo.id = clientForm.dataset.editId;
+            const antigo=(await getClientes()).find(c=>c.id===novo.id);
+            if(antigo){novo.criadoPor=antigo.criadoPor||"";novo.fechadoPor=antigo.fechadoPor||"";}
             await saveCliente(novo);
             showToast("Cliente atualizado!");
         }else{
@@ -1446,7 +1452,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const status = col.id;
             const docRef = doc(db,"clientes",id);
 
-            await updateDoc(docRef,{ status });
+            const dados={status};
+            if(status==="fechado"){dados.fechadoPor=currentUser?(currentUser.email||""):"";}
+            await updateDoc(docRef,dados);
 
             if(status === "fechado"){
                 coinSound.currentTime = 0;
@@ -1510,7 +1518,7 @@ document.addEventListener('DOMContentLoaded', () => {
         AMR ADV
     </h2>
 
-    <button onclick="window.location.href='index.html'">
+    <button onclick="window.location.href='crm.html'">
         <img src="https://img.icons8.com/ios-filled/50/ffffff/dashboard.png"/>
         <span>CRM</span>
     </button>
