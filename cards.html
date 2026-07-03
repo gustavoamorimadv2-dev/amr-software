@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Visão Geral de Cards - AMR ADV</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+* {
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Inter',sans-serif;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+
+body {
+    display:flex;
+    height:100vh;
+    overflow:hidden;
+    background:
+        radial-gradient(circle at top left,#2f3f73 0%,transparent 30%),
+        radial-gradient(circle at bottom right,#0f766e 0%,transparent 25%),
+        linear-gradient(135deg,#0f172a,#111827,#020617);
+    color: #fff;
+}
+
+/* ================= SIDEBAR ================= */
+.sidebar {
+    width:80px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:20px 0;
+    flex-shrink:0;
+    transition:width 0.4s ease;
+    position:relative;
+    z-index:10;
+    backdrop-filter:blur(30px);
+    background:rgba(255,255,255,0.06);
+    border-right:1px solid rgba(255,255,255,0.08);
+    box-shadow:0 0 40px rgba(0,0,0,0.25);
+}
+.sidebar.expanded { width:240px; }
+.sidebar h2 {
+    font-size:22px;
+    font-weight:800;
+    color:#fff;
+    letter-spacing:1px;
+    margin-bottom:30px;
+    text-align:center;
+    cursor:pointer;
+    width:100%;
+    white-space:nowrap;
+    overflow:hidden;
+    transition:opacity 0.3s;
+    opacity:0;
+}
+.sidebar.expanded h2 { opacity:1; }
+.sidebar button {
+    width:calc(100% - 20px);
+    background:transparent;
+    border:none;
+    color:rgba(255,255,255,0.7);
+    display:flex;
+    align-items:center;
+    gap:15px;
+    padding:12px 15px;
+    margin:5px 10px;
+    cursor:pointer;
+    border-radius:14px;
+    transition:all 0.3s;
+    font-size:14px;
+    white-space:nowrap;
+    overflow:hidden;
+}
+.sidebar button img {
+    width:24px;
+    height:24px;
+    filter:invert(1) opacity(0.7);
+    flex-shrink:0;
+    transition:transform 0.3s, filter 0.3s;
+}
+.sidebar button span { display:inline-block; opacity:0; transition:opacity 0.3s; font-weight:600; }
+.sidebar.expanded button span { opacity:1; }
+.sidebar button:hover img { transform:scale(1.1); filter:invert(1) opacity(1); }
+.sidebar button:hover { background:rgba(255,255,255,0.1); color:#fff; }
+.active-menu { background: rgba(255,255,255,0.15) !important; color: #fff !important; }
+
+/* ================= MAIN CONTENT ================= */
+.main {
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+}
+
+header {
+    height:70px;
+    background:transparent;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:0 30px;
+    flex-shrink:0;
+}
+header h1 { font-size:24px; color:#fff; font-weight:800; }
+
+.sub-header-bar {
+    padding:15px 30px;
+    background:transparent;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+    display:flex;
+    justify-content: space-between;
+    align-items:center;
+    gap:20px;
+    flex-shrink:0;
+}
+
+.search-wrapper { flex: 1; }
+.search-wrapper input {
+    width: 100%;
+    padding:12px 16px;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:12px;
+    color:#fff;
+    font-size: 14px;
+    outline: none;
+    transition: 0.3s;
+    backdrop-filter: blur(10px);
+}
+.search-wrapper input:focus {
+    background:rgba(255,255,255,0.15);
+    border-color: rgba(255,255,255,0.3);
+}
+
+/* Navegação por Abas */
+.tabs-container {
+    display: flex;
+    gap: 10px;
+}
+.tab-btn {
+    padding: 10px 20px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.04);
+    color: rgba(255,255,255,0.6);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: 0.3s;
+}
+.tab-btn:hover {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+}
+.tab-btn.active {
+    background: #fff;
+    color: #111827;
+    border-color: #fff;
+}
+
+/* Area de Conteúdo dos Cards */
+.content-area {
+    flex:1;
+    overflow-y:auto;
+    padding:30px;
+}
+
+.grid-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+/* Categorias de Estado */
+.state-section {
+    margin-bottom: 40px;
+}
+.state-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: #3b82f6;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    padding-bottom: 8px;
+}
+.state-badge {
+    font-size: 11px;
+    background: rgba(59, 130, 246, 0.15);
+    color: #60a5fa;
+    padding: 2px 8px;
+    border-radius: 20px;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+/* Layout do Card Individual */
+.card-item {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 20px;
+    transition: 0.3s;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.card-item:hover {
+    transform: translateY(-3px);
+    background: rgba(255,255,255,0.08);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.25);
+}
+
+.card-item h3 { font-size: 17px; font-weight: 700; margin-bottom: 12px; color: #fff; }
+.card-item p { font-size: 13px; color: rgba(255,255,255,0.7); margin: 4px 0; }
+.card-item p strong { color: #fff; font-weight: 600; }
+
+.card-footer {
+    margin-top: 15px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+}
+.badge-user {
+    display: inline-block;
+    font-size: 11px;
+    background: rgba(168, 85, 247, 0.15);
+    color: #c084fc;
+    padding: 4px 10px;
+    border-radius: 8px;
+    border: 1px solid rgba(168, 85, 247, 0.3);
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.empty-msg {
+    color: rgba(255,255,255,0.4);
+    font-size: 14px;
+    font-style: italic;
+    text-align: center;
+    margin-top: 40px;
+}
+</style>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAFJJAqVf3ge0WDHBpmS9E6sXKvnjuFkhw",
+    authDomain: "dapapp-38637.firebaseapp.com",
+    projectId: "dapapp-38637",
+    storageBucket: "dapapp-38637.firebasestorage.app",
+    messagingSenderId: "628852295313",
+    appId: "1:628852295313:web:1234567890abcdef123456"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+document.addEventListener('DOMContentLoaded', () => {
+    const sidebar = document.querySelector(".sidebar");
+    if(sidebar){
+        sidebar.addEventListener('mouseenter', () => sidebar.classList.add('expanded'));
+        sidebar.addEventListener('mouseleave', () => sidebar.classList.remove('expanded'));
+    }
+
+    let todosClientes = [];
+    let currentTab = 'hoje'; // 'hoje' ou 'estados'
+
+    const searchInput = document.getElementById('searchInput');
+    const containerCards = document.getElementById('containerCards');
+    const tabHoje = document.getElementById('tabHoje');
+    const tabEstados = document.getElementById('tabEstados');
+
+    // Alternador de Abas
+    tabHoje.onclick = () => {
+        currentTab = 'hoje';
+        tabHoje.classList.add('active');
+        tabEstados.classList.remove('active');
+        renderizarPainel();
+    };
+
+    tabEstados.onclick = () => {
+        currentTab = 'estados';
+        tabEstados.classList.add('active');
+        tabHoje.classList.remove('active');
+        renderizarPainel();
+    };
+
+    searchInput.oninput = () => renderizarPainel();
+
+    // Puxa todos os cards do banco globalmente
+    async function carregarTodosCards() {
+        containerCards.innerHTML = '<p class="empty-msg">Carregando painel unificado de cards...</p>';
+        try {
+            const snap = await getDocs(collection(db, "clientes"));
+            todosClientes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            renderizarPainel();
+        } catch (error) {
+            console.error(error);
+            containerCards.innerHTML = '<p class="empty-msg" style="color: #ef4444;">Erro ao carregar dados do Firebase.</p>';
+        }
+    }
+
+    function renderizarPainel() {
+        containerCards.innerHTML = '';
+        const filtroPesquisa = searchInput.value.toLowerCase();
+
+        // Filtra pelo input de busca primeiro
+        let clientesFiltrados = todosClientes.filter(c => {
+            return !filtroPesquisa || (c.nome && c.nome.toLowerCase().includes(filtroPesquisa));
+        });
+
+        if (currentTab === 'hoje') {
+            // Lógica para cadastrados hoje
+            const hojeStr = new Date().toISOString().split('T')[0];
+            let clientesHoje = clientesFiltrados.filter(c => c.dataCadastro && c.dataCadastro.startsWith(hojeStr));
+
+            if (clientesHoje.length === 0) {
+                containerCards.innerHTML = '<p class="empty-msg">Nenhum card cadastrado hoje até o momento.</p>';
+                return;
+            }
+
+            const grid = document.createElement('div');
+            grid.className = 'grid-cards';
+            
+            clientesHoje.forEach(c => {
+                grid.appendChild(criarElementoCard(c));
+            });
+            containerCards.appendChild(grid);
+
+        } else if (currentTab === 'estados') {
+            // Lógica para agrupar por Estado
+            const agrupadoPorEstado = {};
+
+            clientesFiltrados.forEach(c => {
+                const uf = c.estado || c.uf || 'Não Informado';
+                if (!agrupadoPorEstado[uf]) {
+                    agrupadoPorEstado[uf] = [];
+                }
+                agrupadoPorEstado[uf].push(c);
+            });
+
+            const listaEstados = Object.keys(agrupadoPorEstado).sort();
+
+            if (listaEstados.length === 0) {
+                containerCards.innerHTML = '<p class="empty-msg">Nenhum card encontrado para exibição.</p>';
+                return;
+            }
+
+            listaEstados.forEach(uf => {
+                const clientesDoEstado = agrupadoPorEstado[uf];
+
+                const section = document.createElement('div');
+                section.className = 'state-section';
+
+                section.innerHTML = `
+                    <div class="state-title">
+                        <span>${uf.toUpperCase()}</span>
+                        <span class="state-badge">${clientesDoEstado.length} ${clientesDoEstado.length === 1 ? 'card' : 'cards'}</span>
+                    </div>
+                `;
+
+                const grid = document.createElement('div');
+                grid.className = 'grid-cards';
+
+                clientesDoEstado.forEach(c => {
+                    grid.appendChild(criarElementoCard(c));
+                });
+
+                section.appendChild(grid);
+                containerCards.appendChild(section);
+            });
+        }
+    }
+
+    // Estrutura do card exibido em tela
+    function criarElementoCard(cliente) {
+        const div = document.createElement('div');
+        div.className = 'card-item';
+
+        const primeiroProcesso = cliente.processo ? cliente.processo.split(',')[0].trim() : '-';
+        const primeiroNumero = cliente.numeros ? cliente.numeros.split(',')[0].trim() : '-';
+        const responsavel = cliente.responsavel || 'Não Definido';
+        const ufCard = cliente.estado || cliente.uf || '-';
+
+        div.innerHTML = `
+            <div>
+                <h3>${cliente.nome}</h3>
+                <p><strong>CPF:</strong> ${cliente.cpf || '-'}</p>
+                <p><strong>Telefone:</strong> ${primeiroNumero}</p>
+                <p><strong>Processo:</strong> ${primeiroProcesso}</p>
+                <p><strong>Estado:</strong> ${ufCard.toUpperCase()}</p>
+                <p><strong>Valor:</strong> R$ ${cliente.valor || '0'}</p>
+            </div>
+            <div class="card-footer">
+                <div class="badge-user" title="Cadastrado por / Responsável: ${responsavel}">
+                    👤 Cadastrado por: ${responsavel}
+                </div>
+            </div>
+        `;
+        return div;
+    }
+
+    // Monitoramento de Autenticação Básica
+    onAuthStateChanged(auth, user => {
+        if(user){
+            carregarTodosCards();
+        }else{
+            window.location.href = "login.html";
+        }
+    });
+});
+</script>
+</head>
+<body>
+
+<!-- Sidebar Padrão do Sistema -->
+<div class="sidebar">
+    <h2 onclick="window.location.href='dashboard.html'">AMR ADV</h2>
+    <button onclick="window.location.href='crm.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/dashboard.png"/>
+        <span>CRM</span>
+    </button>
+    <button class="active-menu" onclick="window.location.href='cards.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/user-group-man-man.png"/>
+        <span>Todos os Cards</span>
+    </button>
+    <button onclick="window.location.href='funil_geral.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/filter.png"/>
+        <span>Funil Geral</span>
+    </button>
+    <button onclick="window.location.href='adm.html'">
+        <img src="https://img.icons8.com/ios-filled/50/ffffff/manager.png"/>
+        <span>Painel ADM</span>
+    </button>
+</div>
+
+<div class="main">
+    <header>
+        <h1>Painel Global de Cards</h1>
+        <div style="font-size: 14px; color: rgba(255,255,255,0.6);">
+            Visualização unificada de leads cadastrados na assessoria.
+        </div>
+    </header>
+
+    <!-- Barra Superior de Controle e Filtros -->
+    <div class="sub-header-bar">
+        <div class="search-wrapper">
+            <input id="searchInput" placeholder="Buscar card por nome do cliente..." />
+        </div>
+        <div class="tabs-container">
+            <button class="tab-btn active" id="tabHoje">Cadastrados Hoje</button>
+            <button class="tab-btn" id="tabEstados">Por Estado</button>
+        </div>
+    </div>
+
+    <!-- Container Dinâmico onde entram os Cards -->
+    <div class="content-area" id="containerCards"></div>
+</div>
+
+</body>
+</html>
