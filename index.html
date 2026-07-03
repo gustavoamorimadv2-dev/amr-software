@@ -702,7 +702,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnAdd = document.getElementById('btnAdd');
     const btnCancel = document.getElementById('btnCancel');
     
-    // Configuração dos botões Adicionar e Cancelar que não estavam funcionando
     if(btnAdd){
         btnAdd.onclick = () => {
             openModal(false);
@@ -1328,7 +1327,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 👇 INÍCIO DA ATUALIZAÇÃO: VERIFICAÇÃO GLOBAL DE PROCESSO DUPLICADO 👇
         if (processos.length > 0) {
-            // Puxa TODOS os clientes de TODOS os usuários no banco de dados
             const queryTodos = query(collection(db, "clientes"));
             const snapshotTodos = await getDocs(queryTodos);
             const todosClientes = snapshotTodos.docs.map(docData => ({
@@ -1340,23 +1338,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
             for (let proc of processos) {
                 const clienteExistente = todosClientes.find(c => {
-                    // Se estiver editando o cliente, ignora ele mesmo na checagem
                     if (clientForm.dataset.editId && c.id === clientForm.dataset.editId) return false;
-                    
-                    // Verifica se a string de processos do cliente no banco inclui o processo digitado
                     return c.processo && c.processo.includes(proc);
                 });
 
                 if (clienteExistente) {
                     processoDuplicado = proc;
-                    break; // Para o loop assim que achar um repetido
+                    break;
                 }
             }
 
-            // Se achou duplicata, avisa e trava o salvamento
             if (processoDuplicado) {
                 showToast(`Erro: O processo ${processoDuplicado} já está cadastrado no sistema!`);
-                return; // Impede o envio do formulário
+                return; 
             }
         }
         // 👆 FIM DA ATUALIZAÇÃO 👆
@@ -1401,7 +1395,6 @@ document.addEventListener('DOMContentLoaded', () => {
     function addDragEvents(card){
         card.addEventListener('dragstart', () => {
             draggedCard = card;
-            // Delay para o visual do fantasma nativo não quebrar
             setTimeout(() => card.classList.add('dragging'), 0);
         });
 
@@ -1409,7 +1402,6 @@ document.addEventListener('DOMContentLoaded', () => {
             draggedCard = null;
             card.classList.remove('dragging');
             
-            // Remove o efeito de hover de todas as colunas
             document.querySelectorAll('.column').forEach(c => {
                 c.classList.remove('drag-over');
             });
@@ -1418,7 +1410,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('.column').forEach(col => {
         
-        // Efeito visual quando entra na coluna
         col.addEventListener('dragenter', e => {
             e.preventDefault();
             if (draggedCard) {
@@ -1427,10 +1418,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         col.addEventListener('dragover', e => {
-            e.preventDefault(); // Necessário para o evento de 'drop' disparar
+            e.preventDefault(); 
         });
 
-        // Tira o efeito quando sai da coluna
         col.addEventListener('dragleave', e => {
             col.classList.remove('drag-over');
         });
@@ -1484,7 +1474,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if(user){
             currentUser = user;
             
-            // EXIBE O EMAIL DO USUÁRIO LOGADO NO TOPO
             const emailDisplay = document.getElementById('userEmailDisplay');
             if (emailDisplay) {
                 emailDisplay.innerHTML = `👤 ${user.email}`;
@@ -1492,7 +1481,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             render();
         }else{
-            window.location.href = "login.html";
+            // REDIRECIONAMENTO COMENTADO PARA EVITAR TELA BRANCA EM TESTES
+            // window.location.href = "login.html";
+            console.log("Usuário não autenticado. Redirecionamento bloqueado para testes.");
         }
     });
 
