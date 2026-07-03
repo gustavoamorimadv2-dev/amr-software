@@ -255,9 +255,11 @@ select option {
     flex-direction:column;
     gap:15px;
     overflow-y:auto;
+    /* Transições suaves para a interação de drag and drop */
     transition: background-color 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
 }
 
+/* Feedback visual quando arrastar um card por cima da coluna */
 .column.drag-over {
     background: rgba(255, 255, 255, 0.08);
     border-color: rgba(255, 255, 255, 0.3);
@@ -271,7 +273,7 @@ select option {
     font-weight: 700;
     letter-spacing: 1px;
     opacity: 0.8;
-    pointer-events: none;
+    pointer-events: none; /* Previne bug visual no drag and drop */
 }
 
 /* ================= CARDS ================= */
@@ -297,6 +299,7 @@ select option {
     background:rgba(255,255,255,0.1);
 }
 
+/* Feedback visual do card sendo arrastado */
 .card.dragging {
     opacity: 0.4;
     transform: scale(0.95);
@@ -699,6 +702,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnAdd = document.getElementById('btnAdd');
     const btnCancel = document.getElementById('btnCancel');
     
+    // Configuração dos botões Adicionar e Cancelar que não estavam funcionando
     if(btnAdd){
         btnAdd.onclick = () => {
             openModal(false);
@@ -711,6 +715,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
+    // Configuração do botão Sair
     const btnSair = document.getElementById('btnSair');
     if (btnSair) {
         btnSair.onclick = () => {
@@ -762,7 +767,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },3000);
     }
 
-    /* ================= FORÇAR DOWNLOAD ================= */
+    /* ================= FORÇAR DOWNLOAD DE DOCUMENTO ================= */
     window.forceDownload = async function(url, filename, event) {
         if(event) {
             event.preventDefault();
@@ -1321,8 +1326,9 @@ document.addEventListener('DOMContentLoaded', () => {
         .map(input => input.value.trim())
         .filter(valor => valor);
 
-        // VERIFICAÇÃO GLOBAL DE PROCESSO DUPLICADO
+        // 👇 INÍCIO DA ATUALIZAÇÃO: VERIFICAÇÃO GLOBAL DE PROCESSO DUPLICADO 👇
         if (processos.length > 0) {
+            // Puxa TODOS os clientes de TODOS os usuários no banco de dados
             const queryTodos = query(collection(db, "clientes"));
             const snapshotTodos = await getDocs(queryTodos);
             const todosClientes = snapshotTodos.docs.map(docData => ({
@@ -1334,21 +1340,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
             for (let proc of processos) {
                 const clienteExistente = todosClientes.find(c => {
+                    // Se estiver editando o cliente, ignora ele mesmo na checagem
                     if (clientForm.dataset.editId && c.id === clientForm.dataset.editId) return false;
+                    
+                    // Verifica se a string de processos do cliente no banco inclui o processo digitado
                     return c.processo && c.processo.includes(proc);
                 });
 
                 if (clienteExistente) {
                     processoDuplicado = proc;
-                    break;
+                    break; // Para o loop assim que achar um repetido
                 }
             }
 
+            // Se achou duplicata, avisa e trava o salvamento
             if (processoDuplicado) {
                 showToast(`Erro: O processo ${processoDuplicado} já está cadastrado no sistema!`);
-                return;
+                return; // Impede o envio do formulário
             }
         }
+        // 👆 FIM DA ATUALIZAÇÃO 👆
 
         const telefones = Array.from(
             document.querySelectorAll('.inputTelefone')
@@ -1383,13 +1394,14 @@ document.addEventListener('DOMContentLoaded', () => {
         render();
     };
 
-    /* ================= DRAG AND DROP ================= */
+    /* ================= DRAG AND DROP MELHORADO ================= */
 
     let draggedCard = null;
 
     function addDragEvents(card){
         card.addEventListener('dragstart', () => {
             draggedCard = card;
+            // Delay para o visual do fantasma nativo não quebrar
             setTimeout(() => card.classList.add('dragging'), 0);
         });
 
@@ -1397,6 +1409,7 @@ document.addEventListener('DOMContentLoaded', () => {
             draggedCard = null;
             card.classList.remove('dragging');
             
+            // Remove o efeito de hover de todas as colunas
             document.querySelectorAll('.column').forEach(c => {
                 c.classList.remove('drag-over');
             });
@@ -1405,6 +1418,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.querySelectorAll('.column').forEach(col => {
         
+        // Efeito visual quando entra na coluna
         col.addEventListener('dragenter', e => {
             e.preventDefault();
             if (draggedCard) {
@@ -1413,9 +1427,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         col.addEventListener('dragover', e => {
-            e.preventDefault(); 
+            e.preventDefault(); // Necessário para o evento de 'drop' disparar
         });
 
+        // Tira o efeito quando sai da coluna
         col.addEventListener('dragleave', e => {
             col.classList.remove('drag-over');
         });
@@ -1469,6 +1484,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if(user){
             currentUser = user;
             
+            // EXIBE O EMAIL DO USUÁRIO LOGADO NO TOPO
             const emailDisplay = document.getElementById('userEmailDisplay');
             if (emailDisplay) {
                 emailDisplay.innerHTML = `👤 ${user.email}`;
@@ -1494,7 +1510,7 @@ document.addEventListener('DOMContentLoaded', () => {
         AMR ADV
     </h2>
 
-    <button onclick="window.location.href='index.html'">
+    <button onclick="window.location.href='crm.html'">
         <img src="https://img.icons8.com/ios-filled/50/ffffff/dashboard.png"/>
         <span>CRM</span>
     </button>
@@ -1524,7 +1540,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <span>Configurações</span>
     </button>
 
-    <!-- BOTÃO DE SAIR -->
+    <!-- NOVO BOTÃO DE SAIR -->
     <button id="btnSair" style="margin-top: auto; margin-bottom: 20px;">
         <img src="https://img.icons8.com/ios-filled/50/ffffff/exit.png"/>
         <span>Sair</span>
