@@ -66,8 +66,9 @@ header h1{ font-size:24px; color:#fff; font-weight:800; }
     cursor: pointer;
 }
 .func-card:hover { transform: translateY(-3px); background: rgba(255,255,255,0.08); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
-.func-card h3 { font-size: 18px; margin-bottom: 5px; color: #fff; }
+.func-card h3 { font-size: 18px; margin-bottom: 2px; color: #fff; }
 .func-card p.email { font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 15px; }
+.func-card p.cargo { font-size: 12px; color: #6ee7b7; font-weight: 600; margin-bottom: 5px; text-transform: uppercase; }
 
 .stat-row {
     display: flex;
@@ -125,9 +126,13 @@ header h1{ font-size:24px; color:#fff; font-weight:800; }
 .modal h3 { margin-bottom:5px; font-size: 20px; }
 .modal .subtitle { font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 20px; }
 .row { margin-bottom:14px; }
-.modal input, .modal textarea { width:100%; padding:12px 16px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); border-radius:12px; color:#fff; font-size: 14px; outline: none; }
+
+/* CSS do SELECT ADICIONADO AQUI */
+.modal input, .modal textarea, .modal select { width:100%; padding:12px 16px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); border-radius:12px; color:#fff; font-size: 14px; outline: none; }
+.modal select option { background: #0f172a; color: #fff; }
+
 .modal textarea { min-height: 80px; resize: vertical; }
-.modal input:focus, .modal textarea:focus { background:rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); }
+.modal input:focus, .modal textarea:focus, .modal select:focus { background:rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); }
 .actions { display:flex; gap:10px; justify-content:flex-end; margin-top:20px; }
 
 .toast { position:fixed; right:30px; bottom:30px; background:rgba(255,255,255,0.1); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); color:#fff; padding:12px 20px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.4); display:none; z-index:60; font-weight: 500; }
@@ -137,8 +142,9 @@ header h1{ font-size:24px; color:#fff; font-weight:800; }
 </style>
 
 <script type="module">
+// ADICIONADO: "getDoc" nas importações para consultar o cargo no banco de dados.
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-import { getFirestore, collection, getDocs, setDoc, doc, addDoc, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs, setDoc, doc, getDoc, addDoc, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
 
 const firebaseConfig = {
@@ -172,7 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let currentUser = null;
     let mapaFuncionarios = {}; 
-    window.todosClientes = []; // Variável global para armazenar os clientes e gerar relatórios
+    window.todosClientes = []; 
     let chartEstadoInstancia = null;
     let chartAcaoInstancia = null;
 
@@ -207,9 +213,8 @@ document.addEventListener('DOMContentLoaded', () => {
         btnFecharRelatorio.onclick = () => modalRelatorio.style.display = 'none';
     }
 
-    // Modal Tarefa (Precisa estar no Window para ser chamada do HTML gerado via JS)
     window.abrirModalTarefa = (event, funcId, funcNome) => {
-        event.stopPropagation(); // Impede que o clique no botão abra também o modal de relatório
+        event.stopPropagation(); 
         formTarefa.reset();
         inputTarefaFuncId.value = funcId;
         subtituloTarefa.innerText = `Delegar para: ${funcNome}`;
@@ -222,19 +227,16 @@ document.addEventListener('DOMContentLoaded', () => {
         btnCancelTarefa.onclick = () => modalTarefa.style.display = 'none';
     }
 
-    // Modal de Relatórios (Gráficos)
     window.abrirRelatorio = (funcId, funcNome) => {
         document.getElementById('nomeFuncRelatorio').innerText = `Desempenho: ${funcNome}`;
         modalRelatorio.style.display = 'flex';
 
         const clientesDoFunc = window.todosClientes.filter(c => c.userId === funcId);
 
-        // Agrupando dados para os gráficos
         const contagemEstados = {};
         const contagemAcoes = {};
 
         clientesDoFunc.forEach(c => {
-            // Usa as propriedades estado e acao (se houver variação no seu banco, adapte aqui)
             const estado = c.estado || c.uf || 'Não Informado';
             const acao = c.acao || c.tipoAcao || 'Outros';
 
@@ -249,15 +251,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const ctxEstado = document.getElementById('chartEstados').getContext('2d');
         const ctxAcao = document.getElementById('chartAcoes').getContext('2d');
 
-        // Destrói gráficos antigos para não sobrepor
         if(chartEstadoInstancia) chartEstadoInstancia.destroy();
         if(chartAcaoInstancia) chartAcaoInstancia.destroy();
 
-        // Configuração de cores e temas pro Chart.js
         Chart.defaults.color = 'rgba(255, 255, 255, 0.7)';
         Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
 
-        // Gráfico de Estados (Doughnut)
         chartEstadoInstancia = new Chart(ctxEstado, {
             type: 'doughnut',
             data: {
@@ -277,7 +276,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Gráfico de Ações (Bar)
         chartAcaoInstancia = new Chart(ctxAcao, {
             type: 'bar',
             data: {
@@ -302,29 +300,25 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Carregar Dashboard
     async function carregarDashboard() {
         if(!gridFuncionarios) return;
         gridFuncionarios.innerHTML = '<p style="color: rgba(255,255,255,0.5);">Carregando dados da equipe...</p>';
 
         try {
-            // Puxa funcionários ativos
             const funcSnap = await getDocs(collection(db, "funcionarios"));
             const funcionariosAtivos = funcSnap.docs.map(d => ({ id: d.id, statusConta: 'Ativo', ...d.data() }));
 
-            // Puxa pré-cadastros
             const preSnap = await getDocs(collection(db, "pre_cadastros"));
             const preCadastros = preSnap.docs.map(d => ({ id: d.id, statusConta: 'Aguardando 1º Acesso', ...d.data() }));
 
             const todosFuncionarios = [...funcionariosAtivos, ...preCadastros];
 
             const clientesSnap = await getDocs(collection(db, "clientes"));
-            window.todosClientes = clientesSnap.docs.map(d => d.data()); // Armazenando globalmente
+            window.todosClientes = clientesSnap.docs.map(d => d.data());
 
             const hojeDate = new Date();
             const dataHojeStr = hojeDate.toISOString().split('T')[0];
 
-            // Pega data de exatos 7 dias atrás para o cálculo semanal
             const dataSemanaAtras = new Date();
             dataSemanaAtras.setDate(dataSemanaAtras.getDate() - 7);
 
@@ -339,10 +333,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     const clientesDoFunc = window.todosClientes.filter(c => c.userId === func.id);
                     
-                    // Cálculo de Cadastros HOJE
                     const cadastrosHoje = clientesDoFunc.filter(c => c.dataCadastro && c.dataCadastro.startsWith(dataHojeStr)).length;
                     
-                    // Cálculo de Cadastros na SEMANA
                     const cadastrosSemana = clientesDoFunc.filter(c => {
                         if(!c.dataCadastro) return false;
                         return new Date(c.dataCadastro) >= dataSemanaAtras;
@@ -350,6 +342,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     const naListaFria = clientesDoFunc.filter(c => c.status === 'lista-fria').length;
                     const fechados = clientesDoFunc.filter(c => c.status === 'fechado').length;
+                    
+                    // CARGO: Pega o cargo do banco ou diz que é vendedor por padrão se for antigo
+                    const cargoExibicao = func.cargo ? func.cargo : 'Vendedor';
 
                     const card = document.createElement('div');
                     card.className = 'func-card';
@@ -359,7 +354,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     card.innerHTML = `
                         <div style="display:flex; justify-content:space-between; align-items:flex-start;">
-                            <h3>${func.nome}</h3>
+                            <div>
+                                <h3>${func.nome}</h3>
+                                <p class="cargo">${cargoExibicao}</p>
+                            </div>
                             <span style="font-size:10px; background:${corStatus}20; color:${corStatus}; border:1px solid ${corStatus}40; padding:2px 6px; border-radius:10px; font-weight:600;">${func.statusConta}</span>
                         </div>
                         <p class="email">${func.email}</p>
@@ -387,7 +385,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                         </div>
 
-                        <!-- Adicionado event.stopPropagation() para não abrir o modal de gráficos ao clicar neste botão -->
                         <button class="btn btn-outline" style="width: 100%; margin-top: 15px; font-size: 12px;" onclick="window.abrirModalTarefa(event, '${func.id}', '${func.nome}')">
                             + Criar Tarefa
                         </button>
@@ -404,7 +401,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Carregar Lista de Tarefas Gerais (Mantida igual)
     async function carregarTarefas() {
         if(!listaTarefas) return;
         listaTarefas.innerHTML = '<p style="color: rgba(255,255,255,0.5); font-size: 13px;">Carregando tarefas...</p>';
@@ -445,13 +441,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Funcionalidade do form (Mantida igual)
+    // Funcionalidade do form
     if(formFunc) {
         formFunc.addEventListener('submit', async (e) => {
             e.preventDefault();
             const nome = document.getElementById('inputNome').value.trim();
             const email = document.getElementById('inputEmail').value.trim().toLowerCase();
             const senha = document.getElementById('inputSenha').value;
+            // Capturando o CARGO
+            const cargo = document.getElementById('inputCargo').value;
+            
             const btnSalvar = formFunc.querySelector('button[type="submit"]');
             
             btnSalvar.innerText = 'Salvando...';
@@ -474,6 +473,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     nome: nome,
                     email: email,
                     senhaPadrao: senha, 
+                    cargo: cargo, // SALVANDO O CARGO NO BANCO
                     dataRegistro: new Date().toISOString()
                 });
 
@@ -528,24 +528,49 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ================= VERIFICAÇÃO DE ACESSO RESTRITO ADM =================
-    onAuthStateChanged(auth, user => {
+    // ================= VERIFICAÇÃO DE ACESSO RESTRITO ADM (NOVA LÓGICA DE CARGOS) =================
+    // Transformado em 'async' para poder puxar o Firebase
+    onAuthStateChanged(auth, async user => {
         if(user){
-            // Correção da checagem de array de emails admins permitidos
-            const admins = [
+            const superAdmins = [
                 "gruponascimentoesouza@gmail.com", 
                 "vitorunisuam@hotmail.com", 
                 "contato.aiyranascimento@gmail.com"
             ];
             
-            if(user.email && admins.includes(user.email.toLowerCase())) {
+            let temAcesso = false;
+
+            // Se for super admin, libera direto
+            if(user.email && superAdmins.includes(user.email.toLowerCase())) {
+                temAcesso = true;
+            } else {
+                // Se não for super admin, vamos ver no banco de dados o CARGO da pessoa
+                try {
+                    const userDoc = await getDoc(doc(db, "funcionarios", user.uid));
+                    if (userDoc.exists()) {
+                        const dados = userDoc.data();
+                        const cargoUsuario = dados.cargo || 'Vendedor';
+                        
+                        // Diretores, Gerentes e CEO têm acesso
+                        if (cargoUsuario === 'Gerente' || cargoUsuario === 'Diretor' || cargoUsuario === 'CEO') {
+                            temAcesso = true;
+                        }
+                    }
+                } catch (error) {
+                    console.error("Erro ao verificar cargo:", error);
+                }
+            }
+
+            if(temAcesso) {
                 currentUser = user;
                 if(sidebar) sidebar.style.display = 'flex';
                 carregarDashboard();
             } else {
-                alert("⛔ Acesso Negado: Esta página é restrita apenas para a Administração.");
+                // Bloqueia quem for apenas vendedor
+                alert("⛔ Acesso Negado: Esta página é restrita para Gerentes, Diretores e CEOs.");
                 window.location.href = "crm.html"; 
             }
+
         }else{
             window.location.href = "login.html";
         }
@@ -613,7 +638,7 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
 </div>
 
-<!-- Modal Novo Funcionario -->
+<!-- Modal Novo Funcionario (ATUALIZADO COM CARGO) -->
 <div class="modal-backdrop" id="modalFuncionario">
     <div class="modal">
         <h3>Adicionar Funcionário</h3>
@@ -622,6 +647,18 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="row">
                 <input id="inputNome" type="text" placeholder="Nome Completo" required />
             </div>
+            
+            <!-- CAMPO DE CARGO ADICIONADO AQUI -->
+            <div class="row">
+                <select id="inputCargo" required>
+                    <option value="" disabled selected>Selecione o Cargo do Funcionário</option>
+                    <option value="Vendedor">Vendedor</option>
+                    <option value="Gerente">Gerente</option>
+                    <option value="Diretor">Diretor</option>
+                    <option value="CEO">CEO</option>
+                </select>
+            </div>
+
             <div class="row">
                 <input id="inputEmail" type="email" placeholder="E-mail de Acesso" required />
             </div>
