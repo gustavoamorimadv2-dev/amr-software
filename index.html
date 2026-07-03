@@ -719,9 +719,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnSair = document.getElementById('btnSair');
     if (btnSair) {
         btnSair.onclick = () => {
-            signOut(auth).then(() => {
-                window.location.href = "login.html";
-            }).catch((error) => {
+            // Apenas executa o logout. O redirecionamento será feito automaticamente pelo onAuthStateChanged abaixo.
+            signOut(auth).catch((error) => {
                 showToast("Erro ao sair: " + error.message);
             });
         };
@@ -1492,7 +1491,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             render();
         }else{
-            window.location.href = "login.html";
+            // Usar 'replace' evita que a página fique presa no histórico e cause o loop infinito
+            window.location.replace("login.html");
         }
     });
 
