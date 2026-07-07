@@ -338,6 +338,7 @@ select option {
 
 /* CORES DOS CARDS */
 .lista-fria .color-bar{ background:#3b82f6; } /* Azul */
+.dia-1 .color-bar{ background:#06b6d4; } /* Ciano (NOVO) */
 .dia-2 .color-bar{ background:#10b981; } /* Verde claro */
 .dia-3 .color-bar{ background:#f59e0b; } /* Amarelo */
 .dia-4 .color-bar{ background:#8b5cf6; } /* Roxo */
@@ -678,9 +679,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Colunas Ajustadas
+    // Colunas Ajustadas (COM DIA 1 INCLUSO)
     const STATUS = [
         'lista-fria',
+        'dia-1',
         'dia-2',
         'dia-3',
         'dia-4',
@@ -883,7 +885,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 btnEnviar.className = 'btn btn-green btn-enviar-msg';
                 btnEnviar.innerHTML = numerosLimpos.length > 1 ? `Enviar para todos (${numerosLimpos.length}) ↗` : 'Enviar ↗';
 
-                btnEnviar.onclick = () => {
+                btnEnviar.onclick = async () => {
                     const mensagemFinal = template.replace(/{nome}/g, cliente.nome);
                     
                     numerosLimpos.forEach(num => {
@@ -894,6 +896,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     btnEnviar.innerHTML = '✓ Enviados';
                     btnEnviar.style.background = '#4b5563'; 
                     btnEnviar.disabled = true;
+
+                    // Mover automaticamente para o Dia 1
+                    try {
+                        const docRef = doc(db, "clientes", cliente.id);
+                        await updateDoc(docRef, { status: 'dia-1' });
+                        // Re-renderiza o Kanban para o card mudar de lugar sozinho
+                        render();
+                    } catch (error) {
+                        console.error("Erro ao mover para o Dia 1:", error);
+                    }
                 };
 
                 divFila.appendChild(spanNome);
@@ -1306,18 +1318,38 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function render(){
 
+        const clientes = await getClientes();
+
+        // Calcular quantos cards o usuário atual cadastrou hoje e que ainda estão na Lista Fria
+        let countListaFriaHoje = 0;
+        const hojeStr = new Date().toLocaleDateString('pt-BR');
+        if (currentUser) {
+            countListaFriaHoje = clientes.filter(c => {
+                if (!c.dataCadastro || c.status !== 'lista-fria') return false;
+                const cardDateStr = new Date(c.dataCadastro).toLocaleDateString('pt-BR');
+                return cardDateStr === hojeStr && c.criadoPor === currentUser.email;
+            }).length;
+        }
+
         STATUS.forEach(status => {
             const col = document.getElementById(status);
             
             if (status === 'lista-fria') {
                 col.innerHTML = `
                     <div class="col-header-actions">
-                        <h2 style="margin-bottom:0;">LISTA FRIA</h2>
+                        <div style="display:flex; flex-direction:column;">
+                            <h2 style="margin-bottom:2px;">LISTA FRIA</h2>
+                            <span style="font-size: 11px; font-weight: normal; color: rgba(255,255,255,0.6);">
+                                Cadastrados hoje: <strong style="color:#fff;">${countListaFriaHoje}</strong>
+                            </span>
+                        </div>
                         <button class="btn-robot" title="Ativar Robô" onclick="document.getElementById('btnAgente').click()">
                             <img src="https://img.icons8.com/ios-glyphs/30/000000/bot.png" alt="Robô"/>
                         </button>
                     </div>
                 `;
+            } else if (status === 'dia-1') {
+                col.innerHTML = `<h2>EM NEGOCIAÇÃO (DIA 1)</h2>`;
             } else if (status === 'dia-2') {
                 col.innerHTML = `<h2>EM NEGOCIAÇÃO (DIA 2)</h2>`;
             } else {
@@ -1329,17 +1361,10 @@ document.addEventListener('DOMContentLoaded', () => {
             delete cardsMap[k];
         }
 
-        const clientes = await getClientes();
-
         for(const cliente of clientes){
             
             if (!cliente.dataCadastro) {
                 cliente.dataCadastro = new Date().toISOString();
-            }
-
-            // Normalização para dados antigos caso tenha salvado como dia-1
-            if (cliente.status === 'dia-1') {
-                cliente.status = 'lista-fria';
             }
 
             const diaCalc = getDiaPipeline(cliente.dataCadastro);
@@ -1356,8 +1381,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Se o card NÃO foi avançado manualmente para Contrato Assinado ou Fechado, o CRM movimenta os dias sozinho
             if (cliente.status !== 'contrato-assinado' && cliente.status !== 'fechado' && cliente.status !== 'funil-geral') {
+                
                 let statusCalc = 'lista-fria';
-                if (diaCalc === 2) statusCalc = 'dia-2';
+                
+                if (diaCalc === 1) {
+                    // Mantém no dia 1 se ele foi avançado pelo bot, caso contrário lista-fria
+                    statusCalc = (cliente.status === 'dia-1') ? 'dia-1' : 'lista-fria';
+                }
+                else if (diaCalc === 2) statusCalc = 'dia-2';
                 else if (diaCalc === 3) statusCalc = 'dia-3';
                 else if (diaCalc === 4) statusCalc = 'dia-4';
                 else if (diaCalc === 5) statusCalc = 'dia-5';
@@ -1675,6 +1706,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <select id="filterStatus">
         <option value="">Todos os status</option>
         <option value="lista-fria">Lista Fria</option>
+        <option value="dia-1">Dia 1</option>
         <option value="dia-2">Dia 2</option>
         <option value="dia-3">Dia 3</option>
         <option value="dia-4">Dia 4</option>
@@ -1690,32 +1722,28 @@ document.addEventListener('DOMContentLoaded', () => {
 <main class="kanban" id="kanban">
 
     <div class="column" id="lista-fria">
-        <!-- Renderizado pelo script -->
-    </div>
+        </div>
+
+    <div class="column" id="dia-1">
+        </div>
 
     <div class="column" id="dia-2">
-        <!-- Renderizado pelo script -->
-    </div>
+        </div>
 
     <div class="column" id="dia-3">
-        <!-- Renderizado pelo script -->
-    </div>
+        </div>
 
     <div class="column" id="dia-4">
-        <!-- Renderizado pelo script -->
-    </div>
+        </div>
 
     <div class="column" id="dia-5">
-        <!-- Renderizado pelo script -->
-    </div>
+        </div>
 
     <div class="column" id="contrato-assinado">
-        <!-- Renderizado pelo script -->
-    </div>
+        </div>
 
     <div class="column" id="fechado">
-        <!-- Renderizado pelo script -->
-    </div>
+        </div>
 
 </main>
 
