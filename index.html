@@ -321,7 +321,7 @@ select option {
     margin-bottom:12px;
     color:#fff;
     font-weight: 700;
-    padding-right: 80px; 
+    padding-right: 120px; /* Aumentado para caber 3 botões */
     word-break: break-word; 
 }
 
@@ -351,7 +351,7 @@ select option {
     top:15px;
     right:15px;
     display:flex;
-    gap:10px;
+    gap:8px;
 }
 
 .card-actions button{
@@ -1167,6 +1167,78 @@ document.addEventListener('DOMContentLoaded', () => {
         addTelefoneField();
     };
 
+    /* ================= GERAÇÃO DE CONTRATO (NOVO) ================= */
+
+    function gerarContrato(cliente) {
+        showToast("Gerando contrato...");
+        
+        const dataAtual = new Date().toLocaleDateString('pt-BR');
+        const processoStr = cliente.processo ? cliente.processo.split(',')[0].trim() : "Não informado";
+        const valorFormatado = cliente.valor ? parseFloat(cliente.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "R$ 0,00";
+        
+        const conteudoContrato = `
+            <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+            <head>
+                <meta charset='utf-8'>
+                <title>Contrato de Prestação de Serviços</title>
+                <style>
+                    body { font-family: Arial, sans-serif; line-height: 1.6; padding: 40px; text-align: justify; }
+                    h2 { text-align: center; text-transform: uppercase; margin-bottom: 30px; }
+                    h3 { margin-top: 30px; text-decoration: underline; }
+                    .assinaturas { margin-top: 60px; text-align: center; }
+                    .assinaturas p { margin-top: 40px; }
+                </style>
+            </head>
+            <body>
+                <h2>CONTRATO DE PRESTAÇÃO DE SERVIÇOS ADVOCATÍCIOS</h2>
+                
+                <p><strong>CONTRATANTE:</strong> ${cliente.nome}, inscrito(a) no CPF/CNPJ sob o nº ${cliente.cpf || '___________'}, residente e domiciliado(a) no estado de ${cliente.estado || '___________'}.</p>
+                
+                <p><strong>CONTRATADA:</strong> AMR ADV, escritório de advocacia devidamente qualificado.</p>
+                
+                <h3>1. DO OBJETO</h3>
+                <p>O presente instrumento tem como objeto a prestação de serviços jurídicos profissionais por parte da CONTRATADA, consistentes no patrocínio da defesa dos interesses da CONTRATANTE relacionados à classe processual <strong>${cliente.classe || '___________'}</strong>, especificamente para o acompanhamento/atuação no processo de nº <strong>${processoStr}</strong>.</p>
+                
+                <h3>2. DOS HONORÁRIOS</h3>
+                <p>Em remuneração aos serviços profissionais ora pactuados, a CONTRATANTE pagará à CONTRATADA a quantia líquida e certa de <strong>${valorFormatado}</strong>, conforme as condições e prazos acordados entre as partes, ficando a cargo da CONTRATANTE as eventuais custas processuais que se fizerem necessárias ao andamento do feito.</p>
+                
+                <h3>3. DAS OBRIGAÇÕES GERAIS</h3>
+                <p>A CONTRATADA compromete-se a prestar seus serviços com zelo, diligência e dedicação, acompanhando o processo em todas as suas fases e instâncias necessárias. A CONTRATANTE, por sua vez, obriga-se a fornecer toda a documentação, informações e provas tempestivamente quando solicitadas pela CONTRATADA, assumindo a responsabilidade pela veracidade dos fatos narrados.</p>
+
+                <h3>4. DO FORO</h3>
+                <p>Fica eleito o foro da comarca da CONTRATADA, com renúncia expressa a qualquer outro, por mais privilegiado que seja, para dirimir quaisquer dúvidas ou litígios oriundos deste contrato.</p>
+                
+                <p style="text-align: right; margin-top: 40px;">Data: ${dataAtual}</p>
+
+                <div class="assinaturas">
+                    <p>____________________________________________________<br>
+                    <strong>${cliente.nome}</strong><br>
+                    (Contratante)</p>
+                    
+                    <p>____________________________________________________<br>
+                    <strong>AMR ADV</strong><br>
+                    (Contratada)</p>
+                </div>
+            </body>
+            </html>
+        `;
+
+        // Criando Blob com tipo de documento do Word (.doc)
+        const blob = new Blob(['\ufeff', conteudoContrato], {
+            type: 'application/msword'
+        });
+        
+        // Disparando o download do arquivo
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Contrato_${cliente.nome.replace(/\s+/g, '_')}.doc`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
+
     /* ================= CARDS ================= */
 
     function criarCard(cliente){
@@ -1202,8 +1274,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const actionsDiv = document.createElement('div');
         actionsDiv.className = 'card-actions';
 
-        const btnCall = document.createElement('button');
+        // BOTÃO GERAR CONTRATO
+        const btnContrato = document.createElement('button');
+        btnContrato.title = "Baixar Contrato (Word)";
+        btnContrato.onclick = (e) => {
+            e.stopPropagation();
+            gerarContrato(cliente);
+        };
+        btnContrato.innerHTML = '<img src="https://img.icons8.com/ios-glyphs/30/000000/document.png"/>';
 
+        const btnCall = document.createElement('button');
+        btnCall.title = "Ligar";
         btnCall.onclick = (e) => {
             e.stopPropagation();
             const numero = cliente.numeros
@@ -1211,12 +1292,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 : '';
             ligar(numero);
         };
-
-        btnCall.innerHTML =
-            '<img src="https://img.icons8.com/ios-glyphs/30/000000/phone.png"/>';
+        btnCall.innerHTML = '<img src="https://img.icons8.com/ios-glyphs/30/000000/phone.png"/>';
 
         const btnWa = document.createElement('button');
-
+        btnWa.title = "WhatsApp";
         btnWa.onclick = (e) => {
             e.stopPropagation();
             const numero = cliente.numeros
@@ -1224,10 +1303,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 : '';
             whatsapp(numero);
         };
+        btnWa.innerHTML = '<img src="https://img.icons8.com/ios-glyphs/30/000000/whatsapp.png"/>';
 
-        btnWa.innerHTML =
-            '<img src="https://img.icons8.com/ios-glyphs/30/000000/whatsapp.png"/>';
-
+        // Anexando os botões na tela
+        actionsDiv.appendChild(btnContrato);
         actionsDiv.appendChild(btnCall);
         actionsDiv.appendChild(btnWa);
 
