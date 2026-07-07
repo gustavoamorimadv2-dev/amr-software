@@ -123,9 +123,10 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     align-items:center;
     gap:20px;
     flex-shrink:0;
+    flex-wrap: wrap; /* Para telas menores */
 }
 
-.search-wrapper { flex: 1; }
+.search-wrapper { flex: 1; min-width: 250px; }
 .search-wrapper input {
     width: 100%;
     padding:12px 16px;
@@ -141,6 +142,49 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 .search-wrapper input:focus {
     background:rgba(255,255,255,0.15);
     border-color: rgba(255,255,255,0.3);
+}
+
+/* Área de Exportação CSV */
+.export-container {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.export-container select {
+    padding:10px 16px;
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:12px;
+    color:#fff;
+    font-size: 14px;
+    outline: none;
+    cursor: pointer;
+}
+
+.export-container select option {
+    background: #111827;
+    color: #fff;
+}
+
+.btn-green {
+    padding: 10px 20px;
+    border-radius: 12px;
+    border: none;
+    background: #10b981;
+    color: #fff;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.btn-green:hover {
+    background: #059669;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
 }
 
 /* Navegação por Abas */
@@ -288,6 +332,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const containerCards = document.getElementById('containerCards');
     const tabHoje = document.getElementById('tabHoje');
     const tabEstados = document.getElementById('tabEstados');
+    
+    const selectEstadoCsv = document.getElementById('selectEstadoCsv');
+    const btnBaixarCsv = document.getElementById('btnBaixarCsv');
 
     // Alternador de Abas
     tabHoje.onclick = () => {
@@ -312,12 +359,84 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const snap = await getDocs(collection(db, "clientes"));
             todosClientes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            
+            // Preenche o Select de Estados para o Download do CSV
+            preencherSelectEstados();
+
             renderizarPainel();
         } catch (error) {
             console.error(error);
             containerCards.innerHTML = '<p class="empty-msg" style="color: #ef4444;">Erro ao carregar dados do Firebase.</p>';
         }
     }
+
+    function preencherSelectEstados() {
+        const estadosSet = new Set();
+        todosClientes.forEach(c => {
+            const uf = c.estado || c.uf || 'Não Informado';
+            estadosSet.add(uf.toUpperCase());
+        });
+
+        selectEstadoCsv.innerHTML = '<option value="">Selecione o Estado para CSV</option>';
+        
+        Array.from(estadosSet).sort().forEach(uf => {
+            const opt = document.createElement('option');
+            opt.value = uf;
+            opt.textContent = uf;
+            selectEstadoCsv.appendChild(opt);
+        });
+    }
+
+    // Função de Baixar CSV Padrão WhatsApp Business
+    btnBaixarCsv.onclick = () => {
+        const estadoSelecionado = selectEstadoCsv.value;
+        if (!estadoSelecionado) {
+            alert("Por favor, selecione um estado na lista para baixar o CSV.");
+            return;
+        }
+
+        const clientesDoEstado = todosClientes.filter(c => {
+            const uf = (c.estado || c.uf || 'Não Informado').toUpperCase();
+            return uf === estadoSelecionado;
+        });
+
+        if (clientesDoEstado.length === 0) {
+            alert("Nenhum cliente encontrado para este estado.");
+            return;
+        }
+
+        // Cabeçalho do CSV para WPP Business (Nome, Telefone)
+        let csvContent = "Name,Phone\n";
+
+        clientesDoEstado.forEach(c => {
+            // Remove vírgulas do nome para não quebrar a coluna do CSV
+            const nome = c.nome ? c.nome.replace(/,/g, '') : 'Sem Nome'; 
+            
+            // Pega o primeiro número e remove todos os caracteres não numéricos
+            const numeroRaw = c.numeros ? c.numeros.split(',')[0].trim() : '';
+            const numeroLimpo = numeroRaw.replace(/\D/g, ''); 
+
+            // Só adiciona se o cliente tiver telefone válido cadastrado
+            if (numeroLimpo) {
+                // Força código do Brasil (55) caso não tenha
+                let wppNumero = numeroLimpo;
+                if (!wppNumero.startsWith('55') && wppNumero.length >= 10) {
+                    wppNumero = '55' + wppNumero;
+                }
+                csvContent += `${nome},${wppNumero}\n`;
+            }
+        });
+
+        // Gera o arquivo incluindo \ufeff para garantir formatação UTF-8 e ler acentos no Excel
+        const blob = new Blob(['\ufeff', csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        link.setAttribute("download", `Transmissao_WPP_${estadoSelecionado.replace(/\s+/g, '_')}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
     function renderizarPainel() {
         containerCards.innerHTML = '';
@@ -463,13 +582,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     <!-- Barra Superior de Controle e Filtros -->
     <div class="sub-header-bar">
-        <div class="search-wrapper">
-            <input id="searchInput" placeholder="Buscar card por nome do cliente..." />
-        </div>
+        
         <div class="tabs-container">
             <button class="tab-btn active" id="tabHoje">Cadastrados Hoje</button>
             <button class="tab-btn" id="tabEstados">Por Estado</button>
         </div>
+
+        <div class="search-wrapper">
+            <input id="searchInput" placeholder="Buscar card por nome do cliente..." />
+        </div>
+
+        <!-- NOVO: Exportação para o WPP Business -->
+        <div class="export-container">
+            <select id="selectEstadoCsv">
+                <option value="">Carregando Estados...</option>
+            </select>
+            <button class="btn-green" id="btnBaixarCsv">
+                <img src="https://img.icons8.com/ios-filled/20/ffffff/download.png" style="width: 16px; height: 16px;">
+                Baixar CSV
+            </button>
+        </div>
+
     </div>
 
     <!-- Container Dinâmico onde entram os Cards -->
