@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Painel ADM - AMR ADV</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<!-- Biblioteca para os Gráficos -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
@@ -45,14 +44,20 @@ header h1{ font-size:24px; color:#fff; font-weight:800; }
 
 .content-area { padding: 30px; overflow-y: auto; flex: 1; }
 
-.adm-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+.adm-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 .adm-header h2 { font-size: 20px; font-weight: 600; }
 
-.grid-funcionarios {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 20px;
-}
+/* PAINEL GERAL CRM */
+.geral-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 40px; }
+.geral-card { background: linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02)); border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 16px; padding: 25px 20px; text-align: center; transition: transform 0.3s; }
+.geral-card:hover { transform: translateY(-3px); }
+.geral-card h4 { font-size: 14px; color: rgba(255,255,255,0.6); margin-bottom: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.geral-card h2 { font-size: 34px; color: #fff; font-weight: 800; margin-bottom: 5px; }
+.geral-card p { font-size: 12px; color: #3b82f6; font-weight: 600; }
+.geral-card.highlight-success p { color: #10b981; }
+.geral-card.highlight-warning p { color: #f59e0b; }
+
+.grid-funcionarios { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
 
 .func-card {
     background: rgba(255,255,255,0.05);
@@ -84,30 +89,11 @@ header h1{ font-size:24px; color:#fff; font-weight:800; }
 .highlight-purple { color: #a855f7 !important; }
 
 /* TAREFAS */
-.tarefas-container {
-    margin-top: 15px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-.tarefa-item {
-    background: rgba(255,255,255,0.03);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 12px;
-    padding: 15px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
+.tarefas-container { margin-top: 15px; display: flex; flex-direction: column; gap: 10px; }
+.tarefa-item { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
 .tarefa-info h4 { font-size: 15px; color: #fff; margin-bottom: 4px; }
 .tarefa-info p { font-size: 12px; color: rgba(255,255,255,0.6); }
-.tarefa-status {
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-}
+.tarefa-status { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
 .status-pendente { background: rgba(245, 158, 11, 0.2); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.3); }
 .status-concluida { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.3); }
 
@@ -122,12 +108,11 @@ header h1{ font-size:24px; color:#fff; font-weight:800; }
 
 .modal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter: blur(8px); justify-content:center; align-items:center; z-index:50; }
 .modal { background:#0f172a; border: 1px solid rgba(255,255,255,0.1); padding:24px; border-radius:24px; min-width:320px; max-width:450px; width:100%; box-shadow:0 20px 50px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto;}
-.modal.modal-large { max-width: 800px; } /* Modal maior para os gráficos */
+.modal.modal-large { max-width: 800px; } 
 .modal h3 { margin-bottom:5px; font-size: 20px; }
 .modal .subtitle { font-size: 13px; color: rgba(255,255,255,0.6); margin-bottom: 20px; }
 .row { margin-bottom:14px; }
 
-/* CSS do SELECT ADICIONADO AQUI */
 .modal input, .modal textarea, .modal select { width:100%; padding:12px 16px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); border-radius:12px; color:#fff; font-size: 14px; outline: none; }
 .modal select option { background: #0f172a; color: #fff; }
 
@@ -142,7 +127,6 @@ header h1{ font-size:24px; color:#fff; font-weight:800; }
 </style>
 
 <script type="module">
-// ADICIONADO: "getDoc" nas importações para consultar o cargo no banco de dados.
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
 import { getFirestore, collection, getDocs, setDoc, doc, getDoc, addDoc, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
@@ -238,7 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         clientesDoFunc.forEach(c => {
             const estado = c.estado || c.uf || 'Não Informado';
-            const acao = c.acao || c.tipoAcao || 'Outros';
+            const acao = c.classe || c.acao || c.tipoAcao || 'Outros';
 
             contagemEstados[estado] = (contagemEstados[estado] || 0) + 1;
             contagemAcoes[acao] = (contagemAcoes[acao] || 0) + 1;
@@ -316,9 +300,49 @@ document.addEventListener('DOMContentLoaded', () => {
             const clientesSnap = await getDocs(collection(db, "clientes"));
             window.todosClientes = clientesSnap.docs.map(d => d.data());
 
+            // ================== LÓGICA DO PAINEL GERAL ==================
+            let totalListaFria = 0;
+            let totalEmNegociacao = 0;
+            let totalFechados = 0;
+            let contagemAcoes = {};
+
+            window.todosClientes.forEach(c => {
+                const status = c.status || 'lista-fria';
+                
+                // Contagem de Status
+                if (status === 'lista-fria') totalListaFria++;
+                else if (status === 'fechado') totalFechados++;
+                else if (['dia-1', 'dia-2', 'dia-3', 'dia-4', 'dia-5'].includes(status)) totalEmNegociacao++;
+
+                // Contagem de Tipos de Ação
+                const classe = c.classe || c.acao || c.tipoAcao || 'Outros';
+                if (classe !== 'Outros' && classe !== '') {
+                    contagemAcoes[classe] = (contagemAcoes[classe] || 0) + 1;
+                }
+            });
+
+            // Descobrir a Ação Principal
+            let acaoMaisComum = 'Nenhuma';
+            let maxAcaoCount = 0;
+            for (const [classe, count] of Object.entries(contagemAcoes)) {
+                if (count > maxAcaoCount) {
+                    maxAcaoCount = count;
+                    acaoMaisComum = classe;
+                }
+            }
+
+            // Atualizar o HTML do Painel Geral
+            document.getElementById('geralListaFria').innerText = totalListaFria;
+            document.getElementById('geralNegociacao').innerText = totalEmNegociacao;
+            document.getElementById('geralFechados').innerText = totalFechados;
+            document.getElementById('geralAcao').innerText = acaoMaisComum;
+            document.getElementById('geralAcaoDetalhe').innerText = maxAcaoCount > 0 ? `${maxAcaoCount} cadastros` : '';
+            // ==============================================================
+
+
             const hojeDate = new Date();
             const dataHojeStr = hojeDate.toISOString().split('T')[0];
-            const hojeLocalStr = hojeDate.toLocaleDateString('pt-BR'); // Para capturar os chamados do dia no mesmo padrão do CRM
+            const hojeLocalStr = hojeDate.toLocaleDateString('pt-BR');
 
             const dataSemanaAtras = new Date();
             dataSemanaAtras.setDate(dataSemanaAtras.getDate() - 7);
@@ -336,7 +360,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     const cadastrosHoje = clientesDoFunc.filter(c => c.dataCadastro && c.dataCadastro.startsWith(dataHojeStr)).length;
                     
-                    // NOVA LÓGICA: Calcula quantos cards do funcionário foram chamados para o Dia 1 na data de hoje
                     const chamadosHoje = clientesDoFunc.filter(c => {
                         if (!c.dataPipeline || c.status !== 'dia-1') return false;
                         const pipelineDateStr = new Date(c.dataPipeline).toLocaleDateString('pt-BR');
@@ -351,7 +374,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     const naListaFria = clientesDoFunc.filter(c => c.status === 'lista-fria').length;
                     const fechados = clientesDoFunc.filter(c => c.status === 'fechado').length;
                     
-                    // CARGO: Pega o cargo do banco ou diz que é vendedor por padrão se for antigo
                     const cargoExibicao = func.cargo ? func.cargo : 'Vendedor';
 
                     const card = document.createElement('div');
@@ -453,14 +475,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Funcionalidade do form
     if(formFunc) {
         formFunc.addEventListener('submit', async (e) => {
             e.preventDefault();
             const nome = document.getElementById('inputNome').value.trim();
             const email = document.getElementById('inputEmail').value.trim().toLowerCase();
             const senha = document.getElementById('inputSenha').value;
-            // Capturando o CARGO
             const cargo = document.getElementById('inputCargo').value;
             
             const btnSalvar = formFunc.querySelector('button[type="submit"]');
@@ -485,7 +505,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     nome: nome,
                     email: email,
                     senhaPadrao: senha, 
-                    cargo: cargo, // SALVANDO O CARGO NO BANCO
+                    cargo: cargo, 
                     dataRegistro: new Date().toISOString()
                 });
 
@@ -540,8 +560,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ================= VERIFICAÇÃO DE ACESSO RESTRITO ADM (NOVA LÓGICA DE CARGOS) =================
-    // Transformado em 'async' para poder puxar o Firebase
     onAuthStateChanged(auth, async user => {
         if(user){
             const superAdmins = [
@@ -551,23 +569,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 "hosannagruponascimento03@gmail.com",
                 "gruponascimentoesouza1@gmail.com",
                 "bentorosamariaeduarda@gmail.com"
-           
             ];
             
             let temAcesso = false;
 
-            // Se for super admin, libera direto
             if(user.email && superAdmins.includes(user.email.toLowerCase())) {
                 temAcesso = true;
             } else {
-                // Se não for super admin, vamos ver no banco de dados o CARGO da pessoa
                 try {
                     const userDoc = await getDoc(doc(db, "funcionarios", user.uid));
                     if (userDoc.exists()) {
                         const dados = userDoc.data();
                         const cargoUsuario = dados.cargo || 'Vendedor';
                         
-                        // Diretores, Gerentes e CEO têm acesso
                         if (cargoUsuario === 'Gerente' || cargoUsuario === 'Diretor' || cargoUsuario === 'CEO') {
                             temAcesso = true;
                         }
@@ -582,7 +596,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(sidebar) sidebar.style.display = 'flex';
                 carregarDashboard();
             } else {
-                // Bloqueia quem for apenas vendedor
                 alert("⛔ Acesso Negado: Esta página é restrita para Gerentes, Diretores e CEOs.");
                 window.location.href = "crm.html"; 
             }
@@ -640,6 +653,36 @@ document.addEventListener('DOMContentLoaded', () => {
     </header>
 
     <div class="content-area">
+        
+        <div class="adm-header">
+            <h2>Visão Geral do CRM</h2>
+        </div>
+        
+        <div class="geral-container" id="painelGeral">
+            <div class="geral-card">
+                <h4>Lista Fria</h4>
+                <h2 id="geralListaFria">0</h2>
+                <p style="color: rgba(255,255,255,0.5);">Aguardando disparo</p>
+            </div>
+            
+            <div class="geral-card highlight-warning">
+                <h4>Em Negociação</h4>
+                <h2 id="geralNegociacao">0</h2>
+                <p>Dia 1 ao Dia 5</p>
+            </div>
+
+            <div class="geral-card highlight-success">
+                <h4>Contratos Fechados</h4>
+                <h2 id="geralFechados">0</h2>
+                <p>Sucesso de vendas</p>
+            </div>
+
+            <div class="geral-card">
+                <h4>Ação Principal</h4>
+                <h2 id="geralAcao" style="font-size: 24px; padding: 4px 0;">-</h2>
+                <p id="geralAcaoDetalhe" style="color: rgba(255,255,255,0.5);"></p>
+            </div>
+        </div>
         <div class="adm-header">
             <h2>Gestão de Equipe e Desempenho</h2>
         </div>
@@ -654,7 +697,6 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
 </div>
 
-<!-- Modal Novo Funcionario (ATUALIZADO COM CARGO) -->
 <div class="modal-backdrop" id="modalFuncionario">
     <div class="modal">
         <h3>Adicionar Funcionário</h3>
@@ -664,7 +706,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 <input id="inputNome" type="text" placeholder="Nome Completo" required />
             </div>
             
-            <!-- CAMPO DE CARGO ADICIONADO AQUI -->
             <div class="row">
                 <select id="inputCargo" required>
                     <option value="" disabled selected>Selecione o Cargo do Funcionário</option>
@@ -689,7 +730,6 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
 </div>
 
-<!-- Modal Tarefa -->
 <div class="modal-backdrop" id="modalTarefa">
     <div class="modal">
         <h3>Delegar Tarefa</h3>
@@ -714,7 +754,6 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
 </div>
 
-<!-- NOVO MODAL: Relatórios com Gráficos -->
 <div class="modal-backdrop" id="modalRelatorio">
     <div class="modal modal-large">
         <h3 id="nomeFuncRelatorio">Desempenho: ...</h3>
