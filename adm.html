@@ -318,6 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const hojeDate = new Date();
             const dataHojeStr = hojeDate.toISOString().split('T')[0];
+            const hojeLocalStr = hojeDate.toLocaleDateString('pt-BR'); // Para capturar os chamados do dia no mesmo padrão do CRM
 
             const dataSemanaAtras = new Date();
             dataSemanaAtras.setDate(dataSemanaAtras.getDate() - 7);
@@ -334,6 +335,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     const clientesDoFunc = window.todosClientes.filter(c => c.userId === func.id);
                     
                     const cadastrosHoje = clientesDoFunc.filter(c => c.dataCadastro && c.dataCadastro.startsWith(dataHojeStr)).length;
+                    
+                    // NOVA LÓGICA: Calcula quantos cards do funcionário foram chamados para o Dia 1 na data de hoje
+                    const chamadosHoje = clientesDoFunc.filter(c => {
+                        if (!c.dataPipeline || c.status !== 'dia-1') return false;
+                        const pipelineDateStr = new Date(c.dataPipeline).toLocaleDateString('pt-BR');
+                        return pipelineDateStr === hojeLocalStr;
+                    }).length;
                     
                     const cadastrosSemana = clientesDoFunc.filter(c => {
                         if(!c.dataCadastro) return false;
@@ -366,6 +374,10 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="stat-row">
                                 <span>Cadastros Hoje</span>
                                 <strong class="highlight-green">${cadastrosHoje}</strong>
+                            </div>
+                            <div class="stat-row">
+                                <span>Chamados Hoje (Dia 1)</span>
+                                <strong style="color: #06b6d4;">${chamadosHoje}</strong>
                             </div>
                             <div class="stat-row">
                                 <span>Cadastros Semana</span>
