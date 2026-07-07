@@ -897,10 +897,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     btnEnviar.style.background = '#4b5563'; 
                     btnEnviar.disabled = true;
 
-                    // Mover automaticamente para o Dia 1
+                    // Mover automaticamente para o Dia 1 e criar o dataPipeline
                     try {
                         const docRef = doc(db, "clientes", cliente.id);
-                        await updateDoc(docRef, { status: 'dia-1' });
+                        await updateDoc(docRef, { 
+                            status: 'dia-1',
+                            dataPipeline: new Date().toISOString() // Inicia a contagem dos dias AQUI
+                        });
                         // Re-renderiza o Kanban para o card mudar de lugar sozinho
                         render();
                     } catch (error) {
@@ -996,9 +999,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /* ================= CÁLCULO DO DIA DO PIPELINE ================= */
     
-    function getDiaPipeline(dataCadastroIso) {
-        if (!dataCadastroIso) return 1;
-        const created = new Date(dataCadastroIso);
+    function getDiaPipeline(dataBaseIso) {
+        if (!dataBaseIso) return 1;
+        const created = new Date(dataBaseIso);
         const now = new Date();
         const diffMs = now.getTime() - created.getTime();
         const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
@@ -1046,11 +1049,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
             infoExtra.style.display = 'block';
             const dataCadStr = data.dataCadastro ? new Date(data.dataCadastro).toLocaleString('pt-BR') : 'Desconhecida';
-            const diaCalc = getDiaPipeline(data.dataCadastro);
+            
+            // Usa a dataPipeline para o modal se já tiver sido ativado, senão usa data de cadastro
+            const dataBaseParaCalculo = data.dataPipeline || data.dataCadastro;
+            const diaCalc = getDiaPipeline(dataBaseParaCalculo);
+            const statusTexto = data.status === 'lista-fria' ? 'Aguardando Disparo' : (diaCalc > 5 ? '5+ (Funil Geral)' : diaCalc);
             
             infoExtra.innerHTML = `
                 <p><strong>Data de criação:</strong> ${dataCadStr}</p>
-                <p><strong>Dia do pipeline:</strong> Dia ${diaCalc > 5 ? '5+ (Funil Geral)' : diaCalc}</p>
+                <p><strong>Dia do pipeline:</strong> ${data.status === 'lista-fria' ? statusTexto : 'Dia ' + statusTexto}</p>
                 <p><strong>Criado por:</strong> ${data.criadoPor || '-'}</p>
                 ${data.fechadoPor ? `<p><strong>Fechado por:</strong> ${data.fechadoPor}</p>` : ''}
             `;
@@ -1239,7 +1246,9 @@ document.addEventListener('DOMContentLoaded', () => {
             ? processosArray[0]
             : '-';
 
-        const diaCalc = getDiaPipeline(cliente.dataCadastro);
+        const dataBaseParaCalculo = cliente.dataPipeline || cliente.dataCadastro;
+        const diaCalc = getDiaPipeline(dataBaseParaCalculo);
+        const textoPipeline = cliente.status === 'lista-fria' ? 'Aguardando disparo' : `Dia ${diaCalc}`;
 
         contentDiv.innerHTML = `
             <h3>${cliente.nome}</h3>
@@ -1249,7 +1258,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <p><strong>Estado:</strong> ${cliente.estado || '-'}</p>
             <p><strong>Processo:</strong> ${primeiroProcesso}</p>
             <p><strong>Valor:</strong> R$ ${cliente.valor || 0}</p>
-            <p><strong>Dia do pipeline:</strong> Dia ${diaCalc}</p>
+            <p><strong>Pipeline:</strong> ${textoPipeline}</p>
         `;
 
         if (Array.isArray(cliente.documentos) && cliente.documentos.length > 0) {
@@ -1367,7 +1376,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 cliente.dataCadastro = new Date().toISOString();
             }
 
-            const diaCalc = getDiaPipeline(cliente.dataCadastro);
+            // REGRA 1: Se está na lista fria, ele NUNCA avança sozinho, só pelo Agente ou pelo usuário
+            if (cliente.status === 'lista-fria') {
+                criarCard(cliente);
+                continue; // Pula todo o resto da lógica de avançar dia
+            }
+
+            // REGRA 2: Se não está na lista fria, vamos calcular os dias com base em quando ele foi ativado
+            const dataBaseParaCalculo = cliente.dataPipeline || cliente.dataCadastro;
+            const diaCalc = getDiaPipeline(dataBaseParaCalculo);
 
             // Respeita o envio pro Funil Geral se passar de 5 dias e não estiver contratado/fechado
             if (diaCalc > 5 && cliente.status !== 'contrato-assinado' && cliente.status !== 'fechado') {
@@ -1379,16 +1396,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 continue; 
             }
 
-            // Se o card NÃO foi avançado manualmente para Contrato Assinado ou Fechado, o CRM movimenta os dias sozinho
+            // Movimenta os dias sozinho do 1 ao 5
             if (cliente.status !== 'contrato-assinado' && cliente.status !== 'fechado' && cliente.status !== 'funil-geral') {
                 
-                let statusCalc = 'lista-fria';
-                
-                if (diaCalc === 1) {
-                    // Mantém no dia 1 se ele foi avançado pelo bot, caso contrário lista-fria
-                    statusCalc = (cliente.status === 'dia-1') ? 'dia-1' : 'lista-fria';
-                }
-                else if (diaCalc === 2) statusCalc = 'dia-2';
+                let statusCalc = 'dia-1';
+                if (diaCalc === 2) statusCalc = 'dia-2';
                 else if (diaCalc === 3) statusCalc = 'dia-3';
                 else if (diaCalc === 4) statusCalc = 'dia-4';
                 else if (diaCalc === 5) statusCalc = 'dia-5';
@@ -1482,6 +1494,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 novo.criadoPor = antigo.criadoPor || "";
                 novo.fechadoPor = antigo.fechadoPor || "";
                 novo.dataCadastro = antigo.dataCadastro || new Date().toISOString();
+                novo.dataPipeline = antigo.dataPipeline || null; 
                 novo.status = antigo.status || "lista-fria";
             }
             await saveCliente(novo);
