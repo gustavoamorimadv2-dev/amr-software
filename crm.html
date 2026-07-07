@@ -321,7 +321,7 @@ select option {
     margin-bottom:12px;
     color:#fff;
     font-weight: 700;
-    padding-right: 80px; 
+    padding-right: 120px; 
     word-break: break-word; 
 }
 
@@ -351,7 +351,7 @@ select option {
     top:15px;
     right:15px;
     display:flex;
-    gap:10px;
+    gap:8px;
 }
 
 .card-actions button{
@@ -1167,6 +1167,59 @@ document.addEventListener('DOMContentLoaded', () => {
         addTelefoneField();
     };
 
+    /* ================= GERAÇÃO DE CONTRATO DINÂMICO ================= */
+
+    async function gerarContrato(cliente) {
+        showToast("Gerando contrato...");
+
+        try {
+            // 1. Busca o arquivo HTML na raiz do projeto (como mostrado no repositório)
+            const response = await fetch('./contrato-template.html');
+            if (!response.ok) {
+                throw new Error("Não foi possível carregar o template. Verifique se o arquivo 'contrato-template.html' está na mesma pasta.");
+            }
+            let template = await response.text();
+
+            // 2. Prepara os dados do cliente
+            const dataAtual = new Date().toLocaleDateString('pt-BR');
+            const processoStr = cliente.processo ? cliente.processo.split(',')[0].trim() : "Não informado";
+            const valorFormatado = cliente.valor ? parseFloat(cliente.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "R$ 0,00";
+            const cpfStr = cliente.cpf || '___________';
+            const estadoStr = cliente.estado || '___________';
+            const classeStr = cliente.classe || '___________';
+
+            // 3. Substitui as tags {{tag}} pelos dados reais usando Expressões Regulares
+            template = template.replace(/{{nome}}/g, cliente.nome);
+            template = template.replace(/{{cpf}}/g, cpfStr);
+            template = template.replace(/{{estado}}/g, estadoStr);
+            template = template.replace(/{{classe}}/g, classeStr);
+            template = template.replace(/{{processo}}/g, processoStr);
+            template = template.replace(/{{valor}}/g, valorFormatado);
+            template = template.replace(/{{dataAtual}}/g, dataAtual);
+
+            // 4. Cria o Blob (arquivo) do Word com os dados atualizados
+            const blob = new Blob(['\ufeff', template], {
+                type: 'application/msword'
+            });
+            
+            // 5. Força o download
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Contrato_${cliente.nome.replace(/\s+/g, '_')}.doc`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            showToast("Contrato gerado com sucesso!");
+
+        } catch (error) {
+            console.error(error);
+            showToast("Erro ao gerar o contrato! Arquivo não encontrado.");
+        }
+    }
+
     /* ================= CARDS ================= */
 
     function criarCard(cliente){
@@ -1202,8 +1255,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const actionsDiv = document.createElement('div');
         actionsDiv.className = 'card-actions';
 
-        const btnCall = document.createElement('button');
+        // BOTÃO GERAR CONTRATO
+        const btnContrato = document.createElement('button');
+        btnContrato.title = "Baixar Contrato (Word)";
+        btnContrato.onclick = (e) => {
+            e.stopPropagation();
+            gerarContrato(cliente);
+        };
+        btnContrato.innerHTML = '<img src="https://img.icons8.com/ios-glyphs/30/000000/document.png"/>';
 
+        const btnCall = document.createElement('button');
+        btnCall.title = "Ligar";
         btnCall.onclick = (e) => {
             e.stopPropagation();
             const numero = cliente.numeros
@@ -1211,23 +1273,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 : '';
             ligar(numero);
         };
+        btnCall.innerHTML = '<img src="https://img.icons8.com/ios-glyphs/30/000000/phone.png"/>';
 
-        btnCall.innerHTML =
-            '<img src="https://img.icons8.com/ios-glyphs/30/000000/phone.png"/>';
-
+        // BOTÃO WHATSAPP - PULA PARA O DIA 1 SE TIVER NA LISTA FRIA
         const btnWa = document.createElement('button');
-
-        btnWa.onclick = (e) => {
+        btnWa.title = "WhatsApp";
+        btnWa.onclick = async (e) => {
             e.stopPropagation();
             const numero = cliente.numeros
                 ? cliente.numeros.split(',')[0].trim()
                 : '';
             whatsapp(numero);
+
+            // Se o card ainda estiver na lista fria, pula para o Dia 1 e salva a hora
+            if (cliente.status === 'lista-fria') {
+                try {
+                    const docRef = doc(db, "clientes", cliente.id);
+                    await updateDoc(docRef, { 
+                        status: 'dia-1',
+                        dataPipeline: new Date().toISOString() 
+                    });
+                    render(); // Re-renderiza o quadro para o card mover imediatamente
+                } catch (error) {
+                    console.error("Erro ao mover para o Dia 1:", error);
+                }
+            }
         };
+        btnWa.innerHTML = '<img src="https://img.icons8.com/ios-glyphs/30/000000/whatsapp.png"/>';
 
-        btnWa.innerHTML =
-            '<img src="https://img.icons8.com/ios-glyphs/30/000000/whatsapp.png"/>';
-
+        // Anexando os botões na tela
+        actionsDiv.appendChild(btnContrato);
         actionsDiv.appendChild(btnCall);
         actionsDiv.appendChild(btnWa);
 
@@ -1329,14 +1404,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const clientes = await getClientes();
 
-        // Calcular quantos cards o usuário atual cadastrou hoje e que ainda estão na Lista Fria
+        // Calcular quantos cards o usuário atual cadastrou hoje na Lista Fria E quantos ele chamou pro Dia 1 hoje
         let countListaFriaHoje = 0;
+        let countDia1Hoje = 0;
+        
         const hojeStr = new Date().toLocaleDateString('pt-BR');
+        
         if (currentUser) {
+            // Conta os cards que o usuário cadastrou hoje e estão na lista fria
             countListaFriaHoje = clientes.filter(c => {
                 if (!c.dataCadastro || c.status !== 'lista-fria') return false;
                 const cardDateStr = new Date(c.dataCadastro).toLocaleDateString('pt-BR');
                 return cardDateStr === hojeStr && c.criadoPor === currentUser.email;
+            }).length;
+
+            // Conta os cards que o usuário chamou hoje (tiveram dataPipeline inserida hoje e estão no dia 1)
+            countDia1Hoje = clientes.filter(c => {
+                if (!c.dataPipeline || c.status !== 'dia-1') return false;
+                const pipelineDateStr = new Date(c.dataPipeline).toLocaleDateString('pt-BR');
+                return pipelineDateStr === hojeStr && c.criadoPor === currentUser.email;
             }).length;
         }
 
@@ -1358,7 +1444,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 `;
             } else if (status === 'dia-1') {
-                col.innerHTML = `<h2>EM NEGOCIAÇÃO (DIA 1)</h2>`;
+                col.innerHTML = `
+                    <div class="col-header-actions">
+                        <div style="display:flex; flex-direction:column;">
+                            <h2 style="margin-bottom:2px;">EM NEGOCIAÇÃO (DIA 1)</h2>
+                            <span style="font-size: 11px; font-weight: normal; color: rgba(255,255,255,0.6);">
+                                Chamados hoje: <strong style="color:#fff;">${countDia1Hoje}</strong>
+                            </span>
+                        </div>
+                    </div>
+                `;
             } else if (status === 'dia-2') {
                 col.innerHTML = `<h2>EM NEGOCIAÇÃO (DIA 2)</h2>`;
             } else {
@@ -1591,10 +1686,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Se passou em todas as regras de bloqueio, atualiza
             const docRef = doc(db, "clientes", draggedCard.dataset.id);
-            await updateDoc(docRef, { 
+            
+            const updatePayload = { 
                 status: novoStatus,
                 fechadoPor: novoStatus === 'fechado' ? (currentUser ? currentUser.email : '') : ""
-            });
+            };
+
+            // Se arrastou pra dia 1 manual (caso seja permitido), ativa o pipeline
+            if (novoStatus === 'dia-1' && currentStatus === 'lista-fria') {
+                updatePayload.dataPipeline = new Date().toISOString();
+            }
+
+            await updateDoc(docRef, updatePayload);
             
             showToast("Sucesso! Card movimentado e salvo.");
             render();
