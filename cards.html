@@ -114,22 +114,21 @@ header {
 }
 header h1 { font-size:24px; color:#fff; font-weight:800; }
 
+/* Barra de Filtros Refinada */
 .sub-header-bar {
     padding:15px 30px;
     background:transparent;
     border-bottom:1px solid rgba(255,255,255,0.08);
     display:flex;
-    justify-content: space-between;
     align-items:center;
-    gap:20px;
+    gap:15px;
     flex-shrink:0;
-    flex-wrap: wrap; /* Para telas menores */
+    flex-wrap: wrap; 
 }
 
-.search-wrapper { flex: 1; min-width: 250px; }
-.search-wrapper input {
-    width: 100%;
-    padding:12px 16px;
+.sub-header-bar input,
+.sub-header-bar select {
+    padding:10px 14px;
     background:rgba(255,255,255,0.08);
     border:1px solid rgba(255,255,255,0.1);
     border-radius:12px;
@@ -139,32 +138,31 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     transition: 0.3s;
     backdrop-filter: blur(10px);
 }
-.search-wrapper input:focus {
+.sub-header-bar input:focus,
+.sub-header-bar select:focus {
     background:rgba(255,255,255,0.15);
     border-color: rgba(255,255,255,0.3);
 }
+.sub-header-bar select option { background: #111827; color: #fff; }
 
-/* Área de Exportação CSV */
-.export-container {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
+.search-wrapper { flex: 1; min-width: 200px; }
+.search-wrapper input { width: 100%; }
 
-.export-container select {
-    padding:10px 16px;
-    background:rgba(255,255,255,0.08);
-    border:1px solid rgba(255,255,255,0.1);
-    border-radius:12px;
-    color:#fff;
-    font-size: 14px;
-    outline: none;
-    cursor: pointer;
-}
-
-.export-container select option {
-    background: #111827;
+.btn-primary {
+    padding: 10px 20px;
+    border-radius: 12px;
+    border: none;
+    background: #3b82f6;
     color: #fff;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: 0.3s;
+}
+.btn-primary:hover {
+    background: #2563eb;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
 }
 
 .btn-green {
@@ -187,32 +185,6 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
 }
 
-/* Navegação por Abas */
-.tabs-container {
-    display: flex;
-    gap: 10px;
-}
-.tab-btn {
-    padding: 10px 20px;
-    border-radius: 12px;
-    border: 1px solid rgba(255,255,255,0.1);
-    background: rgba(255,255,255,0.04);
-    color: rgba(255,255,255,0.6);
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 14px;
-    transition: 0.3s;
-}
-.tab-btn:hover {
-    background: rgba(255,255,255,0.1);
-    color: #fff;
-}
-.tab-btn.active {
-    background: #fff;
-    color: #111827;
-    border-color: #fff;
-}
-
 /* Area de Conteúdo dos Cards */
 .content-area {
     flex:1;
@@ -224,30 +196,6 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 20px;
-}
-
-/* Categorias de Estado */
-.state-section {
-    margin-bottom: 40px;
-}
-.state-title {
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 15px;
-    color: #3b82f6;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    border-bottom: 1px solid rgba(255,255,255,0.05);
-    padding-bottom: 8px;
-}
-.state-badge {
-    font-size: 11px;
-    background: rgba(59, 130, 246, 0.15);
-    color: #60a5fa;
-    padding: 2px 8px;
-    border-radius: 20px;
-    border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
 /* Layout do Card Individual */
@@ -297,6 +245,7 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     font-style: italic;
     text-align: center;
     margin-top: 40px;
+    width: 100%;
 }
 </style>
 
@@ -326,89 +275,165 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     let todosClientes = [];
-    let currentTab = 'hoje'; // 'hoje' ou 'estados'
+    let clientesExibidos = []; 
 
+    const filterData = document.getElementById('filterData');
+    const filterEstado = document.getElementById('filterEstado');
+    const filterAcao = document.getElementById('filterAcao');
     const searchInput = document.getElementById('searchInput');
-    const containerCards = document.getElementById('containerCards');
-    const tabHoje = document.getElementById('tabHoje');
-    const tabEstados = document.getElementById('tabEstados');
-    
-    const selectEstadoCsv = document.getElementById('selectEstadoCsv');
+    const btnFiltrar = document.getElementById('btnFiltrar');
     const btnBaixarCsv = document.getElementById('btnBaixarCsv');
+    const containerCards = document.getElementById('containerCards');
 
-    // Alternador de Abas
-    tabHoje.onclick = () => {
-        currentTab = 'hoje';
-        tabHoje.classList.add('active');
-        tabEstados.classList.remove('active');
-        renderizarPainel();
-    };
-
-    tabEstados.onclick = () => {
-        currentTab = 'estados';
-        tabEstados.classList.add('active');
-        tabHoje.classList.remove('active');
-        renderizarPainel();
-    };
-
-    searchInput.oninput = () => renderizarPainel();
+    // Ao clicar em Filtrar
+    btnFiltrar.onclick = () => aplicarFiltros();
 
     // Puxa todos os cards do banco globalmente
     async function carregarTodosCards() {
-        containerCards.innerHTML = '<p class="empty-msg">Carregando painel unificado de cards...</p>';
+        containerCards.innerHTML = '<p class="empty-msg">Carregando painel de cards...</p>';
         try {
             const snap = await getDocs(collection(db, "clientes"));
             todosClientes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
             
-            // Preenche o Select de Estados para o Download do CSV
-            preencherSelectEstados();
+            // Popula os selects com dados dinâmicos
+            preencherFiltrosDinamicos();
 
-            renderizarPainel();
+            // Renderiza tudo inicialmente
+            aplicarFiltros();
         } catch (error) {
             console.error(error);
             containerCards.innerHTML = '<p class="empty-msg" style="color: #ef4444;">Erro ao carregar dados do Firebase.</p>';
         }
     }
 
-    function preencherSelectEstados() {
+    function preencherFiltrosDinamicos() {
         const estadosSet = new Set();
+        const acoesSet = new Set();
+
         todosClientes.forEach(c => {
-            const uf = c.estado || c.uf || 'Não Informado';
-            estadosSet.add(uf.toUpperCase());
+            const uf = c.estado || c.uf || '';
+            const acao = c.classe || c.acao || c.tipoAcao || '';
+            
+            if(uf) estadosSet.add(uf.toUpperCase());
+            if(acao) acoesSet.add(acao);
         });
 
-        selectEstadoCsv.innerHTML = '<option value="">Selecione o Estado para CSV</option>';
-        
+        // Preenche Estados
+        filterEstado.innerHTML = '<option value="">Todos os Estados</option>';
         Array.from(estadosSet).sort().forEach(uf => {
             const opt = document.createElement('option');
             opt.value = uf;
             opt.textContent = uf;
-            selectEstadoCsv.appendChild(opt);
+            filterEstado.appendChild(opt);
         });
+
+        // Preenche Ações/Classe
+        filterAcao.innerHTML = '<option value="">Todos os Tipos de Ação</option>';
+        Array.from(acoesSet).sort().forEach(acao => {
+            const opt = document.createElement('option');
+            opt.value = acao;
+            opt.textContent = acao;
+            filterAcao.appendChild(opt);
+        });
+    }
+
+    function aplicarFiltros() {
+        const selData = filterData.value; 
+        const selEstado = filterEstado.value.toUpperCase();
+        const selAcao = filterAcao.value.toLowerCase();
+        const txtBusca = searchInput.value.toLowerCase();
+
+        clientesExibidos = todosClientes.filter(c => {
+            // Verifica Data
+            let matchData = true;
+            if (selData) {
+                matchData = c.dataCadastro && c.dataCadastro.startsWith(selData);
+            }
+
+            // Verifica Estado
+            let matchEstado = true;
+            if (selEstado) {
+                const uf = (c.estado || c.uf || '').toUpperCase();
+                matchEstado = (uf === selEstado);
+            }
+
+            // Verifica Ação
+            let matchAcao = true;
+            if (selAcao) {
+                const acao = (c.classe || c.acao || c.tipoAcao || '').toLowerCase();
+                matchAcao = (acao === selAcao);
+            }
+
+            // Verifica Nome (Busca Livre)
+            let matchNome = true;
+            if (txtBusca) {
+                matchNome = c.nome && c.nome.toLowerCase().includes(txtBusca);
+            }
+
+            return matchData && matchEstado && matchAcao && matchNome;
+        });
+
+        renderizarCards(clientesExibidos);
+    }
+
+    function renderizarCards(lista) {
+        containerCards.innerHTML = '';
+
+        if (lista.length === 0) {
+            containerCards.innerHTML = '<p class="empty-msg">Nenhum card encontrado com esses filtros.</p>';
+            return;
+        }
+
+        const grid = document.createElement('div');
+        grid.className = 'grid-cards';
+        
+        lista.forEach(c => {
+            grid.appendChild(criarElementoCard(c));
+        });
+        
+        containerCards.appendChild(grid);
+    }
+
+    // Estrutura do card exibido em tela
+    function criarElementoCard(cliente) {
+        const div = document.createElement('div');
+        div.className = 'card-item';
+
+        const primeiroProcesso = cliente.processo ? cliente.processo.split(',')[0].trim() : '-';
+        const primeiroNumero = cliente.numeros ? cliente.numeros.split(',')[0].trim() : '-';
+        const responsavel = cliente.responsavel || cliente.criadoPor || 'Não Definido';
+        const ufCard = cliente.estado || cliente.uf || '-';
+        const acao = cliente.classe || cliente.acao || '-';
+
+        div.innerHTML = `
+            <div>
+                <h3>${cliente.nome}</h3>
+                <p><strong>Ação:</strong> ${acao}</p>
+                <p><strong>CPF:</strong> ${cliente.cpf || '-'}</p>
+                <p><strong>Telefone:</strong> ${primeiroNumero}</p>
+                <p><strong>Processo:</strong> ${primeiroProcesso}</p>
+                <p><strong>Estado:</strong> ${ufCard.toUpperCase()}</p>
+                <p><strong>Valor:</strong> R$ ${cliente.valor || '0'}</p>
+            </div>
+            <div class="card-footer">
+                <div class="badge-user" title="Cadastrado por / Responsável: ${responsavel}">
+                    👤 Cadastrado por: ${responsavel}
+                </div>
+            </div>
+        `;
+        return div;
     }
 
     // Função de Baixar CSV Padrão WhatsApp Business
     btnBaixarCsv.onclick = () => {
-        const estadoSelecionado = selectEstadoCsv.value;
-        if (!estadoSelecionado) {
-            alert("Por favor, selecione um estado na lista para baixar o CSV.");
+        if (clientesExibidos.length === 0) {
+            alert("A lista atual está vazia. Filtre e exiba clientes antes de baixar o CSV.");
             return;
         }
 
-        const clientesDoEstado = todosClientes.filter(c => {
-            const uf = (c.estado || c.uf || 'Não Informado').toUpperCase();
-            return uf === estadoSelecionado;
-        });
-
-        if (clientesDoEstado.length === 0) {
-            alert("Nenhum cliente encontrado para este estado.");
-            return;
-        }
-
-        // Cabeçalho do CSV para WPP Business (Nome, Telefone)
         let csvContent = "Name,Phone\n";
 
-        clientesDoEstado.forEach(c => {
+        clientesExibidos.forEach(c => {
             // Remove vírgulas do nome para não quebrar a coluna do CSV
             const nome = c.nome ? c.nome.replace(/,/g, '') : 'Sem Nome'; 
             
@@ -432,111 +457,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.setAttribute("href", url);
-        link.setAttribute("download", `Transmissao_WPP_${estadoSelecionado.replace(/\s+/g, '_')}.csv`);
+        
+        // Nomeia o arquivo com a data de hoje para organização
+        const hoje = new Date().toISOString().split('T')[0];
+        link.setAttribute("download", `Transmissao_Comercial_${hoje}.csv`);
+        
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
     };
-
-    function renderizarPainel() {
-        containerCards.innerHTML = '';
-        const filtroPesquisa = searchInput.value.toLowerCase();
-
-        // Filtra pelo input de busca primeiro
-        let clientesFiltrados = todosClientes.filter(c => {
-            return !filtroPesquisa || (c.nome && c.nome.toLowerCase().includes(filtroPesquisa));
-        });
-
-        if (currentTab === 'hoje') {
-            // Lógica para cadastrados hoje
-            const hojeStr = new Date().toISOString().split('T')[0];
-            let clientesHoje = clientesFiltrados.filter(c => c.dataCadastro && c.dataCadastro.startsWith(hojeStr));
-
-            if (clientesHoje.length === 0) {
-                containerCards.innerHTML = '<p class="empty-msg">Nenhum card cadastrado hoje até o momento.</p>';
-                return;
-            }
-
-            const grid = document.createElement('div');
-            grid.className = 'grid-cards';
-            
-            clientesHoje.forEach(c => {
-                grid.appendChild(criarElementoCard(c));
-            });
-            containerCards.appendChild(grid);
-
-        } else if (currentTab === 'estados') {
-            // Lógica para agrupar por Estado
-            const agrupadoPorEstado = {};
-
-            clientesFiltrados.forEach(c => {
-                const uf = c.estado || c.uf || 'Não Informado';
-                if (!agrupadoPorEstado[uf]) {
-                    agrupadoPorEstado[uf] = [];
-                }
-                agrupadoPorEstado[uf].push(c);
-            });
-
-            const listaEstados = Object.keys(agrupadoPorEstado).sort();
-
-            if (listaEstados.length === 0) {
-                containerCards.innerHTML = '<p class="empty-msg">Nenhum card encontrado para exibição.</p>';
-                return;
-            }
-
-            listaEstados.forEach(uf => {
-                const clientesDoEstado = agrupadoPorEstado[uf];
-
-                const section = document.createElement('div');
-                section.className = 'state-section';
-
-                section.innerHTML = `
-                    <div class="state-title">
-                        <span>${uf.toUpperCase()}</span>
-                        <span class="state-badge">${clientesDoEstado.length} ${clientesDoEstado.length === 1 ? 'card' : 'cards'}</span>
-                    </div>
-                `;
-
-                const grid = document.createElement('div');
-                grid.className = 'grid-cards';
-
-                clientesDoEstado.forEach(c => {
-                    grid.appendChild(criarElementoCard(c));
-                });
-
-                section.appendChild(grid);
-                containerCards.appendChild(section);
-            });
-        }
-    }
-
-    // Estrutura do card exibido em tela
-    function criarElementoCard(cliente) {
-        const div = document.createElement('div');
-        div.className = 'card-item';
-
-        const primeiroProcesso = cliente.processo ? cliente.processo.split(',')[0].trim() : '-';
-        const primeiroNumero = cliente.numeros ? cliente.numeros.split(',')[0].trim() : '-';
-        const responsavel = cliente.responsavel || 'Não Definido';
-        const ufCard = cliente.estado || cliente.uf || '-';
-
-        div.innerHTML = `
-            <div>
-                <h3>${cliente.nome}</h3>
-                <p><strong>CPF:</strong> ${cliente.cpf || '-'}</p>
-                <p><strong>Telefone:</strong> ${primeiroNumero}</p>
-                <p><strong>Processo:</strong> ${primeiroProcesso}</p>
-                <p><strong>Estado:</strong> ${ufCard.toUpperCase()}</p>
-                <p><strong>Valor:</strong> R$ ${cliente.valor || '0'}</p>
-            </div>
-            <div class="card-footer">
-                <div class="badge-user" title="Cadastrado por / Responsável: ${responsavel}">
-                    👤 Cadastrado por: ${responsavel}
-                </div>
-            </div>
-        `;
-        return div;
-    }
 
     // Monitoramento de Autenticação Básica
     onAuthStateChanged(auth, user => {
@@ -551,7 +480,6 @@ document.addEventListener('DOMContentLoaded', () => {
 </head>
 <body>
 
-<!-- Sidebar Padrão do Sistema -->
 <div class="sidebar">
     <h2 onclick="window.location.href='dashboard.html'">AMR ADV</h2>
     <button onclick="window.location.href='crm.html'">
@@ -576,36 +504,35 @@ document.addEventListener('DOMContentLoaded', () => {
     <header>
         <h1>Painel Global de Cards</h1>
         <div style="font-size: 14px; color: rgba(255,255,255,0.6);">
-            Visualização unificada de leads cadastrados na assessoria.
+            Visualização unificada e filtro de transmissão de leads.
         </div>
     </header>
 
-    <!-- Barra Superior de Controle e Filtros -->
     <div class="sub-header-bar">
         
-        <div class="tabs-container">
-            <button class="tab-btn active" id="tabHoje">Cadastrados Hoje</button>
-            <button class="tab-btn" id="tabEstados">Por Estado</button>
-        </div>
+        <input type="date" id="filterData" title="Filtrar por data de cadastro" />
+
+        <select id="filterEstado">
+            <option value="">Carregando Estados...</option>
+        </select>
+
+        <select id="filterAcao">
+            <option value="">Carregando Ações...</option>
+        </select>
 
         <div class="search-wrapper">
-            <input id="searchInput" placeholder="Buscar card por nome do cliente..." />
+            <input id="searchInput" placeholder="Buscar por nome do cliente..." />
         </div>
 
-        <!-- NOVO: Exportação para o WPP Business -->
-        <div class="export-container">
-            <select id="selectEstadoCsv">
-                <option value="">Carregando Estados...</option>
-            </select>
-            <button class="btn-green" id="btnBaixarCsv">
-                <img src="https://img.icons8.com/ios-filled/20/ffffff/download.png" style="width: 16px; height: 16px;">
-                Baixar CSV
-            </button>
-        </div>
+        <button class="btn-primary" id="btnFiltrar">Filtrar</button>
+
+        <button class="btn-green" id="btnBaixarCsv">
+            <img src="https://img.icons8.com/ios-filled/20/ffffff/download.png" style="width: 16px; height: 16px;">
+            Baixar Lista
+        </button>
 
     </div>
 
-    <!-- Container Dinâmico onde entram os Cards -->
     <div class="content-area" id="containerCards"></div>
 </div>
 
