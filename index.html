@@ -321,7 +321,7 @@ select option {
     margin-bottom:12px;
     color:#fff;
     font-weight: 700;
-    padding-right: 120px; /* Aumentado para caber 3 botões */
+    padding-right: 120px; 
     word-break: break-word; 
 }
 
@@ -1173,10 +1173,10 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast("Gerando contrato...");
 
         try {
-            // 1. Busca o arquivo HTML lá na pasta templates
-            const response = await fetch('./templates/contrato-template.html');
+            // 1. Busca o arquivo HTML na raiz do projeto (como mostrado no repositório)
+            const response = await fetch('./contrato-template.html');
             if (!response.ok) {
-                throw new Error("Não foi possível carregar o template. Verifique se a pasta 'templates' e o arquivo 'contrato-template.html' existem.");
+                throw new Error("Não foi possível carregar o template. Verifique se o arquivo 'contrato-template.html' está na mesma pasta.");
             }
             let template = await response.text();
 
@@ -1275,7 +1275,7 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         btnCall.innerHTML = '<img src="https://img.icons8.com/ios-glyphs/30/000000/phone.png"/>';
 
-        // BOTÃO WHATSAPP - AGORA PULA PARA O DIA 1
+        // BOTÃO WHATSAPP - PULA PARA O DIA 1 SE TIVER NA LISTA FRIA
         const btnWa = document.createElement('button');
         btnWa.title = "WhatsApp";
         btnWa.onclick = async (e) => {
