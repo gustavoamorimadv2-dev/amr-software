@@ -1183,7 +1183,16 @@ document.addEventListener('DOMContentLoaded', () => {
             // 2. Prepara os dados do cliente
             const dataAtual = new Date().toLocaleDateString('pt-BR');
             const processoStr = cliente.processo ? cliente.processo.split(',')[0].trim() : "Não informado";
-            const valorFormatado = cliente.valor ? parseFloat(cliente.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "R$ 0,00";
+            
+            let valorFormatado = "R$ 0,00";
+            if (cliente.valor) {
+                if (!isNaN(cliente.valor) && !cliente.valor.toString().includes(',')) {
+                    valorFormatado = parseFloat(cliente.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                } else {
+                    valorFormatado = cliente.valor.toString().toLowerCase().includes('r$') ? cliente.valor : 'R$ ' + cliente.valor;
+                }
+            }
+
             const cpfStr = cliente.cpf || '___________';
             const estadoStr = cliente.estado || '___________';
             const classeStr = cliente.classe || '___________';
@@ -1325,8 +1334,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const diaCalc = getDiaPipeline(dataBaseParaCalculo);
         const textoPipeline = cliente.status === 'lista-fria' ? 'Aguardando disparo' : `Dia ${diaCalc}`;
 
-        // Correção do Valor com Centavos no Card
-        const valorCardFormatado = cliente.valor ? parseFloat(cliente.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "0,00";
+        // Permite que o card exiba exatamente o valor digitado no formato do tribunal
+        let valorCardFormatado = "0,00";
+        if (cliente.valor) {
+            if (!isNaN(cliente.valor) && !cliente.valor.toString().includes(',')) {
+                valorCardFormatado = parseFloat(cliente.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            } else {
+                valorCardFormatado = cliente.valor;
+            }
+        }
 
         contentDiv.innerHTML = `
             <h3>${cliente.nome}</h3>
@@ -1896,8 +1912,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 </select>
             </div>
             <div class="row">
-           <input id="inputValor" type="text" placeholder="Valor exato do tribunal (R$)" />
-             </div>
+                <input id="inputValor" type="text" placeholder="Valor exato do tribunal (R$)" />
+            </div>
             <div class="row">
                 <select id="inputEstado">
                     <option value="Acre">Acre</option>
@@ -1938,7 +1954,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div id="uploadProgress" style="font-size: 12px; color: #10b981; margin-top: 5px; display: none;"></div>
             </div>
             <div class="row">
-                <textarea id="inputObs" maxlength="2.000" placeholder="Observações ()"></textarea>
+                <textarea id="inputObs" maxlength="300" placeholder="Observações (máx. 300 caracteres)"></textarea>
             </div>
             <div class="actions">
                 <button type="submit" class="btn primary">Salvar</button>
