@@ -1,35 +1,108 @@
 <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
 <head>
     <meta charset='utf-8'>
-    <title>Contrato de Prestação de Serviços</title>
+    <title>Documentos - Grupo Nascimento e Souza</title>
     <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; padding: 40px; text-align: justify; }
-        h2 { text-align: center; text-transform: uppercase; margin-bottom: 30px; }
-        h3 { margin-top: 30px; text-decoration: underline; }
-        .assinaturas { margin-top: 60px; text-align: center; }
+        body { font-family: Arial, sans-serif; line-height: 1.6; padding: 30px; text-align: justify; font-size: 14px; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .header h1 { margin: 0; font-size: 26px; }
+        .header h2 { margin: 5px 0 0 0; font-size: 18px; text-transform: uppercase; }
+        .header p { margin: 0; font-size: 12px; }
+        .doc-title { text-align: center; text-decoration: underline; text-transform: uppercase; margin: 30px 0; font-size: 16px; font-weight: bold; }
+        
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px; }
+        table, th, td { border: 1px solid black; }
+        td { padding: 6px; }
+        
+        h3 { margin-top: 20px; font-size: 14px; text-decoration: underline; }
+        .assinaturas { margin-top: 50px; text-align: center; }
         .assinaturas p { margin-top: 40px; }
+        
+        /* Quebra de página para o Word */
+        .page-break { clear: all; page-break-before: always; mso-special-character: line-break; }
     </style>
 </head>
 <body>
-    <h2>CONTRATO DE PRESTAÇÃO DE SERVIÇOS ADVOCATÍCIOS</h2>
-    
-    <p><strong>CONTRATANTE:</strong> {{nome}}, inscrito(a) no CPF/CNPJ sob o nº {{cpf}}, residente e domiciliado(a) no estado de {{estado}}.</p>
-    
-    <p><strong>CONTRATADA:</strong> Nascimento e Souza, escritório de advocacia devidamente qualificado.</p>
-    
-    <h3>1. DO OBJETO</h3>
-    <p>O presente instrumento tem como objeto a prestação de serviços jurídicos profissionais por parte da CONTRATADA, consistentes no patrocínio da defesa dos interesses da CONTRATANTE relacionados à classe processual <strong>{{classe}}</strong>, especificamente para o acompanhamento/atuação no processo de nº <strong>{{processo}}</strong>.</p>
-    
-    <h3>2. DOS HONORÁRIOS</h3>
-    <p>Em remuneração aos serviços profissionais ora pactuados, a CONTRATANTE pagará à CONTRATADA a quantia líquida e certa de <strong>{{valor}}</strong>, conforme as condições e prazos acordados entre as partes, ficando a cargo da CONTRATANTE as eventuais custas processuais que se fizerem necessárias ao andamento do feito.</p>
-    
-    <h3>3. DAS OBRIGAÇÕES GERAIS</h3>
-    <p>A CONTRATADA compromete-se a prestar seus serviços com zelo, diligência e dedicação, acompanhando o processo em todas as suas fases e instâncias necessárias. A CONTRATANTE, por sua vez, obriga-se a fornecer toda a documentação, informações e provas tempestivamente quando solicitadas pela CONTRATADA, assumindo a responsabilidade pela veracidade dos fatos narrados.</p>
 
-    <h3>4. DO FORO</h3>
-    <p>Fica eleito o foro da comarca da CONTRATADA, com renúncia expressa a qualquer outro, por mais privilegiado que seja, para dirimir quaisquer dúvidas ou litígios oriundos deste contrato.</p>
+    <!-- ==================== DOCUMENTO 1: CONTRATO ==================== -->
+    <div class="header">
+        <h1>Ω</h1>
+        <h2>GRUPO NASCIMENTO & SOUZA</h2>
+        <p>PROTEÇÃO PATRIMONIAL E SEGURANÇA JURÍDICA</p>
+        <p>PAULO GUILHERME DE SOUZA EUGENIO<br>OAB/RJ 240.325</p>
+    </div>
+
+    <div class="doc-title">CONTRATO DE HONORÁRIOS ADVOCATÍCIOS</div>
+
+    <table>
+        <tr>
+            <td colspan="4"><strong>NOME:</strong> {{nome}}</td>
+        </tr>
+        <tr>
+            <td colspan="2"><strong>NACIONALIDADE:</strong> {{nacionalidade}}</td>
+            <td colspan="2"><strong>ESTADO CIVIL:</strong> {{estadoCivil}}</td>
+        </tr>
+        <tr>
+            <td colspan="4"><strong>PROFISSÃO:</strong> {{profissao}}</td>
+        </tr>
+        <tr>
+            <td colspan="3"><strong>ENDEREÇO:</strong> {{endereco}}</td>
+            <td><strong>NÚMERO:</strong> {{numero}}</td>
+        </tr>
+        <tr>
+            <td colspan="2"><strong>BAIRRO:</strong> {{bairro}}</td>
+            <td colspan="2"><strong>CEP:</strong> {{cep}}</td>
+        </tr>
+        <tr>
+            <td colspan="2"><strong>RG:</strong> {{rg}}</td>
+            <td colspan="2"><strong>CPF:</strong> {{cpf}}</td>
+        </tr>
+        <tr>
+            <td colspan="4"><strong>TELEFONE:</strong> {{telefone}}</td>
+        </tr>
+    </table>
+
+    <p><strong>CONTRATADO:</strong> Grupo Nascimento & Souza, representado por: Dr. Paulo Guilherme de Souza Eugênio, OAB/RJ 240.325. Com escritório na Avenida Ayrton Senna, 2500 - Office III, salas 227 e 228 - Barra da Tijuca, Rio de Janeiro - RJ. Telefone (21) 96403-8881 (é WhatsApp também).</p>
+    <p>As partes acima identificadas têm, entre si, justo e acertado o presente Contrato de Honorários Advocatícios, que se regerá pelas cláusulas seguintes e pelas condições descritas no presente.</p>
+
+    <h3>DO OBJETO DO CONTRATO</h3>
+    <p><strong>Cláusula 1ª.</strong> O presente instrumento tem como OBJETO a prestação de serviços advocatícios em uma ação judicial de {{classe}} e a uma contestação da busca e apreensão ou execução ou reintegração de posse que lhe é movida a serem realizados nas Instâncias ordinárias e em grau de recurso ao qual fica obrigada a parte contratante a verificar os fatos e fundamentos do processo através do site do tribunal de referência ou ir a serventia para verificar o seu processo e o ratificá-lo e não fazendo estará automaticamente ratificado o processo com seus fatos e fundamentos redigidos. Fica obrigada a parte contratante tomar ciência do processo e seu número através do telefone do escritório ou pessoalmente ao mesmo.</p>
+
+    <h3>DAS ATIVIDADES</h3>
+    <p><strong>Cláusula 2ª.</strong> As atividades inclusas na prestação de serviço objeto deste instrumento são todas aquelas inerentes à profissão, ou seja, todos os atos inerentes ao exercício da advocacia e aqueles constantes no Estatuto da Ordem dos Advogados do Brasil, bem como os especificados no instrumento de mandato. Atividades que fazem parte além das da procuração são a de atendimento ao cliente, redigir a petição inicial, fazer o cálculo de financiamento do veículo, imóvel, e/ou contrato de empréstimo. Distribuição da ação judicial, atendimento ao cliente por telefone diariamente em todos os dias úteis do ano, atendimento presencial quando solicitado por e-mail gruponascimentoesouza@gmail.com ou telefones acima especificados, acompanhamento diário do processo judicial, petições interlocutórias no processo.</p>
+
+    <h3>DOS ATOS PROCESSUAIS</h3>
+    <p><strong>Cláusula 3ª.</strong> Havendo necessidade de contratação de outros profissionais, no decurso do processo, o CONTRATADO elaborará substabelecimento, indicando os advogados de seu conhecimento.</p>
+    <p>Parágrafo Único. A distribuição dos processos na comarca ficará a cargo do contratado.</p>
+
+    <h3>DA COBRANÇA</h3>
+    <p><strong>Cláusula 4ª.</strong> As partes acordam que facultará ao CONTRATADO, o direito de realizar a cobrança dos honorários por todos os meios admitidos em direito.</p>
+
+    <h3>DOS HONORÁRIOS</h3>
+    <p><strong>Cláusula 5ª.</strong> Fará jus o contrato o valor de <strong>{{valor}}</strong> de honorários totais, pagos R$500,00 de entrada no dia 23/06/2026 o restante R$1.000 no dia 10/07/2026 e mais 5 parcelas em valores iguais de:<br>
+    R$ 1.500,00 (mil e quinhentos reais) dia 10/08/2026<br>
+    R$ 1.500,00 (mil e quinhentos reais) dia 10/09/2026<br>
+    R$ 1.500,00 (mil e quinhentos reais) dia 10/10/2026<br>
+    R$ 1.500,00 (mil e quinhentos reais) dia 10/11/2026<br>
+    R$ 1.500,00 (mil e quinhentos reais) dia 10/12/2026</p>
+    <p>Caso não pague a prestação na data prevista no presente contrato, incidirá multa de 10% do valor devido e mais juros de 1% e correção pelo IGP-M ao mês (na falta do índice do IGP-M será adotado outro índice oficial que vier a ser adotado em seu lugar ou equivalente).</p>
+    <p>Parágrafo primeiro. Os honorários de sucumbência, que são pagos pela parte contrária, serão revertidos integralmente ao CONTRATADO.</p>
+    <p>Parágrafo segundo. Caso a parte rescinda o contrato de honorários o mesmo terá que enviar uma carta ao escritório com o pedido e a parte contratada ficará com os valores já pagos e os devidos.</p>
+    <p>Parágrafo terceiro. Caso haja morte ou incapacidade civil do CONTRATADO, seus sucessores ou representantes legais receberão os honorários.</p>
+    <p>Parágrafo quarto. O contratado está autorizado a receber pelo contratante e dar quitação ao processo e retirar a sua parte dos honorários diretamente do valor que for recebido e terá o prazo de 1 mês para efetuar o pagamento do valor devido ao contratante sem incidir juros e correção monetária, caso o contratante entre em contato com o escritório será pago os valores em 48 horas, depois de confirmado o recebimento.</p>
+    <p>Parágrafo quinto. Caso tenha que pagar Imposto de Renda ou qualquer outro imposto ou que o mesmo seja automaticamente deduzido no valor que receba de indenizações materiais, morais ou qualquer outra natureza os mesmos serão pagos exclusivamente pela parte contratante.</p>
+
+    <p><strong>Cláusula 6ª.</strong> Havendo acordo entre o CONTRATANTE e a parte contrária, tal fato não prejudicará o recebimento dos honorários contratados e da sucumbência.</p>
+
+    <h3>DA RESCISÃO</h3>
+    <p><strong>Cláusula 7ª.</strong> O presente contrato poderá ser rescindido por qualquer das partes, mediante aviso prévio, por escrito com aviso de recebimento, com 30 (trinta) dias de antecedência, incidindo nesse caso a proporcionalidade dos honorários, os quais se considerarão vencidos.</p>
+
+    <h3>DO FORO</h3>
+    <p><strong>Cláusula 8ª.</strong> Para dirimir quaisquer controvérsias oriundas do CONTRATO, as partes elegem o foro do Centro da Cidade do Rio de Janeiro na comarca da Vara Única Cível.</p>
+
+    <p>Por estarem assim justos e contratados, firmam o presente instrumento, em duas vias de igual teor.</p>
     
-    <p style="text-align: right; margin-top: 40px;">Data: {{dataAtual}}</p>
+    <p style="text-align: right; margin-top: 30px;">{{estado}}, {{dataAtual}}</p>
 
     <div class="assinaturas">
         <p>____________________________________________________<br>
@@ -37,8 +110,115 @@
         (Contratante)</p>
         
         <p>____________________________________________________<br>
-        <strong>Nascimento e Souza</strong><br>
-        (Contratada)</p>
+        <strong>Grupo Nascimento & Souza</strong><br>
+        Representado por: Paulo Guilherme de Souza Eugênio<br>OAB/RJ 240.325</p>
     </div>
+
+    <!-- QUEBRA DE PÁGINA -->
+    <br class="page-break">
+
+    <!-- ==================== DOCUMENTO 2: PROCURAÇÃO ==================== -->
+    <div class="header">
+        <h1>Ω</h1>
+        <h2>GRUPO NASCIMENTO & SOUZA</h2>
+        <p>PROTEÇÃO PATRIMONIAL E SEGURANÇA JURÍDICA</p>
+        <p>PAULO GUILHERME DE SOUZA EUGENIO<br>OAB/RJ 240.325</p>
+    </div>
+
+    <div class="doc-title">PROCURAÇÃO</div>
+
+    <table>
+        <tr>
+            <td colspan="4"><strong>NOME:</strong> {{nome}}</td>
+        </tr>
+        <tr>
+            <td colspan="2"><strong>NACIONALIDADE:</strong> {{nacionalidade}}</td>
+            <td colspan="2"><strong>ESTADO CIVIL:</strong> {{estadoCivil}}</td>
+        </tr>
+        <tr>
+            <td colspan="4"><strong>PROFISSÃO:</strong> {{profissao}}</td>
+        </tr>
+        <tr>
+            <td colspan="3"><strong>ENDEREÇO:</strong> {{endereco}}</td>
+            <td><strong>NÚMERO:</strong> {{numero}}</td>
+        </tr>
+        <tr>
+            <td colspan="2"><strong>BAIRRO:</strong> {{bairro}}</td>
+            <td colspan="2"><strong>CEP:</strong> {{cep}}</td>
+        </tr>
+        <tr>
+            <td colspan="2"><strong>RG:</strong> {{rg}}</td>
+            <td colspan="2"><strong>CPF:</strong> {{cpf}}</td>
+        </tr>
+        <tr>
+            <td colspan="4"><strong>TELEFONE:</strong> {{telefone}}</td>
+        </tr>
+    </table>
+
+    <p><strong>CONTRATADO:</strong> Grupo Nascimento & Souza, representado por Dr. Paulo Guilherme de Souza Eugênio. Com escritório na Avenida Ayrton Senna, 2500 Office III, salas 227 e 228- Barra da Tijuca, Rio de Janeiro RJ. Telefone (21) 96403-8881 (WhatsApp) e endereço eletrônico gruponascimentoesouza@gmail.com.</p>
+    
+    <p><strong>PODERES:</strong> poderes da cláusulas ad judicia e especiais, representar o outorgante perante a qualquer Tribunal de Justiça do Brasil, STF, STJ, TRT, TRF, podendo propor qualquer tipo de ação, podendo ainda para tanto praticar os atos de acordar, discordar, transigir, negociar, juntar, dar quitação e receber, receber os honorários contratuais separadamente firmados de cinquenta por cento do valor de qualquer indenização deste processo diretamente no processo incluindo juros e correção monetária, firma compromissos, concorda e impugnar cálculos, renunciar e desistir, substabelecer com ou sem reservas de poderes sobre {{classe}} sob o nº de processo: <strong>{{processo}}</strong>.</p>
+    
+    <p><strong>FINALIDADE:</strong> Propor ação judicial a serem realizados nas Instâncias ordinárias, juizados e em grau de recurso.</p>
+
+    <p style="text-align: right; margin-top: 40px;">{{estado}}, {{dataAtual}}</p>
+
+    <div class="assinaturas">
+        <p>____________________________________________________<br>
+        <strong>{{nome}}</strong><br>
+        (Outorgante)</p>
+    </div>
+
+    <!-- QUEBRA DE PÁGINA -->
+    <br class="page-break">
+
+    <!-- ==================== DOCUMENTO 3: DECLARAÇÃO ==================== -->
+    <div class="header">
+        <h1>Ω</h1>
+        <h2>GRUPO NASCIMENTO & SOUZA</h2>
+        <p>PROTEÇÃO PATRIMONIAL E SEGURANÇA JURÍDICA</p>
+        <p>PAULO GUILHERME DE SOUZA EUGENIO<br>OAB/RJ 240.325</p>
+    </div>
+
+    <div class="doc-title">DECLARAÇÃO DE HIPOSSUFICIÊNCIA</div>
+
+    <table>
+        <tr>
+            <td colspan="4"><strong>NOME:</strong> {{nome}}</td>
+        </tr>
+        <tr>
+            <td colspan="2"><strong>NACIONALIDADE:</strong> {{nacionalidade}}</td>
+            <td colspan="2"><strong>ESTADO CIVIL:</strong> {{estadoCivil}}</td>
+        </tr>
+        <tr>
+            <td colspan="4"><strong>PROFISSÃO:</strong> {{profissao}}</td>
+        </tr>
+        <tr>
+            <td colspan="3"><strong>ENDEREÇO:</strong> {{endereco}}</td>
+            <td><strong>NÚMERO:</strong> {{numero}}</td>
+        </tr>
+        <tr>
+            <td colspan="2"><strong>BAIRRO:</strong> {{bairro}}</td>
+            <td colspan="2"><strong>CEP:</strong> {{cep}}</td>
+        </tr>
+        <tr>
+            <td colspan="2"><strong>RG:</strong> {{rg}}</td>
+            <td colspan="2"><strong>CPF:</strong> {{cpf}}</td>
+        </tr>
+        <tr>
+            <td colspan="4"><strong>TELEFONE:</strong> {{telefone}}</td>
+        </tr>
+    </table>
+
+    <p>Declaro que, em função de minha condição financeira, não tenho condições de arcar com o pagamento das custas processuais e honorário advocatícios iniciais do processo, sob pena de implicar em prejuízo próprio e de minha família, nos termos do art. 5º, LXXIV, da Constituição da República e da Lei nº 1.060/50.</p>
+
+    <p style="text-align: right; margin-top: 40px;">{{estado}}, {{dataAtual}}</p>
+
+    <div class="assinaturas">
+        <p>____________________________________________________<br>
+        <strong>{{nome}}</strong><br>
+        (Declarante)</p>
+    </div>
+
 </body>
 </html>
