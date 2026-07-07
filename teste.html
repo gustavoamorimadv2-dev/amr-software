@@ -20,9 +20,8 @@
         #pdf-content { display: none; }
         .doc-page { padding: 40px; font-family: 'Times New Roman', Times, serif; font-size: 14px; line-height: 1.5; text-align: justify; page-break-after: always; }
         .doc-page h3 { text-align: center; text-transform: uppercase; margin-bottom: 20px; }
-        .doc-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        .doc-table td { border: 1px solid #000; padding: 5px; vertical-align: top; }
         .center-text { text-align: center; margin-top: 40px; }
+        .text-lowercase { text-transform: lowercase; }
     </style>
 </head>
 <body>
@@ -39,7 +38,7 @@
         </div>
         <div class="form-group">
             <div><label>RG</label><input type="text" id="rg" required></div>
-            <div><label>Nacionalidade</label><input type="text" id="nacionalidade" value="BRASILEIRO" required></div>
+            <div><label>Nacionalidade</label><input type="text" id="nacionalidade" value="Brasileiro(a)" required></div>
         </div>
         <div class="form-group">
             <div><label>Estado Civil</label><input type="text" id="estado_civil" required></div>
@@ -88,80 +87,38 @@
     <div class="doc-page" id="doc-contrato">
         <h3>CONTRATO DE HONORÁRIOS ADVOCATÍCIOS</h3>
         
-        <table class="doc-table">
-            <tr><td colspan="4"><strong>NOME:</strong> <span class="out-nome"></span></td></tr>
-            <tr>
-                <td><strong>NACIONALIDADE:</strong> <span class="out-nacionalidade"></span></td>
-                <td colspan="2"><strong>ESTADO CIVIL:</strong> <span class="out-estadocivil"></span></td>
-                <td><strong>PROFISSÃO:</strong> <span class="out-profissao"></span></td>
-            </tr>
-            <tr><td colspan="4"><strong>ENDEREÇO:</strong> <span class="out-endereco"></span></td></tr>
-            <tr>
-                <td colspan="2"><strong>BAIRRO:</strong> <span class="out-bairro"></span></td>
-                <td><strong>CIDADE:</strong> <span class="out-cidade"></span></td>
-                <td><strong>UF:</strong> <span class="out-uf"></span> <strong>CEP:</strong> <span class="out-cep"></span></td>
-            </tr>
-            <tr>
-                <td colspan="2"><strong>RG:</strong> <span class="out-rg"></span></td>
-                <td colspan="2"><strong>CPF:</strong> <span class="out-cpf"></span></td>
-            </tr>
-            <tr>
-                <td colspan="2"><strong>TELEFONE:</strong> <span class="out-telefone"></span></td>
-                <td colspan="2"><strong>EMAIL:</strong> <span class="out-email"></span></td>
-            </tr>
-        </table>
+        <p>Pelo presente instrumento particular, de um lado <strong><span class="out-nome"></span></strong>, <span class="out-nacionalidade text-lowercase"></span>, <span class="out-estadocivil text-lowercase"></span>, <span class="out-profissao text-lowercase"></span>, portador(a) da carteira de identidade RG nº <span class="out-rg"></span> e inscrito(a) no CPF sob o nº <span class="out-cpf"></span>, residente e domiciliado(a) na <span class="out-endereco"></span>, Bairro <span class="out-bairro"></span>, Cidade de <span class="out-cidade"></span> - <span class="out-uf"></span>, CEP <span class="out-cep"></span>, telefone <span class="out-telefone"></span>, e-mail <span class="out-email text-lowercase"></span>, doravante denominado <strong>CONTRATANTE</strong>;</p>
 
-        <p><strong>BRUNO DURAO SOCIEDADE INDIVIDUAL DE ADVOCACIA</strong>, CNPJ 10.615.803/0001-04 com escritório na Avenida das Américas, n 3443, bloco 4, sala 101, Barra da Tijuca - Rio de Janeiro - RJ, CEP 22631-004, doravante identificado como CONTRATADO.</p>
+        <p>E, de outro lado, <strong>BRUNO DURAO SOCIEDADE INDIVIDUAL DE ADVOCACIA</strong>, CNPJ 10.615.803/0001-04 com escritório na Avenida das Américas, n 3443, bloco 4, sala 101, Barra da Tijuca - Rio de Janeiro - RJ, CEP 22631-004, doravante identificado como <strong>CONTRATADO</strong>.</p>
         
-        <p><strong>SUPORTE AO CLIENTE:</strong> Forma presencial com hora marcada no Whatsapp (21) 2018-7918 em menos de 24h já marcamos o seu atendimento ou caso for urgência explicar o motivo...</p>
+        <p><strong>SUPORTE AO CLIENTE:</strong> Forma presencial com hora marcada no Whatsapp (21) 2018-7918 em menos de 24h já marcamos o seu atendimento ou caso for urgência explicar o motivo que dentro da possibilidade vamos agilizar este atendimento e se for para saber qual o valor do seu acordo judicial o telefone do setor de acordo judicial que é WhatsApp (21) 96775-6096.</p>
 
         <p><strong>DO OBJETO DO CONTRATO:</strong><br>
-        Cláusula 1ª. O presente instrumento tem como OBJETO a prestação de serviços advocatícios em uma ação judicial de busca e apreensão com o processo nº <strong><span class="out-processo"></span></strong>. Realizar a defesa da ação de busca e apreensão e fazer uma ação revisional...</p>
+        Cláusula 1ª. O presente instrumento tem como OBJETO a prestação de serviços advocatícios em uma ação judicial de busca e apreensão com o processo nº <strong><span class="out-processo"></span></strong>. Realizar a defesa da ação de busca e apreensão e fazer uma ação revisional, que lhe é movida a serem realizados nas Instâncias ordinárias e em grau de recurso ao qual fica obrigada a parte contratante a verificar o os fatos e fundamentos do processo através do site do tribunal de referência ou ir a serventia para verificar o seu processo e o ratifica-lo e não fazendo estará automaticamente ratificado o processo com seus fatos e fundamentos redigidos.</p>
 
         <p><strong>DA COBRANÇA:</strong><br>
-        Cláusula 4ª. As partes acordam que o CONTRATADO realizará a cobrança dos honorários advocatícios exclusivamente por meio de Pix Recorrente...</p>
+        Cláusula 4ª. As partes acordam que o CONTRATADO realizará a cobrança dos honorários advocatícios exclusivamente por meio de Pix Recorrente, modalidade de pagamento automático autorizado pelo CONTRATANTE, em conformidade com a Resolução nº 269/2022 do Banco Central do Brasil.</p>
         
         <p>Cláusula 5ª. Fará jus o contrato o valor de R$ <span class="out-valortotal"></span> de honorários iniciais, pagos R$ <span class="out-valorentrada"></span> de entrada dia <span class="out-dataentrada"></span> e mais <span class="out-qtdparcelas"></span> parcelas de R$ <span class="out-valorparcela"></span>.<br>
-        Será devido honorários mensais de R$ <span class="out-valormensal"></span> pago por mês a partir de <span class="out-datamensalidade"></span> até a baixa do processo ou recebimento do mandado de pagamento...</p>
+        Será devido honorários mensais de R$ <span class="out-valormensal"></span> pago por mês a partir de <span class="out-datamensalidade"></span> até a baixa do processo ou recebimento do mandado de pagamento ou precatório judicial, o que for posterior, sendo o mesmo não mais devido caso tenha efetivado e pago o acordo judicial no processo.</p>
 
-        <p><em>(Demais cláusulas padrão mantidas conforme modelo original. O sistema de geração preserva a integridade destas cláusulas inalteradas pela equipe.)</em></p>
+        <p><em>(O presente documento adota as cláusulas padronizadas do escritório vinculadas ao sistema recorrente de PIX, multas de inadimplemento e destinação exclusiva de sucumbência conforme minutas originais aprovadas.)</em></p>
 
         <div class="center-text">
             <p>São Paulo, <span class="out-dataatual"></span></p>
             <br><br>
             <p>_______________________________________________________<br>
-            <strong><span class="out-nome"></span></strong></p>
+            <strong><span class="out-nome"></span></strong><br>CONTRATANTE</p>
             <br>
             <p>_______________________________________________________<br>
-            <strong>BRUNO DURAO SOCIEDADE INDIVIDUAL DE ADVOCACIA</strong></p>
+            <strong>BRUNO DURAO SOCIEDADE INDIVIDUAL DE ADVOCACIA</strong><br>CONTRATADO</p>
         </div>
     </div>
 
     <div class="doc-page" id="doc-declaracao">
         <h3>DECLARAÇÃO</h3>
         
-        <table class="doc-table">
-            <tr><td colspan="4"><strong>NOME:</strong> <span class="out-nome"></span></td></tr>
-            <tr>
-                <td><strong>NACIONALIDADE:</strong> <span class="out-nacionalidade"></span></td>
-                <td colspan="2"><strong>ESTADO CIVIL:</strong> <span class="out-estadocivil"></span></td>
-                <td><strong>PROFISSÃO:</strong> <span class="out-profissao"></span></td>
-            </tr>
-            <tr><td colspan="4"><strong>ENDEREÇO:</strong> <span class="out-endereco"></span></td></tr>
-            <tr>
-                <td colspan="2"><strong>BAIRRO:</strong> <span class="out-bairro"></span></td>
-                <td><strong>CIDADE:</strong> <span class="out-cidade"></span></td>
-                <td><strong>UF:</strong> <span class="out-uf"></span> <strong>CEP:</strong> <span class="out-cep"></span></td>
-            </tr>
-            <tr>
-                <td colspan="2"><strong>RG:</strong> <span class="out-rg"></span></td>
-                <td colspan="2"><strong>CPF:</strong> <span class="out-cpf"></span></td>
-            </tr>
-            <tr>
-                <td colspan="2"><strong>TELEFONE:</strong> <span class="out-telefone"></span></td>
-                <td colspan="2"><strong>EMAIL:</strong> <span class="out-email"></span></td>
-            </tr>
-        </table>
+        <p>Eu, <strong><span class="out-nome"></span></strong>, <span class="out-nacionalidade text-lowercase"></span>, <span class="out-estadocivil text-lowercase"></span>, <span class="out-profissao text-lowercase"></span>, portador(a) da carteira de identidade RG nº <span class="out-rg"></span> e inscrito(a) no CPF sob o nº <span class="out-cpf"></span>, residente e domiciliado(a) na <span class="out-endereco"></span>, Bairro <span class="out-bairro"></span>, Cidade de <span class="out-cidade"></span> - <span class="out-uf"></span>, CEP <span class="out-cep"></span>, telefone <span class="out-telefone"></span>, e-mail <span class="out-email text-lowercase"></span>.</p>
 
         <p>Declaro que, em função de minha condição financeira, não tenho condições de arcar com o pagamento das custas processuais e honorário advocatícios iniciais do processo, sob pena de implicar em prejuízo próprio e de minha família, nos termos do art. 5º, LXXIV, da Constituição da República e da Lei nº 1.060/50.</p>
 
@@ -176,38 +133,15 @@
     <div class="doc-page" id="doc-procuracao" style="page-break-after: auto;">
         <h3>PROCURAÇÃO</h3>
         
-        <p><strong>OUTORGANTE:</strong></p>
-        <table class="doc-table">
-            <tr><td colspan="4"><strong>NOME:</strong> <span class="out-nome"></span></td></tr>
-            <tr>
-                <td><strong>NACIONALIDADE:</strong> <span class="out-nacionalidade"></span></td>
-                <td colspan="2"><strong>ESTADO CIVIL:</strong> <span class="out-estadocivil"></span></td>
-                <td><strong>PROFISSÃO:</strong> <span class="out-profissao"></span></td>
-            </tr>
-            <tr><td colspan="4"><strong>ENDEREÇO:</strong> <span class="out-endereco"></span></td></tr>
-            <tr>
-                <td colspan="2"><strong>BAIRRO:</strong> <span class="out-bairro"></span></td>
-                <td><strong>CIDADE:</strong> <span class="out-cidade"></span></td>
-                <td><strong>UF:</strong> <span class="out-uf"></span> <strong>CEP:</strong> <span class="out-cep"></span></td>
-            </tr>
-            <tr>
-                <td colspan="2"><strong>RG:</strong> <span class="out-rg"></span></td>
-                <td colspan="2"><strong>CPF:</strong> <span class="out-cpf"></span></td>
-            </tr>
-            <tr>
-                <td colspan="2"><strong>TELEFONE:</strong> <span class="out-telefone"></span></td>
-                <td colspan="2"><strong>EMAIL:</strong> <span class="out-email"></span></td>
-            </tr>
-        </table>
+        <p><strong>OUTORGANTE:</strong> <strong><span class="out-nome"></span></strong>, <span class="out-nacionalidade text-lowercase"></span>, <span class="out-estadocivil text-lowercase"></span>, <span class="out-profissao text-lowercase"></span>, portador(a) da carteira de identidade RG nº <span class="out-rg"></span> e inscrito(a) no CPF sob o nº <span class="out-cpf"></span>, residente e domiciliado(a) na <span class="out-endereco"></span>, Bairro <span class="out-bairro"></span>, Cidade de <span class="out-cidade"></span> - <span class="out-uf"></span>, CEP <span class="out-cep"></span>, telefone <span class="out-telefone"></span>, e-mail <span class="out-email text-lowercase"></span>.</p>
 
-        <p><strong>OUTORGADO:</strong><br>
-        BRUNO DURAO SOCIEDADE INDIVIDUAL DE ADVOCACIA, CNPJ 10.615.803/0001-04, sendo representada pelo advogado BRUNO MEDEIROS DURÃO - OAB/RJ 152.121...</p>
+        <p><strong>OUTORGADO:</strong> BRUNO DURAO SOCIEDADE INDIVIDUAL DE ADVOCACIA, CNPJ 10.615.803/0001-04, sendo representada pelo advogado BRUNO MEDEIROS DURÃO - OAB/RJ 152.121 AONDE REQUER TODAS AS PUBLICAÇÕES SOMENTE E UNICAMENTE EM NOME DE BRUNO MEDEIROS DURÃO - OAB/RJ 152.121 sob pena de nulidade, advogado com endereço na Avenida das Américas, n° 3443, bloco 4, sala 101, Barra da Tijuca Rio de Janeiro RJ, CEP 22631-004 e endereço eletrônico contato@dapadvocacia.com.br.</p>
 
-        <p><strong>PODERES:</strong><br>
-        Confere-se à outorgada poderes da cláusula ad judicia e poderes especiais para representar o outorgante perante qualquer Tribunal de Justiça do Brasil...</p>
+        <p><strong>PODERES:</strong> Confere-se à outorgada poderes da cláusula ad judicia e poderes especiais para representar o outorgante perante qualquer Tribunal de Justiça do Brasil, incluindo STF, STJ, TRT, TRF, podendo propor ações de qualquer natureza, bem como praticar todos os atos processuais necessários, incluindo acordar, discordar, transigir, negociar, juntar, dar quitação e receber com destinação exclusiva de honorários e valores: O outorgado está expressamente autorizado a receber valores a título de honorários contratuais, sucumbenciais ou indenizatórios em nome do outorgante. É vedado o recebimento ou a transferência desses valores para qualquer conta bancária pessoal ou diversa da mencionada conta do escritório.</p>
 
-        <p><strong>FINALIDADE:</strong><br>
-        Atuar na defesa em ação de busca e apreensão nº <strong><span class="out-processo"></span></strong>, bem como propor ação revisional de contrato bancário e ajuizar ação no Juizado Especial Cível, adotando as medidas cabíveis para resguardar os interesses do outorgante.</p>
+        <p>A outorgada possui poderes para firmar compromissos, concordar e impugnar cálculos, renunciar, desistir, e praticar demais atos necessários para o andamento das causas, desde que observe as disposições aqui estabelecidas. Esta procuração é conferida com poderes para substabelecer sem reserva, respeitando as determinações de destinação exclusiva dos valores mencionados.</p>
+
+        <p><strong>FINALIDADE:</strong> Atuar na defesa em ação de busca e apreensão nº <strong><span class="out-processo"></span></strong>, bem como propor ação revisional de contrato bancário e ajuizar ação no Juizado Especial Cível, adotando as medidas cabíveis para resguardar os interesses do outorgante.</p>
 
         <div class="center-text">
             <p>São Paulo, <span class="out-dataatual"></span></p>
@@ -233,7 +167,11 @@
 
     function preencherCampos(classe, valor) {
         const elementos = document.querySelectorAll('.' + classe);
-        elementos.forEach(el => el.innerText = (valor || '').toUpperCase());
+        elementos.forEach(el => {
+            // Se a classe exigir minúsculo (como profissão, estado civil) no meio do texto,
+            // usamos CSS text-transform: lowercase, então no script mandamos maiúsculo, mas a tela cuida do resto.
+            el.innerText = (valor || '').toUpperCase();
+        });
     }
 
     function gerarContrato() {
@@ -274,7 +212,7 @@
 
         // Configuração e geração do PDF
         const opt = {
-            margin:       10,
+            margin:       15, // Aumentei um pouco a margem para ficar com mais cara de documento
             filename:     'Kit_Contratual_' + dados.nome.replace(/\s+/g, '_') + '.pdf',
             image:        { type: 'jpeg', quality: 0.98 },
             html2canvas:  { scale: 2 },
