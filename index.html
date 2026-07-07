@@ -1167,76 +1167,57 @@ document.addEventListener('DOMContentLoaded', () => {
         addTelefoneField();
     };
 
-    /* ================= GERAÇÃO DE CONTRATO (NOVO) ================= */
+    /* ================= GERAÇÃO DE CONTRATO DINÂMICO ================= */
 
-    function gerarContrato(cliente) {
+    async function gerarContrato(cliente) {
         showToast("Gerando contrato...");
-        
-        const dataAtual = new Date().toLocaleDateString('pt-BR');
-        const processoStr = cliente.processo ? cliente.processo.split(',')[0].trim() : "Não informado";
-        const valorFormatado = cliente.valor ? parseFloat(cliente.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "R$ 0,00";
-        
-        const conteudoContrato = `
-            <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-            <head>
-                <meta charset='utf-8'>
-                <title>Contrato de Prestação de Serviços</title>
-                <style>
-                    body { font-family: Arial, sans-serif; line-height: 1.6; padding: 40px; text-align: justify; }
-                    h2 { text-align: center; text-transform: uppercase; margin-bottom: 30px; }
-                    h3 { margin-top: 30px; text-decoration: underline; }
-                    .assinaturas { margin-top: 60px; text-align: center; }
-                    .assinaturas p { margin-top: 40px; }
-                </style>
-            </head>
-            <body>
-                <h2>CONTRATO DE PRESTAÇÃO DE SERVIÇOS ADVOCATÍCIOS</h2>
-                
-                <p><strong>CONTRATANTE:</strong> ${cliente.nome}, inscrito(a) no CPF/CNPJ sob o nº ${cliente.cpf || '___________'}, residente e domiciliado(a) no estado de ${cliente.estado || '___________'}.</p>
-                
-                <p><strong>CONTRATADA:</strong> AMR ADV, escritório de advocacia devidamente qualificado.</p>
-                
-                <h3>1. DO OBJETO</h3>
-                <p>O presente instrumento tem como objeto a prestação de serviços jurídicos profissionais por parte da CONTRATADA, consistentes no patrocínio da defesa dos interesses da CONTRATANTE relacionados à classe processual <strong>${cliente.classe || '___________'}</strong>, especificamente para o acompanhamento/atuação no processo de nº <strong>${processoStr}</strong>.</p>
-                
-                <h3>2. DOS HONORÁRIOS</h3>
-                <p>Em remuneração aos serviços profissionais ora pactuados, a CONTRATANTE pagará à CONTRATADA a quantia líquida e certa de <strong>${valorFormatado}</strong>, conforme as condições e prazos acordados entre as partes, ficando a cargo da CONTRATANTE as eventuais custas processuais que se fizerem necessárias ao andamento do feito.</p>
-                
-                <h3>3. DAS OBRIGAÇÕES GERAIS</h3>
-                <p>A CONTRATADA compromete-se a prestar seus serviços com zelo, diligência e dedicação, acompanhando o processo em todas as suas fases e instâncias necessárias. A CONTRATANTE, por sua vez, obriga-se a fornecer toda a documentação, informações e provas tempestivamente quando solicitadas pela CONTRATADA, assumindo a responsabilidade pela veracidade dos fatos narrados.</p>
 
-                <h3>4. DO FORO</h3>
-                <p>Fica eleito o foro da comarca da CONTRATADA, com renúncia expressa a qualquer outro, por mais privilegiado que seja, para dirimir quaisquer dúvidas ou litígios oriundos deste contrato.</p>
-                
-                <p style="text-align: right; margin-top: 40px;">Data: ${dataAtual}</p>
+        try {
+            // 1. Busca o arquivo HTML lá na pasta templates
+            const response = await fetch('./templates/contrato-template.html');
+            if (!response.ok) {
+                throw new Error("Não foi possível carregar o template. Verifique se a pasta 'templates' e o arquivo 'contrato-template.html' existem.");
+            }
+            let template = await response.text();
 
-                <div class="assinaturas">
-                    <p>____________________________________________________<br>
-                    <strong>${cliente.nome}</strong><br>
-                    (Contratante)</p>
-                    
-                    <p>____________________________________________________<br>
-                    <strong>Nascimento e souza Advocacia</strong><br>
-                    (Contratada)</p>
-                </div>
-            </body>
-            </html>
-        `;
+            // 2. Prepara os dados do cliente
+            const dataAtual = new Date().toLocaleDateString('pt-BR');
+            const processoStr = cliente.processo ? cliente.processo.split(',')[0].trim() : "Não informado";
+            const valorFormatado = cliente.valor ? parseFloat(cliente.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }) : "R$ 0,00";
+            const cpfStr = cliente.cpf || '___________';
+            const estadoStr = cliente.estado || '___________';
+            const classeStr = cliente.classe || '___________';
 
-        // Criando Blob com tipo de documento do Word (.doc)
-        const blob = new Blob(['\ufeff', conteudoContrato], {
-            type: 'application/msword'
-        });
-        
-        // Disparando o download do arquivo
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `Contrato_${cliente.nome.replace(/\s+/g, '_')}.doc`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+            // 3. Substitui as tags {{tag}} pelos dados reais usando Expressões Regulares
+            template = template.replace(/{{nome}}/g, cliente.nome);
+            template = template.replace(/{{cpf}}/g, cpfStr);
+            template = template.replace(/{{estado}}/g, estadoStr);
+            template = template.replace(/{{classe}}/g, classeStr);
+            template = template.replace(/{{processo}}/g, processoStr);
+            template = template.replace(/{{valor}}/g, valorFormatado);
+            template = template.replace(/{{dataAtual}}/g, dataAtual);
+
+            // 4. Cria o Blob (arquivo) do Word com os dados atualizados
+            const blob = new Blob(['\ufeff', template], {
+                type: 'application/msword'
+            });
+            
+            // 5. Força o download
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Contrato_${cliente.nome.replace(/\s+/g, '_')}.doc`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            showToast("Contrato gerado com sucesso!");
+
+        } catch (error) {
+            console.error(error);
+            showToast("Erro ao gerar o contrato! Arquivo não encontrado.");
+        }
     }
 
     /* ================= CARDS ================= */
@@ -1294,14 +1275,29 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         btnCall.innerHTML = '<img src="https://img.icons8.com/ios-glyphs/30/000000/phone.png"/>';
 
+        // BOTÃO WHATSAPP - AGORA PULA PARA O DIA 1
         const btnWa = document.createElement('button');
         btnWa.title = "WhatsApp";
-        btnWa.onclick = (e) => {
+        btnWa.onclick = async (e) => {
             e.stopPropagation();
             const numero = cliente.numeros
                 ? cliente.numeros.split(',')[0].trim()
                 : '';
             whatsapp(numero);
+
+            // Se o card ainda estiver na lista fria, pula para o Dia 1 e salva a hora
+            if (cliente.status === 'lista-fria') {
+                try {
+                    const docRef = doc(db, "clientes", cliente.id);
+                    await updateDoc(docRef, { 
+                        status: 'dia-1',
+                        dataPipeline: new Date().toISOString() 
+                    });
+                    render(); // Re-renderiza o quadro para o card mover imediatamente
+                } catch (error) {
+                    console.error("Erro ao mover para o Dia 1:", error);
+                }
+            }
         };
         btnWa.innerHTML = '<img src="https://img.icons8.com/ios-glyphs/30/000000/whatsapp.png"/>';
 
@@ -1408,14 +1404,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const clientes = await getClientes();
 
-        // Calcular quantos cards o usuário atual cadastrou hoje e que ainda estão na Lista Fria
+        // Calcular quantos cards o usuário atual cadastrou hoje na Lista Fria E quantos ele chamou pro Dia 1 hoje
         let countListaFriaHoje = 0;
+        let countDia1Hoje = 0;
+        
         const hojeStr = new Date().toLocaleDateString('pt-BR');
+        
         if (currentUser) {
+            // Conta os cards que o usuário cadastrou hoje e estão na lista fria
             countListaFriaHoje = clientes.filter(c => {
                 if (!c.dataCadastro || c.status !== 'lista-fria') return false;
                 const cardDateStr = new Date(c.dataCadastro).toLocaleDateString('pt-BR');
                 return cardDateStr === hojeStr && c.criadoPor === currentUser.email;
+            }).length;
+
+            // Conta os cards que o usuário chamou hoje (tiveram dataPipeline inserida hoje e estão no dia 1)
+            countDia1Hoje = clientes.filter(c => {
+                if (!c.dataPipeline || c.status !== 'dia-1') return false;
+                const pipelineDateStr = new Date(c.dataPipeline).toLocaleDateString('pt-BR');
+                return pipelineDateStr === hojeStr && c.criadoPor === currentUser.email;
             }).length;
         }
 
@@ -1437,9 +1444,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 `;
             } else if (status === 'dia-1') {
-                col.innerHTML = `<h2>EM NEGOCIAÇÃO (DIA 1)</h2>`;
+                col.innerHTML = `
+                    <div class="col-header-actions">
+                        <div style="display:flex; flex-direction:column;">
+                            <h2 style="margin-bottom:2px;">EM NEGOCIAÇÃO (DIA 1)</h2>
+                            <span style="font-size: 11px; font-weight: normal; color: rgba(255,255,255,0.6);">
+                                Chamados hoje: <strong style="color:#fff;">${countDia1Hoje}</strong>
+                            </span>
+                        </div>
+                    </div>
+                `;
             } else if (status === 'dia-2') {
-                col.innerHTML = `<h2> (DIA 2)</h2>`;
+                col.innerHTML = `<h2>EM NEGOCIAÇÃO (DIA 2)</h2>`;
             } else {
                 col.innerHTML = `<h2>${status.replace('-', ' ').toUpperCase()}</h2>`;
             }
@@ -1670,10 +1686,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Se passou em todas as regras de bloqueio, atualiza
             const docRef = doc(db, "clientes", draggedCard.dataset.id);
-            await updateDoc(docRef, { 
+            
+            const updatePayload = { 
                 status: novoStatus,
                 fechadoPor: novoStatus === 'fechado' ? (currentUser ? currentUser.email : '') : ""
-            });
+            };
+
+            // Se arrastou pra dia 1 manual (caso seja permitido), ativa o pipeline
+            if (novoStatus === 'dia-1' && currentStatus === 'lista-fria') {
+                updatePayload.dataPipeline = new Date().toISOString();
+            }
+
+            await updateDoc(docRef, updatePayload);
             
             showToast("Sucesso! Card movimentado e salvo.");
             render();
