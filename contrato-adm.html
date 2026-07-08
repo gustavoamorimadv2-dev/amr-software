@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajuris CRM - Painel ADM</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #0c2340;
+            --accent-color: #d4af37;
+            --bg-color: #f5f7fa;
+            --text-color: #333333;
+        }
+
+        body { 
+            font-family: 'Montserrat', sans-serif; 
+            background-color: var(--bg-color); 
+            margin: 0; 
+            padding: 0; 
+            color: var(--text-color);
+        }
+
+        header {
+            background-color: var(--primary-color);
+            padding: 20px 0;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-bottom: 4px solid var(--accent-color);
+            position: relative;
+        }
+
+        header h1 { color: #ffffff; margin: 0; font-size: 24px; font-weight: 700; }
+        header span { color: var(--accent-color); }
+        header p { color: #bbb; font-size: 12px; margin-top: 5px; text-transform: uppercase; letter-spacing: 2px; }
+
+        .container { 
+            max-width: 1000px; 
+            margin: 40px auto; 
+            padding: 0 20px;
+        }
+
+        .section-box {
+            background: #ffffff; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 5px 20px rgba(0,0,0,0.05); 
+            margin-bottom: 30px;
+        }
+
+        h2 { 
+            color: var(--primary-color); 
+            border-bottom: 2px solid #eeeeee; 
+            padding-bottom: 10px; 
+            margin-top: 0; 
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        /* Formulário */
+        .form-row { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 15px; }
+        .form-group { flex: 1; min-width: 200px; }
+        label { font-weight: 600; display: block; margin-bottom: 8px; font-size: 12px; color: #555; text-transform: uppercase; }
+        input, select { 
+            width: 100%; padding: 10px 15px; border: 1px solid #ddd; border-radius: 6px; font-family: 'Montserrat', sans-serif; font-size: 14px; background-color: #fafafa;
+        }
+        input:focus, select:focus { outline: none; border-color: var(--accent-color); box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2); }
+        
+        button { 
+            background-color: var(--accent-color); color: var(--primary-color); border: none; padding: 12px 20px; font-size: 14px; border-radius: 6px; cursor: pointer; font-weight: 700; text-transform: uppercase; transition: all 0.3s ease;
+        }
+        button:hover { background-color: #c19b2e; transform: translateY(-2px); }
+
+        /* Grid de Cards */
+        .grid-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .card {
+            background: #fdfaf0;
+            border-left: 4px solid var(--accent-color);
+            padding: 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .card:hover {
+            transform: scale(1.02);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .card h3 { margin: 0 0 5px 0; color: var(--primary-color); font-size: 16px; }
+        .card p { margin: 0; color: #666; font-size: 14px; }
+        .card .badge { display: inline-block; margin-top: 10px; background: var(--primary-color); color: #fff; padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+
+        /* Modal */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal-content {
+            background: #fff; padding: 30px; border-radius: 12px; width: 90%; max-width: 600px; max-height: 80vh; overflow-y: auto;
+        }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
+        .modal-header h3 { margin: 0; color: var(--primary-color); }
+        .close-btn { background: none; border: none; color: #999; font-size: 24px; cursor: pointer; padding: 0; font-weight: bold; }
+        .close-btn:hover { color: #333; transform: none; }
+        
+        .contract-item { padding: 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; font-size: 14px; }
+        .contract-item:last-child { border-bottom: none; }
+        .contract-client { font-weight: 600; color: var(--primary-color); }
+        .contract-date { color: #888; font-size: 12px; }
+
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>DAP <span>ADVOCACIA</span></h1>
+    <p>Painel do Gestor</p>
+</header>
+
+<div class="container">
+    
+    <!-- Seção: Criação de Acessos -->
+    <div class="section-box">
+        <h2>Cadastrar Novo Colaborador</h2>
+        <form id="createUserForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Nome Completo</label>
+                    <input type="text" id="colabNome" required>
+                </div>
+                <div class="form-group">
+                    <label>E-mail Corporativo</label>
+                    <input type="email" id="colabEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Senha de Acesso</label>
+                    <input type="password" id="colabSenha" required>
+                </div>
+            </div>
+            <button type="button" onclick="criarColaborador()">Criar Acesso</button>
+        </form>
+    </div>
+
+    <!-- Seção: Produtividade -->
+    <div class="section-box">
+        <h2>Desempenho da Equipe</h2>
+        <p style="font-size: 14px; color: #666;">Clique no card do colaborador para visualizar os contratos gerados.</p>
+        
+        <div class="grid-cards" id="colaboradoresGrid">
+            <!-- Cards serão renderizados aqui via JS -->
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Contratos -->
+<div class="modal-overlay" id="contractModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitle">Contratos Gerados</h3>
+            <button class="close-btn" onclick="fecharModal()">&times;</button>
+        </div>
+        <div id="contractList">
+            <!-- Lista de contratos será renderizada aqui -->
+        </div>
+    </div>
+</div>
+
+<script>
+    // Dados simulados (Prontos para serem substituídos pela chamada do seu banco/API)
+    const dbColaboradores = [
+        { 
+            id: 1, 
+            nome: 'Ana Souza', 
+            email: 'ana@dapadvocacia.com.br',
+            contratos: [
+                { id: 101, cliente: 'Carlos Pereira', acao: 'Ação de Execução', data: '10/05/2026' },
+                { id: 102, cliente: 'Empresa X LTDA', acao: 'Ação Indenizatória', data: '12/05/2026' }
+            ]
+        },
+        { 
+            id: 2, 
+            nome: 'Marcos Almeida', 
+            email: 'marcos@dapadvocacia.com.br',
+            contratos: [
+                { id: 103, cliente: 'Roberto Alves', acao: 'Defesa de Despejo', data: '14/05/2026' },
+                { id: 104, cliente: 'Juliana Costa', acao: 'Ação Revisional', data: '15/05/2026' },
+                { id: 105, cliente: 'Felipe Santos', acao: 'Ação de Obrigação', data: '16/05/2026' }
+            ]
+        }
+    ];
+
+    function criarColaborador() {
+        const nome = document.getElementById('colabNome').value;
+        const email = document.getElementById('colabEmail').value;
+        const senha = document.getElementById('colabSenha').value;
+
+        if(!nome || !email || !senha) {
+            alert("Preencha todos os campos para criar o acesso.");
+            return;
+        }
+
+        // Lógica de salvamento no banco entraria aqui
+        alert(`Acesso criado com sucesso para ${nome}!`);
+        document.getElementById('createUserForm').reset();
+    }
+
+    function renderizarCards() {
+        const grid = document.getElementById('colaboradoresGrid');
+        grid.innerHTML = '';
+
+        dbColaboradores.forEach(colab => {
+            const qtdContratos = colab.contratos.length;
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.onclick = () => abrirModal(colab.id);
+            
+            card.innerHTML = `
+                <h3>${colab.nome}</h3>
+                <p>${colab.email}</p>
+                <div class="badge">${qtdContratos} Contrato(s)</div>
+            `;
+            grid.appendChild(card);
+        });
+    }
+
+    function abrirModal(colabId) {
+        const colab = dbColaboradores.find(c => c.id === colabId);
+        if(!colab) return;
+
+        document.getElementById('modalTitle').innerText = `Contratos de ${colab.nome}`;
+        const contractList = document.getElementById('contractList');
+        contractList.innerHTML = '';
+
+        if(colab.contratos.length === 0) {
+            contractList.innerHTML = '<p style="text-align:center; color:#888;">Nenhum contrato gerado ainda.</p>';
+        } else {
+            colab.contratos.forEach(contrato => {
+                const item = document.createElement('div');
+                item.className = 'contract-item';
+                item.innerHTML = `
+                    <div>
+                        <div class="contract-client">${contrato.cliente}</div>
+                        <div style="font-size: 12px; color: #555;">${contrato.acao}</div>
+                    </div>
+                    <div class="contract-date">Gerado em: ${contrato.data}</div>
+                `;
+                contractList.appendChild(item);
+            });
+        }
+
+        document.getElementById('contractModal').style.display = 'flex';
+    }
+
+    function fecharModal() {
+        document.getElementById('contractModal').style.display = 'none';
+    }
+
+    // Fecha o modal se clicar fora da caixa branca
+    window.onclick = function(event) {
+        const modal = document.getElementById('contractModal');
+        if (event.target === modal) {
+            fecharModal();
+        }
+    }
+
+    // Inicializa a tela
+    window.onload = renderizarCards;
+</script>
+
+</body>
+</html>
