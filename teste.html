@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DAP Advocacia - Gerador de Contratos</title>
+    <title>Ajuris CRM - Gerador de Contratos</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
     
@@ -14,20 +14,31 @@
         header h1 { color: #ffffff; margin: 0; font-size: 24px; font-weight: 700; }
         header span { color: var(--accent-color); }
         .user-info { position: absolute; top: 25px; right: 30px; color: #fff; font-size: 14px; }
-        .container { max-width: 850px; margin: 40px auto; background: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
-        h2 { color: var(--primary-color); border-bottom: 2px solid #eeeeee; padding-bottom: 10px; margin-top: 30px; font-size: 18px; }
+        
+        .container { max-width: 900px; margin: 40px auto; background: #ffffff; padding: 40px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        h2 { color: var(--primary-color); border-bottom: 2px solid #eeeeee; padding-bottom: 10px; margin-top: 30px; font-size: 18px; text-transform: uppercase;}
+        
         .form-group { display: flex; flex-wrap: wrap; gap: 20px; margin-bottom: 20px; }
         .form-group > div { flex: 1; min-width: 200px; }
-        label { font-weight: 600; display: block; margin-bottom: 8px; font-size: 13px; color: #555; text-transform: uppercase; }
-        input, select { width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-family: 'Montserrat', sans-serif; font-size: 14px; background-color: #fafafa; }
-        button { background-color: var(--accent-color); color: var(--primary-color); border: none; padding: 18px 20px; font-size: 16px; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 30px; font-weight: 700; text-transform: uppercase; transition: all 0.3s ease; }
-        button:hover { background-color: #c19b2e; transform: translateY(-2px); }
+        label { font-weight: 600; display: block; margin-bottom: 8px; font-size: 12px; color: #555; text-transform: uppercase; }
+        input, select { width: 100%; padding: 12px 15px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-family: 'Montserrat', sans-serif; font-size: 14px; background-color: #fafafa; transition: 0.3s;}
+        input:focus, select:focus { outline: none; border-color: var(--accent-color); background-color: #fff; box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.2); }
         
+        button { background-color: var(--accent-color); color: var(--primary-color); border: none; padding: 18px 20px; font-size: 16px; border-radius: 6px; cursor: pointer; width: 100%; margin-top: 30px; font-weight: 700; text-transform: uppercase; transition: all 0.3s ease; }
+        button:hover { background-color: #c19b2e; transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.1);}
+        
+        /* Estilos Ocultos para o PDF */
         #pdf-content { display: none; }
-        .doc-page { padding: 40px; font-family: 'Times New Roman', Times, serif; font-size: 14px; line-height: 1.6; text-align: justify; page-break-after: always; }
-        .doc-page h3 { text-align: center; text-transform: uppercase; margin-bottom: 30px; font-size: 16px; }
-        .center-text { text-align: center; margin-top: 50px; }
+        .doc-page { padding: 40px 50px; font-family: 'Arial', sans-serif; font-size: 13px; line-height: 1.5; text-align: justify; page-break-after: always; color: #000; }
+        .doc-page h3 { text-align: center; text-transform: uppercase; margin-bottom: 20px; font-size: 14px; font-weight: bold;}
+        .center-text { text-align: center; margin-top: 40px; }
         .text-lowercase { text-transform: lowercase; }
+        
+        /* Grid de Qualificação no PDF */
+        .grid-qualificacao { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px;}
+        .grid-qualificacao td { border: 1px solid #000; padding: 6px; vertical-align: middle; }
+        .grid-label { font-weight: bold; font-size: 10px; color: #555; text-transform: uppercase; display: block; margin-bottom: 2px;}
+        .grid-value { font-weight: bold; text-transform: uppercase; font-size: 12px;}
     </style>
 </head>
 <body>
@@ -39,7 +50,7 @@
 </header>
 
 <div class="container">
-    <p style="text-align:center; color:#666; margin-bottom: 30px;">Preencha os dados abaixo para gerar o PDF e registrar no sistema.</p>
+    <p style="text-align:center; color:#666; margin-bottom: 30px;">Preencha os dados abaixo para gerar o kit contratual (Contrato, Declaração e Procuração).</p>
     
     <form id="contract-form">
         <h2>Dados do Processo</h2>
@@ -48,36 +59,248 @@
                 <label>Modelo do Processo / Tipo de Ação</label>
                 <select id="tipo_acao" required>
                     <option value="" disabled selected>Selecione a ação judicial...</option>
-                    <option value="Ação de Busca e Apreensão e Ação Revisional">Defesa em Busca e Apreensão</option>
-                    <option value="Ação de Execução de Título Extrajudicial">Ação de Execução</option>
-                    <option value="Defesa em Ação de Despejo">Defesa de Despejo</option>
-                    <option value="Ação Indenizatória Cível">Ação Indenizatória</option>
-                    <option value="Ação de Obrigação de Fazer">Ação de Obrigação de Fazer</option>
+                    <option value="ação de busca e apreensão">Defesa em Busca e Apreensão</option>
+                    <option value="ação de execução de título extrajudicial">Ação de Execução</option>
+                    <option value="defesa em ação de despejo">Defesa de Despejo</option>
+                    <option value="ação indenizatória cível">Ação Indenizatória</option>
+                    <option value="ação de obrigação de fazer">Ação de Obrigação de Fazer</option>
                 </select>
             </div>
             <div style="flex: 1;">
                 <label>Nº do Processo</label>
-                <input type="text" id="processo" required>
+                <input type="text" id="processo" required placeholder="Ex: 4013698-82.2026.8.26.0005">
             </div>
         </div>
 
-        <h2>Dados do Cliente</h2>
+        <h2>Qualificação do Cliente</h2>
         <div class="form-group">
-            <div><label>Nome Completo</label><input type="text" id="nome" required></div>
+            <div style="flex: 2;"><label>Nome Completo</label><input type="text" id="nome" required></div>
+            <div style="flex: 1;"><label>Nacionalidade</label><input type="text" id="nacionalidade" value="Brasileiro(a)" required></div>
+        </div>
+        <div class="form-group">
+            <div><label>Estado Civil</label><input type="text" id="estado_civil" required></div>
+            <div><label>Profissão</label><input type="text" id="profissao" required></div>
+            <div><label>RG</label><input type="text" id="rg" required></div>
             <div><label>CPF</label><input type="text" id="cpf" required></div>
         </div>
+        <div class="form-group">
+            <div><label>Telefone</label><input type="text" id="telefone" required></div>
+            <div style="flex: 2;"><label>E-mail</label><input type="email" id="email" required></div>
+        </div>
+
+        <h2>Endereço</h2>
+        <div class="form-group">
+            <div style="flex: 2;"><label>Logradouro (Rua, Nº, Comp)</label><input type="text" id="endereco" required></div>
+            <div style="flex: 1;"><label>Bairro</label><input type="text" id="bairro" required></div>
+        </div>
+        <div class="form-group">
+            <div><label>Cidade</label><input type="text" id="cidade" required></div>
+            <div><label>UF</label><input type="text" id="uf" maxlength="2" required></div>
+            <div><label>CEP</label><input type="text" id="cep" required></div>
+        </div>
+
+        <h2>Configuração Financeira e Assinatura</h2>
+        <div class="form-group">
+            <div><label>Valor Total (R$)</label><input type="text" id="valor_total" value="3.000,00" required></div>
+            <div><label>Valor Entrada (R$)</label><input type="text" id="valor_entrada" value="500,00" required></div>
+            <div><label>Data da Entrada</label><input type="date" id="data_entrada" required></div>
+        </div>
+        <div class="form-group">
+            <div><label>Qtd. Parcelas</label><input type="number" id="qtd_parcelas" value="5" required></div>
+            <div><label>Valor da Parcela (R$)</label><input type="text" id="valor_parcela" value="500,00" required></div>
+        </div>
+        <div class="form-group">
+            <div><label>Valor Mensalidade (R$)</label><input type="text" id="valor_mensal" value="150,00" required></div>
+            <div><label>Início da Mensalidade</label><input type="date" id="data_mensalidade" required></div>
+            <div><label>Cidade da Assinatura</label><input type="text" id="cidade_assinatura" value="SÃO PAULO" required></div>
+        </div>
         
-        <button type="button" id="btn-gerar">Gerar Contrato e Salvar</button>
+        <button type="button" id="btn-gerar">Gerar Contratos e Salvar no Sistema</button>
     </form>
 </div>
 
+<!-- ================= TEMPLATE DO PDF ================= -->
 <div id="pdf-content">
+    
+    <!-- PÁGINA 1: CONTRATO -->
     <div class="doc-page">
         <h3>CONTRATO DE HONORÁRIOS ADVOCATÍCIOS</h3>
-        <p>CONTRATANTE: <strong><span class="out-nome"></span></strong>, CPF nº <span class="out-cpf"></span>.</p>
-        <p>OBJETO: Prestação de serviços advocatícios em uma <strong><span class="out-tipoacao"></span></strong> vinculada ao processo nº <strong><span class="out-processo"></span></strong>.</p>
+        
+        <table class="grid-qualificacao">
+            <tr>
+                <td colspan="3"><span class="grid-label">NOME</span><span class="grid-value out-nome"></span></td>
+            </tr>
+            <tr>
+                <td><span class="grid-label">NACIONALIDADE</span><span class="grid-value out-nacionalidade"></span></td>
+                <td><span class="grid-label">ESTADO CIVIL</span><span class="grid-value out-estadocivil"></span></td>
+                <td><span class="grid-label">PROFISSÃO</span><span class="grid-value out-profissao"></span></td>
+            </tr>
+            <tr>
+                <td colspan="3"><span class="grid-label">ENDEREÇO</span><span class="grid-value out-endereco"></span></td>
+            </tr>
+            <tr>
+                <td><span class="grid-label">BAIRRO</span><span class="grid-value out-bairro"></span></td>
+                <td><span class="grid-label">CIDADE</span><span class="grid-value out-cidade"></span></td>
+                <td><span class="grid-label">UF / CEP</span><span class="grid-value"><span class="out-uf"></span> <span class="out-cep"></span></span></td>
+            </tr>
+            <tr>
+                <td><span class="grid-label">RG</span><span class="grid-value out-rg"></span></td>
+                <td><span class="grid-label">CPF</span><span class="grid-value out-cpf"></span></td>
+                <td><span class="grid-label">TELEFONE</span><span class="grid-value out-telefone"></span></td>
+            </tr>
+            <tr>
+                <td colspan="3"><span class="grid-label">EMAIL</span><span class="grid-value text-lowercase" id="out-email-contrato"></span></td>
+            </tr>
+        </table>
+
+        <p><strong>BRUNO DURAO SOCIEDADE INDIVIDUAL DE ADVOCACIA</strong>, CNPJ 10.615.803/0001-04 com escritório na Avenida das Américas, n 3443, bloco 4, sala 101, Barra da Tijuca - Rio de Janeiro - RJ, CEP 22631-004, doravante identificado como CONTRATADO</p>
+        
+        <p><strong>SUPORTE AO CLIENTE</strong><br>
+        Forma presencial com hora marcada no Whatsapp (21) 2018-7918 em menos de 24h já marcamos o seu atendimento ou caso for urgência explicar o motivo que dentro da possibilidade vamos agilizar este atendimento e se for para saber qual o valor do seu acordo judicial o telefone do setor de acordo judicial que é WhatsApp (21) 96775-6096.</p>
+        
+        <p>As partes acima identificadas têm, entre si, justo e acertado o presente Contrato de Honorários Advocatícios, que se regerá pelas cláusulas seguintes e pelas condições descritas no presente.</p>
+        
+        <p><strong>DO OBJETO DO CONTRATO</strong><br>
+        Cláusula 1ª. O presente instrumento tem como OBJETO a prestação de serviços advocatícios em uma ação judicial de <span class="out-tipoacao text-lowercase"></span> com o processo nº <span class="out-processo"></span>. Realizar a defesa da ação e os procedimentos cabíveis, que lhe é movida a serem realizados nas Instâncias ordinárias e em grau de recurso ao qual fica obrigada a parte contratante a verificar o os fatos e fundamentos do processo através do site do tribunal de referência ou ir a serventia para verificar o seu processo e o ratifica-lo e não fazendo estará automaticamente ratificado o processo com seus fatos e fundamentos redigidos. Fica obrigada a parte contratante tomar ciência do processo e seu número através do telefone do escritório ou pessoalmente ao mesmo.</p>
+        <p>Parágrafo Único A contratação de que trata o caput da Cláusula Primeira implica no acompanhamento integral do processo em todas as suas fases até o primeiro/segundo/terceiro grau de jurisdição, incluído os Recursos em sede de STF e STJ.</p>
+        
+        <p><strong>DAS ATIVIDADES</strong><br>
+        Cláusula 2ª. As atividades inclusas na prestação de serviço objeto deste instrumento são todas aquelas inerentes à profissão, ou seja, todos os atos inerentes ao exercício da advocacia e aqueles constantes no Estatuto da Ordem dos Advogados do Brasil, bem como os especificados no instrumento de mandato. Atividades que fazem parte além as da procuração são a de atendimento ao cliente inicial, redigir a petição inicial, fazer o cálculo de financiamento do veículo, distribuição da ação judicial, atendimento ao cliente por telefone diariamente em todos os dias úteis do ano, atendimento presencial quando solicitado por Whatsapp (21) 2018-7918, acompanhamento diário do processo judicial, petições interlocutórias no processo.</p>
+        
+        <p><strong>DOS ATOS PROCESSUAIS</strong><br>
+        Cláusula 3ª. Havendo necessidade de contratação de outros profissionais, no decurso do processo, CONTRATADO elaborará substabelecimento, indicando os advogados de seu conhecimento.<br>
+        Parágrafo Único. A distribuição dos processos ficará a cargo do contratado.</p>
+        
+        <p><strong>DA COBRANÇA</strong><br>
+        Cláusula 4ª. As partes acordam que o CONTRATADO realizará a cobrança dos honorários advocatícios exclusivamente por meio de Pix Recorrente, modalidade de pagamento automático autorizado pelo CONTRATANTE, em conformidade com a Resolução nº 269/2022 do Banco Central do Brasil. O pagamento será debitado automaticamente da conta bancária do CONTRATANTE, na data pactuada, por meio de sistema de PIX com recorrência programada, cabendo ao contratante garantir saldo disponível para a efetivação do débito. O CONTRATANTE autoriza expressamente o agendamento recorrente, ficando desde já esclarecido que todos os pagamentos serão destinados unicamente à conta vinculada à razão social BRUNO DURAO SOCIEDADE INDIVIDUAL DE ADVOCACIA, CNPJ 10.615.803/0001-04.</p>
+        
+        <p>Cláusula 5ª. Fará jus o contrato o valor de R$ <span class="out-valortotal"></span> de honorários iniciais, pagos R$ <span class="out-valorentrada"></span> de entrada dia <span class="out-dataentrada"></span> e mais <span class="out-qtdparcelas"></span> parcelas:</p>
+        
+        <div id="out-lista-parcelas" style="margin-left: 20px; font-weight: bold;"></div>
+        
+        <p>Será devido honorários mensais de R$ <span class="out-valormensal"></span> pago por mês a partir de <span class="out-datamensalidade"></span> até o a baixa do processo ou recebimento do mandado de pagamento ou precatório judicial, o que for posterior, sendo o mesmo não mais devido caso tenha efetivado e pago o acordo judicial no processo.</p>
+        
+        <p>Parágrafo Primeiro. Caso não pague a prestação ou os honorários mensais, incidirá multa de 10% do valor devido e mais juros de 1% e correção pelo IGP-M ao mês (na falta do índice do IGP-M será adotado outro índice oficial que vier a ser adotado em seu lugar ou equivalente).</p>
+        <p>Parágrafo segundo. Os honorários de sucumbência, que são pagos pela parte contrária, serão revertidos integralmente ao CONTRATADO</p>
+        <p>Parágrafo terceiro e em caso de procedência ou parcial procedência do processo judicial dos honorários de êxito será auferido ao escritório mais 30% de qualquer indenização que a parte ré pagar ao processo e caso exista embargo, execução, pedido de penhora, apresentação de planilha de cálculo, recurso de qualquer natureza e de qualquer das partes autora ou réu, desarquivamento, qualquer petição depois da sentença ou recurso de qualquer das partes será cobrado o acréscimo de 10%, totalizando assim 40% de honorários de êxito.</p>
+        <p>Parágrafo quarto. Caso haja morte ou incapacidade civil do CONTRATADO, seus sucessores ou representante legal receberão os honorários.</p>
+        <p>Parágrafo Quinto. O contratado está autorizado a receber pelo contratante e dar quitação ao processo e retirar a sua parte dos honorários diretamente do valor que for recebido e quando não se tiver contato ou o cliente estiver incomunicável com o escritório, terá o prazo de 24 meses para efetuar o pagamento do valor devido ao contratante sem incidir juros e correção monetária, caso o contratante entre em contato com o escritório será pago os valores em 48 horas, depois de confirmado o recebimento dos valores.</p>
+        <p>Parágrafo sexto. Caso tenha que pagar Imposto de Renda ou qualquer outro imposto ou que o mesmo seja automaticamente deduzido no valor que receba de indenizações materiais, morais ou qualquer outra natureza os mesmos serão pagos exclusivamente pela parte contratante.</p>
+        <p>Parágrafo sétimo. Caso não pague uma das parcelas dos honorários iniciais será antecipada todas as parcelas para a data do atraso do pagamento.</p>
+        <p>Parágrafo oitavo. Caso tenha acordo judicial ou extrajudicial antes de terminar as parcelas dos honorários iniciais só será assinado o acordo se pago todas as prestações devidas e futuras, sempre vamos disponibilizar opção de pagamento para ajudar ao pagamento de cartão de crédito</p>
+        <p>Parágrafo nono. Caso tenha acordo judicial ou extrajudicial e o cliente estiver com parcelas de honorarios iniciais ou de mensalidade em aberto só poderá será assinado o acordo depois de pago as mesmas, sempre vamos disponibilizar opção de pagamento para ajudar ao pagamento de cartão de crédito.</p>
+        <p>Parágrafo Décimo. Em caso de cancelamento unilateral, suspensão ou revogação da autorização do Pix Recorrente por parte do CONTRATANTE, antes da quitação integral dos valores pactuados neste contrato, ficará caracterizado inadimplemento contratual. Nesta hipótese, será aplicada multa compensatória correspondente ao dobro (2x) do valor total do contrato, independentemente das demais penalidades previstas, sem prejuízo da cobrança integral dos valores vencidos e vincendos, acrescidos de juros, correção monetária e demais encargos legais.</p>
+        
+        <p>Cláusula 6ª. Havendo acordo entre o CONTRATANTE e a parte contrária, tal fato não prejudicará o recebimento dos honorários contratados e da sucumbência.</p>
+        
+        <p><strong>DA RESCISÃO</strong><br>
+        Cláusula 7ª. O presente contrato poderá ser rescindido por qualquer das partes, mediante aviso prévio, por escrito com aviso de recebimento em mãos próprias em nome de Samuel Cardoso da Silva no endereço Avenida das Américas, n 3443, bloco 4, sala 101, Barra da Tijuca - Rio de Janeiro - RJ, CEP 22631-004 com 30 (trinta) dias de antecedência, depois de quitado os débitos com o escritório.</p>
+        
+        <p><strong>DOS DADOS</strong><br>
+        Cláusula 8ª. O contratante autoriza desde já a disponibilização dos dados somente e exclusivamente para os colaboradores da empresa contratada e a única exceção será caso fique inadimplente com o escritório contratado fica autorizado a disponibilizar os dados aos serviços de cadastros de inadimplentes como o SPC, SERASA ou cartório de títulos e documento.</p>
+        
+        <p><strong>DO FORO</strong><br>
+        Cláusula 9ª. Para dirimir quaisquer controvérsias oriundas do CONTRATO, as partes elegem o foro do Centro da Cidade (comarca da capital) da comarca do Rio de Janeiro, Rio de Janeiro.</p>
+        <p>Cláusula 10ª. O CONTRATANTE declara estar ciente de que a obrigação assumida pelo CONTRATADO é de meio e não de resultado, nos termos da legislação aplicável à prestação de serviços advocatícios. Dessa forma, o CONTRATADO compromete-se a empregar todos os esforços técnicos e jurídicos cabíveis, com diligência e ética profissional, sem, no entanto, garantir qualquer resultado específico, êxito na demanda ou valor indenizatório. Qualquer manifestação sobre expectativas de êxito ou possíveis desfechos processuais terá apenas caráter estimativo, não vinculando o CONTRATADO a eventual resultado.</p>
+        
+        <p>Por estarem assim justos e contratados, firmam o presente instrumento, em duas vias de igual teor.</p>
+
         <div class="center-text">
-            <p>São Paulo, <span class="out-dataatual"></span></p>
+            <p><span class="out-cidade-assinatura"></span>, <span class="out-dataformatada"></span></p>
+            <br><br>
+            <p>_______________________________________________________<br><strong><span class="out-nome"></span></strong></p>
+            <br>
+            <p>TESTEMUNHAS:<br>
+            _______________________________________________________<br>
+            <strong>BRUNO DURAO SOCIEDADE INDIVIDUAL DE ADVOCACIA</strong></p>
+        </div>
+    </div>
+
+    <!-- PÁGINA 2: DECLARAÇÃO -->
+    <div class="doc-page">
+        <h3>DECLARAÇÃO</h3>
+        
+        <table class="grid-qualificacao">
+            <tr>
+                <td colspan="3"><span class="grid-label">NOME</span><span class="grid-value out-nome"></span></td>
+            </tr>
+            <tr>
+                <td><span class="grid-label">NACIONALIDADE</span><span class="grid-value out-nacionalidade"></span></td>
+                <td><span class="grid-label">ESTADO CIVIL</span><span class="grid-value out-estadocivil"></span></td>
+                <td><span class="grid-label">PROFISSÃO</span><span class="grid-value out-profissao"></span></td>
+            </tr>
+            <tr>
+                <td colspan="3"><span class="grid-label">ENDEREÇO</span><span class="grid-value out-endereco"></span></td>
+            </tr>
+            <tr>
+                <td><span class="grid-label">BAIRRO</span><span class="grid-value out-bairro"></span></td>
+                <td><span class="grid-label">CIDADE</span><span class="grid-value out-cidade"></span></td>
+                <td><span class="grid-label">UF / CEP</span><span class="grid-value"><span class="out-uf"></span> <span class="out-cep"></span></span></td>
+            </tr>
+            <tr>
+                <td><span class="grid-label">RG</span><span class="grid-value out-rg"></span></td>
+                <td><span class="grid-label">CPF</span><span class="grid-value out-cpf"></span></td>
+                <td><span class="grid-label">TELEFONE</span><span class="grid-value out-telefone"></span></td>
+            </tr>
+            <tr>
+                <td colspan="3"><span class="grid-label">EMAIL</span><span class="grid-value text-lowercase" id="out-email-declaracao"></span></td>
+            </tr>
+        </table>
+
+        <p>Declaro que, em função de minha condição financeira, não tenho condições de arcar com o pagamento das custas processuais e honorário advocatícios iniciais do processo, sob pena de implicar em prejuízo próprio e de minha família, nos termos do art. 5º, LXXIV, da Constituição da República e da Lei nº 1.060/50.</p>
+
+        <div class="center-text">
+            <p><span class="out-cidade-assinatura"></span>, <span class="out-dataformatada"></span></p>
+            <br><br>
+            <p>_______________________________________________________<br><strong><span class="out-nome"></span></strong></p>
+        </div>
+    </div>
+
+    <!-- PÁGINA 3: PROCURAÇÃO -->
+    <div class="doc-page">
+        <h3>PROCURAÇÃO</h3>
+        
+        <p><strong>OUTORGANTE</strong></p>
+        <table class="grid-qualificacao">
+            <tr>
+                <td colspan="3"><span class="grid-label">NOME</span><span class="grid-value out-nome"></span></td>
+            </tr>
+            <tr>
+                <td><span class="grid-label">NACIONALIDADE</span><span class="grid-value out-nacionalidade"></span></td>
+                <td><span class="grid-label">ESTADO CIVIL</span><span class="grid-value out-estadocivil"></span></td>
+                <td><span class="grid-label">PROFISSÃO</span><span class="grid-value out-profissao"></span></td>
+            </tr>
+            <tr>
+                <td colspan="3"><span class="grid-label">ENDEREÇO</span><span class="grid-value out-endereco"></span></td>
+            </tr>
+            <tr>
+                <td><span class="grid-label">BAIRRO</span><span class="grid-value out-bairro"></span></td>
+                <td><span class="grid-label">CIDADE</span><span class="grid-value out-cidade"></span></td>
+                <td><span class="grid-label">UF / CEP</span><span class="grid-value"><span class="out-uf"></span> <span class="out-cep"></span></span></td>
+            </tr>
+            <tr>
+                <td><span class="grid-label">RG</span><span class="grid-value out-rg"></span></td>
+                <td><span class="grid-label">CPF</span><span class="grid-value out-cpf"></span></td>
+                <td><span class="grid-label">TELEFONE</span><span class="grid-value out-telefone"></span></td>
+            </tr>
+            <tr>
+                <td colspan="3"><span class="grid-label">EMAIL</span><span class="grid-value text-lowercase" id="out-email-procuracao"></span></td>
+            </tr>
+        </table>
+
+        <p><strong>OUTORGADO</strong><br>
+        BRUNO DURAO SOCIEDADE INDIVIDUAL DE ADVOCACIA, CNPJ 10.615.803/0001-04, sendo representada pelo advogado BRUNO MEDEIROS DURÃO - OAB/RJ 152.121 AONDE REQUER TODAS AS PUBLICAÇÕES SOMENTE E UNICAMENTE EM NOME DE BRUNO MEDEIROS DURÃO - OAB/RJ 152.121 sob pena de nulidade, advogado com endereço na Avenida das Américas, n° 3443, bloco 4, sala 101, Barra da Tijuca Rio de Janeiro RJ, CEP 22631-004 e endereço eletrônico contato@dapadvocacia.com.br</p>
+
+        <p><strong>PODERES</strong><br>
+        Confere-se à outorgada poderes da cláusula ad judicia e poderes especiais para representar o outorgante perante qualquer Tribunal de Justiça do Brasil, incluindo STF, STJ, TRT, TRF, podendo propor ações de qualquer natureza, bem como praticar todos os atos processuais necessários, incluindo acordar, discordar, transigir, negociar, juntar, dar quitação e receber com destinação exclusiva de honorários e valores: O outorgado está expressamente autorizado a receber valores a título de honorários contratuais, sucumbenciais ou indenizatórios em nome do outorgante. É vedado o recebimento ou a transferência desses valores para qualquer conta bancária pessoal ou diversa da mencionada conta do escritório. A outorgada possui poderes para firmar compromissos, concordar e impugnar cálculos, renunciar, desistir, e praticar demais atos necessários para o andamento das causas, desde que observe as disposições aqui estabelecidas.<br>
+        Esta procuração é conferida com poderes para substabelecer sem reserva, respeitando as determinações de destinação exclusiva dos valores mencionados.</p>
+
+        <p><strong>FINALIDADE</strong><br>
+        Atuar na <span class="out-tipoacao text-lowercase"></span> nº <span class="out-processo"></span>, adotando as medidas cabíveis para resguardar os interesses do outorgante.</p>
+
+        <div class="center-text">
+            <p><span class="out-cidade-assinatura"></span>, <span class="out-dataformatada"></span></p>
+            <br><br>
             <p>_______________________________________________________<br><strong><span class="out-nome"></span></strong></p>
         </div>
     </div>
@@ -103,44 +326,120 @@
 
     let usuarioAtual = null;
 
-    // Verifica se o usuário está logado
     onAuthStateChanged(auth, (user) => {
         if (user) {
             usuarioAtual = user;
             document.getElementById('userEmailDisplay').innerText = user.email;
         } else {
-            window.location.href = 'login.html'; // Redireciona se não estiver logado
+            // Descomente a linha abaixo quando for juntar com o login
+            // window.location.href = 'login.html'; 
         }
     });
+
+    // Formatar data em PT-BR Extenso (Ex: 26 DE JUNHO DE 2026)
+    function formatarDataExtenso() {
+        const meses = ["JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO", "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"];
+        const data = new Date();
+        return `${data.getDate()} DE ${meses[data.getMonth()]} DE ${data.getFullYear()}`;
+    }
+
+    // Formatar data DD/MM/YYYY a partir do input type="date"
+    function formatarDataNormal(dateStr) {
+        if(!dateStr) return "";
+        const parts = dateStr.split('-');
+        return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+
+    // Função para preencher todos os spans que tenham a classe especificada
+    function preencherMultiplos(classe, valor) {
+        document.querySelectorAll('.' + classe).forEach(el => {
+            el.innerText = valor.toUpperCase();
+        });
+    }
+
+    // Função para gerar a lista de parcelas automaticamente
+    function gerarListaParcelas(qtd, valorParcela, dataInicioStr) {
+        let listaHTML = "";
+        let dataAtual = new Date(dataInicioStr + "T12:00:00"); // T12 para evitar fuso horário puxando 1 dia antes
+
+        for (let i = 1; i <= qtd; i++) {
+            // Adiciona 1 mês
+            if (i > 1) {
+                dataAtual.setMonth(dataAtual.getMonth() + 1);
+            }
+            const dia = String(dataAtual.getDate()).padStart(2, '0');
+            const mes = String(dataAtual.getMonth() + 1).padStart(2, '0');
+            const ano = dataAtual.getFullYear();
+            
+            listaHTML += `R$ ${valorParcela} dia ${dia}/${mes}/${ano};<br>`;
+        }
+        return listaHTML;
+    }
 
     document.getElementById('btn-gerar').addEventListener('click', async () => {
         const select = document.getElementById('tipo_acao');
         const nome = document.getElementById('nome').value;
-        const cpf = document.getElementById('cpf').value;
         const processo = document.getElementById('processo').value;
-
-        if(!select.value || !nome || !cpf) {
-            alert("Preencha os campos obrigatórios."); return;
+        const dataEntradaInput = document.getElementById('data_entrada').value;
+        
+        if(!select.value || !nome || !processo || !dataEntradaInput) {
+            alert("Por favor, preencha todos os campos obrigatórios e as datas."); 
+            return;
         }
 
-        const tipoacao = select.options[select.selectedIndex].text;
-        const dataAtual = new Date().toLocaleDateString('pt-BR');
+        const btn = document.getElementById('btn-gerar');
+        btn.innerText = "Gerando Arquivo...";
 
-        // Preencher PDF
-        document.querySelectorAll('.out-nome').forEach(el => el.innerText = nome.toUpperCase());
-        document.querySelectorAll('.out-cpf').forEach(el => el.innerText = cpf);
-        document.querySelectorAll('.out-tipoacao').forEach(el => el.innerText = tipoacao.toUpperCase());
-        document.querySelectorAll('.out-processo').forEach(el => el.innerText = processo);
-        document.querySelectorAll('.out-dataatual').forEach(el => el.innerText = dataAtual);
+        // Obter os valores do formulário
+        const dados = {
+            tipoacao: select.options[select.selectedIndex].text,
+            processo: processo,
+            nome: nome,
+            nacionalidade: document.getElementById('nacionalidade').value,
+            estadocivil: document.getElementById('estado_civil').value,
+            profissao: document.getElementById('profissao').value,
+            rg: document.getElementById('rg').value,
+            cpf: document.getElementById('cpf').value,
+            telefone: document.getElementById('telefone').value,
+            endereco: document.getElementById('endereco').value,
+            bairro: document.getElementById('bairro').value,
+            cidade: document.getElementById('cidade').value,
+            uf: document.getElementById('uf').value,
+            cep: document.getElementById('cep').value,
+            valortotal: document.getElementById('valor_total').value,
+            valorentrada: document.getElementById('valor_entrada').value,
+            dataentrada: formatarDataNormal(dataEntradaInput),
+            qtdparcelas: document.getElementById('qtd_parcelas').value,
+            valorparcela: document.getElementById('valor_parcela').value,
+            valormensal: document.getElementById('valor_mensal').value,
+            datamensalidade: formatarDataNormal(document.getElementById('data_mensalidade').value),
+            cidade_assinatura: document.getElementById('cidade_assinatura').value,
+            dataformatada: formatarDataExtenso()
+        };
+
+        // Preencher os spans do PDF
+        for (const [key, value] of Object.entries(dados)) {
+            preencherMultiplos('out-' + key, value);
+        }
+
+        // Preencher Emails (Textos em minúsculo)
+        const emailValue = document.getElementById('email').value.toLowerCase();
+        document.getElementById('out-email-contrato').innerText = emailValue;
+        document.getElementById('out-email-declaracao').innerText = emailValue;
+        document.getElementById('out-email-procuracao').innerText = emailValue;
+
+        // Gerar Lista de Parcelas Dinâmica baseada no input
+        const listaParcelas = gerarListaParcelas(dados.qtdparcelas, dados.valorparcela, dataEntradaInput);
+        document.getElementById('out-lista-parcelas').innerHTML = listaParcelas;
 
         // Salvar no Firebase
         try {
             await addDoc(collection(db, "contratos"), {
-                colaboradorEmail: usuarioAtual.email,
-                clienteNome: nome,
-                cpf: cpf,
-                tipoAcao: tipoacao,
-                dataGeracao: dataAtual,
+                colaboradorEmail: usuarioAtual ? usuarioAtual.email : "testes-locais",
+                clienteNome: dados.nome.toUpperCase(),
+                cpf: dados.cpf,
+                tipoAcao: dados.tipoacao,
+                dataGeracao: new Date().toLocaleDateString('pt-BR'),
                 timestamp: serverTimestamp()
             });
 
@@ -149,22 +448,24 @@
             element.style.display = 'block';
             
             const opt = {
-                margin: 15,
-                filename: 'Kit_Contratual_' + nome.replace(/\s+/g, '_') + '.pdf',
-                image: { type: 'jpeg', quality: 0.98 },
+                margin: 0,
+                filename: 'Kit_Contratual_' + dados.nome.replace(/\s+/g, '_') + '.pdf',
+                image: { type: 'jpeg', quality: 1 },
                 html2canvas: { scale: 2 },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
             html2pdf().set(opt).from(element).save().then(() => {
                 element.style.display = 'none';
-                alert("Contrato gerado e registrado no sistema com sucesso!");
-                document.getElementById('contract-form').reset();
+                alert("Kit Contratual gerado e registrado no sistema com sucesso!");
+                btn.innerText = "Gerar Contratos e Salvar no Sistema";
+                // document.getElementById('contract-form').reset();
             });
 
         } catch (error) {
             console.error("Erro ao salvar contrato: ", error);
-            alert("Erro ao registrar no banco de dados.");
+            alert("Ocorreu um erro ao registrar no banco de dados.");
+            btn.innerText = "Gerar Contratos e Salvar no Sistema";
         }
     });
 </script>
