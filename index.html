@@ -452,9 +452,14 @@ select option {
     color:#111827;
 }
 
-.btn.primary:hover{
+.btn.primary:hover:not(:disabled){
     transform: translateY(-2px);
     box-shadow: 0 5px 15px rgba(255,255,255,0.2);
+}
+
+.btn.primary:disabled{
+    opacity: 0.7;
+    cursor: not-allowed;
 }
 
 .btn.ghost{
@@ -1540,88 +1545,106 @@ document.addEventListener('DOMContentLoaded', () => {
 
         e.preventDefault();
 
-        const nome = inputNome.value.trim();
+        // ================= CORREÇÃO DO PROBLEMA DE DUPLICAÇÃO ================= 
+        // 1. Pegamos o botão de submit do formulário
+        const submitBtn = clientForm.querySelector('button[type="submit"]');
+        
+        // 2. Guardamos o texto original e desativamos o botão temporariamente
+        const originalBtnText = submitBtn.innerText;
+        submitBtn.disabled = true;
+        submitBtn.innerText = "Salvando...";
 
-        if(!nome){
-            showToast("Nome obrigatório");
-            return;
-        }
+        try {
+            const nome = inputNome.value.trim();
 
-        const processos = Array.from(
-            document.querySelectorAll('.inputProcesso')
-        )
-        .map(input => input.value.trim())
-        .filter(valor => valor);
+            if(!nome){
+                showToast("Nome obrigatório");
+                return;
+            }
 
-        if (processos.length > 0) {
-            const queryTodos = query(collection(db, "clientes"));
-            const snapshotTodos = await getDocs(queryTodos);
-            const todosClientes = snapshotTodos.docs.map(docData => ({
-                id: docData.id,
-                ...docData.data()
-            }));
+            const processos = Array.from(
+                document.querySelectorAll('.inputProcesso')
+            )
+            .map(input => input.value.trim())
+            .filter(valor => valor);
 
-            let processoDuplicado = null;
+            if (processos.length > 0) {
+                const queryTodos = query(collection(db, "clientes"));
+                const snapshotTodos = await getDocs(queryTodos);
+                const todosClientes = snapshotTodos.docs.map(docData => ({
+                    id: docData.id,
+                    ...docData.data()
+                }));
 
-            for (let proc of processos) {
-                const clienteExistente = todosClientes.find(c => {
-                    if (clientForm.dataset.editId && c.id === clientForm.dataset.editId) return false;
-                    return c.processo && c.processo.includes(proc);
-                });
+                let processoDuplicado = null;
 
-                if (clienteExistente) {
-                    processoDuplicado = proc;
-                    break; 
+                for (let proc of processos) {
+                    const clienteExistente = todosClientes.find(c => {
+                        if (clientForm.dataset.editId && c.id === clientForm.dataset.editId) return false;
+                        return c.processo && c.processo.includes(proc);
+                    });
+
+                    if (clienteExistente) {
+                        processoDuplicado = proc;
+                        break; 
+                    }
+                }
+
+                if (processoDuplicado) {
+                    showToast(`Erro: O processo ${processoDuplicado} já está cadastrado no sistema!`);
+                    return; 
                 }
             }
 
-            if (processoDuplicado) {
-                showToast(`Erro: O processo ${processoDuplicado} já está cadastrado no sistema!`);
-                return; 
+            const telefones = Array.from(
+                document.querySelectorAll('.inputTelefone')
+            )
+            .map(input => input.value.trim())
+            .filter(valor => valor);
+
+            const novo = {
+                nome: nome,
+                cpf: inputCPF.value.trim(),
+                obs: inputObs.value.trim().substring(0,300),
+                numeros: telefones.join(', '),
+                processo: processos.join(', '),
+                classe: inputClasse.value,
+                valor: inputValor.value,
+                estado: inputEstado.value,
+                documentos: currentDocs,
+                criadoPor: currentUser ? (currentUser.email || "") : "",
+                fechadoPor: ""
+            };
+
+            if(clientForm.dataset.editId){
+                novo.id = clientForm.dataset.editId;
+                const antigo = (await getClientes()).find(c=>c.id===novo.id);
+                if(antigo){
+                    novo.criadoPor = antigo.criadoPor || "";
+                    novo.fechadoPor = antigo.fechadoPor || "";
+                    novo.dataCadastro = antigo.dataCadastro || new Date().toISOString();
+                    novo.dataPipeline = antigo.dataPipeline || null; 
+                    novo.status = antigo.status || "lista-fria";
+                }
+                await saveCliente(novo);
+                showToast("Cliente atualizado!");
+            }else{
+                novo.dataCadastro = new Date().toISOString();
+                novo.status = "lista-fria";
+                await saveCliente(novo);
+                showToast("Cliente adicionado!");
             }
+
+            closeModal();
+            await render(); // Atualiza a tela após salvar
+        } catch (error) {
+            console.error("Erro ao salvar cliente: ", error);
+            showToast("Erro inesperado ao salvar!");
+        } finally {
+            // 3. Independentemente de sucesso ou falha, o botão volta ao normal
+            submitBtn.disabled = false;
+            submitBtn.innerText = originalBtnText;
         }
-
-        const telefones = Array.from(
-            document.querySelectorAll('.inputTelefone')
-        )
-        .map(input => input.value.trim())
-        .filter(valor => valor);
-
-        const novo = {
-            nome: nome,
-            cpf: inputCPF.value.trim(),
-            obs: inputObs.value.trim().substring(0,300),
-            numeros: telefones.join(', '),
-            processo: processos.join(', '),
-            classe: inputClasse.value,
-            valor: inputValor.value,
-            estado: inputEstado.value,
-            documentos: currentDocs,
-            criadoPor: currentUser ? (currentUser.email || "") : "",
-            fechadoPor: ""
-        };
-
-        if(clientForm.dataset.editId){
-            novo.id = clientForm.dataset.editId;
-            const antigo = (await getClientes()).find(c=>c.id===novo.id);
-            if(antigo){
-                novo.criadoPor = antigo.criadoPor || "";
-                novo.fechadoPor = antigo.fechadoPor || "";
-                novo.dataCadastro = antigo.dataCadastro || new Date().toISOString();
-                novo.dataPipeline = antigo.dataPipeline || null; 
-                novo.status = antigo.status || "lista-fria";
-            }
-            await saveCliente(novo);
-            showToast("Cliente atualizado!");
-        }else{
-            novo.dataCadastro = new Date().toISOString();
-            novo.status = "lista-fria";
-            await saveCliente(novo);
-            showToast("Cliente adicionado!");
-        }
-
-        closeModal();
-        render();
     };
 
     /* ================= DRAG AND DROP MELHORADO COM REGRAS E BLOQUEIOS ================= */
