@@ -72,9 +72,9 @@
                 // Se for o admin, redireciona para admin.html. Caso contrário, para o gerador.
                 await signInWithEmailAndPassword(auth, email, senha);
                 if(email.includes("admin")) { // Adapte essa regra para o email do seu gestor
-                    window.location.href = 'admin.html';
+                    window.location.href = 'contrato-adm.html';
                 } else {
-                    window.location.href = 'gerador.html';
+                    window.location.href = 'teste.html';
                 }
             } catch (error) {
                 console.error(error);
