@@ -30,21 +30,21 @@
         /* Estilos Ocultos para o PDF */
         #pdf-content { 
             display: none; 
-            width: 800px; /* Largura fixa para padronizar a foto do PDF */
-            margin: 0 auto;
+            width: 100%; /* Força ocupar o espaço inteiro sem puxar pro lado */
+            margin: 0;
+            padding: 0;
         }
         
-        /* Sem padding agressivo aqui, usamos a margem nativa do PDF na config do JS */
         .doc-page { 
             font-family: 'Arial', sans-serif; 
             font-size: 13px; 
             line-height: 1.6; 
             text-align: justify; 
             color: #000; 
+            width: 100%;
         }
         
-        .doc-page p { margin-bottom: 15px; } /* Espaço entre parágrafos para corte limpo */
-        
+        .doc-page p { margin-bottom: 15px; }
         .doc-page h3 { text-align: center; text-transform: uppercase; margin-bottom: 20px; font-size: 14px; font-weight: bold;}
         .center-text { text-align: center; margin-top: 40px; }
         .text-lowercase { text-transform: lowercase; }
@@ -449,19 +449,18 @@
             const element = document.getElementById('pdf-content');
             element.style.display = 'block';
             
-            // CONFIGURAÇÃO CORRIGIDA PARA O PDF NÃO CORTAR
+            // CONFIGURAÇÃO CORRIGIDA SEM MARGENS AUTO E WINDOWWIDTH
             const opt = {
-                margin:       [15, 15, 15, 15], // Margem nativa de 15mm em todas as bordas
+                margin:       [15, 15, 15, 15], 
                 filename:     'Kit_Contratual_' + dados.nome.replace(/\s+/g, '_') + '.pdf',
                 image:        { type: 'jpeg', quality: 1 },
                 html2canvas:  { 
                     scale: 2, 
                     useCORS: true, 
-                    scrollY: 0, // <--- Resolve o problema do espaço gigante no topo!
-                    windowWidth: 800 // Trava a largura para não distorcer
+                    scrollY: 0, 
+                    scrollX: 0 // <--- Garante eixo X travado em zero!
                 },
                 jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-                // Evita que as tabelas e os blocos de assinatura quebrem ao meio
                 pagebreak:    { mode: ['css', 'legacy'], avoid: ['.grid-qualificacao', 'tr', 'h3', '.center-text', 'p'] } 
             };
 
