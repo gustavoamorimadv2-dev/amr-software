@@ -400,7 +400,8 @@ document.addEventListener('DOMContentLoaded', () => {
         div.className = 'card-item';
 
         const primeiroProcesso = cliente.processo ? cliente.processo.split(',')[0].trim() : '-';
-        const primeiroNumero = cliente.numeros ? cliente.numeros.split(',')[0].trim() : '-';
+        // Pega todos os números, remove espaços extras e junta com vírgula e espaço
+        const todosNumeros = cliente.numeros ? cliente.numeros.split(',').map(n => n.trim()).join(', ') : '-';
         const responsavel = cliente.responsavel || cliente.criadoPor || 'Não Definido';
         const ufCard = cliente.estado || cliente.uf || '-';
         const acao = cliente.classe || cliente.acao || '-';
@@ -410,7 +411,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <h3>${cliente.nome}</h3>
                 <p><strong>Ação:</strong> ${acao}</p>
                 <p><strong>CPF:</strong> ${cliente.cpf || '-'}</p>
-                <p><strong>Telefone:</strong> ${primeiroNumero}</p>
+                <p><strong>Telefones:</strong> ${todosNumeros}</p>
                 <p><strong>Processo:</strong> ${primeiroProcesso}</p>
                 <p><strong>Estado:</strong> ${ufCard.toUpperCase()}</p>
                 <p><strong>Valor:</strong> R$ ${cliente.valor || '0'}</p>
@@ -437,18 +438,26 @@ document.addEventListener('DOMContentLoaded', () => {
             // Remove vírgulas do nome para não quebrar a coluna do CSV
             const nome = c.nome ? c.nome.replace(/,/g, '') : 'Sem Nome'; 
             
-            // Pega o primeiro número e remove todos os caracteres não numéricos
-            const numeroRaw = c.numeros ? c.numeros.split(',')[0].trim() : '';
-            const numeroLimpo = numeroRaw.replace(/\D/g, ''); 
+            // Verifica se existem números cadastrados
+            if (c.numeros) {
+                // Transforma a string de números em um array
+                const arrayNumeros = c.numeros.split(',');
+                
+                // Faz um loop para CADA número que o cliente possuir
+                arrayNumeros.forEach(numeroRaw => {
+                    const numeroLimpo = numeroRaw.replace(/\D/g, ''); 
 
-            // Só adiciona se o cliente tiver telefone válido cadastrado
-            if (numeroLimpo) {
-                // Força código do Brasil (55) caso não tenha
-                let wppNumero = numeroLimpo;
-                if (!wppNumero.startsWith('55') && wppNumero.length >= 10) {
-                    wppNumero = '55' + wppNumero;
-                }
-                csvContent += `${nome},${wppNumero}\n`;
+                    // Só adiciona a linha se o número for válido após a limpeza
+                    if (numeroLimpo) {
+                        let wppNumero = numeroLimpo;
+                        // Força código do Brasil (55) caso não tenha
+                        if (!wppNumero.startsWith('55') && wppNumero.length >= 10) {
+                            wppNumero = '55' + wppNumero;
+                        }
+                        // Adiciona uma linha no CSV com o nome do cliente repetido para este número específico
+                        csvContent += `${nome},${wppNumero}\n`;
+                    }
+                });
             }
         });
 
