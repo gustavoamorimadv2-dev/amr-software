@@ -124,6 +124,18 @@ header h1{ font-size:24px; color:#fff; font-weight:800; }
 
 .charts-container { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px; }
 .chart-box { flex: 1; min-width: 300px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 15px; border-radius: 16px; }
+
+/* LISTA DE CONTRATOS FECHADOS */
+.lista-fechados { display: flex; flex-direction: column; gap: 12px; max-height: 280px; overflow-y: auto; padding-right: 5px; }
+.card-fechado { background: rgba(255,255,255,0.03); border: 1px solid rgba(16, 185, 129, 0.2); padding: 16px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
+.card-fechado:hover { border-color: rgba(16, 185, 129, 0.5); background: rgba(255,255,255,0.05); }
+.card-fechado-info h4 { color: #fff; font-size: 15px; margin-bottom: 4px; }
+.card-fechado-info p { font-size: 12px; color: rgba(255,255,255,0.6); }
+.card-fechado-info p strong { color: rgba(255,255,255,0.8); }
+
+.btn-anexo { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid #10b981; padding: 6px 12px; border-radius: 8px; font-size: 12px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; transition: 0.3s; cursor: pointer; }
+.btn-anexo:hover { background: #10b981; color: #fff; }
+.badge-sem-anexo { font-size: 11px; color: #f59e0b; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); padding: 6px 10px; border-radius: 8px; font-weight: 600; }
 </style>
 
 <script type="module">
@@ -229,6 +241,39 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         renderizarGraficos(contagemEstados, contagemAcoes);
+
+        // Renderizar Lista de Contratos Fechados
+        const listaFechadosEl = document.getElementById('listaContratosFechados');
+        listaFechadosEl.innerHTML = '';
+
+        const clientesFechados = clientesDoFunc.filter(c => c.status === 'fechado');
+
+        if (clientesFechados.length === 0) {
+            listaFechadosEl.innerHTML = '<p style="color: rgba(255,255,255,0.5); font-size: 13px; text-align: center; padding: 20px 0;">Nenhum contrato fechado por este funcionário ainda.</p>';
+        } else {
+            clientesFechados.forEach(c => {
+                const nomeCliente = c.nome || 'Cliente não identificado';
+                const acaoCliente = c.classe || c.acao || c.tipoAcao || 'Não informada';
+                const dataCard = c.dataFechamento ? new Date(c.dataFechamento).toLocaleDateString('pt-BR') : 'Data não registrada';
+                
+                const btnDoc = c.documentoUrl 
+                    ? `<a href="${c.documentoUrl}" target="_blank" class="btn-anexo">📄 Ver Documentação</a>`
+                    : `<span class="badge-sem-anexo">⚠️ Pendente Anexo</span>`;
+
+                listaFechadosEl.innerHTML += `
+                    <div class="card-fechado">
+                        <div class="card-fechado-info">
+                            <h4>${nomeCliente}</h4>
+                            <p><strong>Ação:</strong> ${acaoCliente}</p>
+                            <p><strong>Data de Fechamento:</strong> ${dataCard}</p>
+                        </div>
+                        <div>
+                            ${btnDoc}
+                        </div>
+                    </div>
+                `;
+            });
+        }
     };
 
     function renderizarGraficos(dadosEstados, dadosAcoes) {
@@ -767,7 +812,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 <canvas id="chartAcoes"></canvas>
             </div>
         </div>
-
+        
+        <div class="adm-header" style="margin-top: 30px; margin-bottom: 15px;">
+            <h4 style="font-size: 16px; font-weight: 600; color: #10b981;">Contratos Fechados (Para Validação de Comissão)</h4>
+        </div>
+        <div id="listaContratosFechados" class="lista-fechados">
+            </div>
         <div class="actions">
             <button type="button" class="btn btn-ghost" id="btnFecharRelatorio">Fechar Relatório</button>
         </div>
