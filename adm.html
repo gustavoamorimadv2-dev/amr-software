@@ -125,17 +125,23 @@ header h1{ font-size:24px; color:#fff; font-weight:800; }
 .charts-container { display: flex; gap: 20px; flex-wrap: wrap; margin-top: 20px; }
 .chart-box { flex: 1; min-width: 300px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); padding: 15px; border-radius: 16px; }
 
-/* LISTA DE CONTRATOS FECHADOS */
+/* LISTA DE CONTRATOS FECHADOS E DOCUMENTOS */
 .lista-fechados { display: flex; flex-direction: column; gap: 12px; max-height: 280px; overflow-y: auto; padding-right: 5px; }
-.card-fechado { background: rgba(255,255,255,0.03); border: 1px solid rgba(16, 185, 129, 0.2); padding: 16px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
-.card-fechado:hover { border-color: rgba(16, 185, 129, 0.5); background: rgba(255,255,255,0.05); }
+.card-fechado { background: rgba(255,255,255,0.03); border: 1px solid rgba(16, 185, 129, 0.2); padding: 16px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; cursor: pointer; }
+.card-fechado:hover { border-color: rgba(16, 185, 129, 0.7); background: rgba(16, 185, 129, 0.05); transform: translateY(-2px); }
 .card-fechado-info h4 { color: #fff; font-size: 15px; margin-bottom: 4px; }
 .card-fechado-info p { font-size: 12px; color: rgba(255,255,255,0.6); }
 .card-fechado-info p strong { color: rgba(255,255,255,0.8); }
 
-.btn-anexo { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid #10b981; padding: 6px 12px; border-radius: 8px; font-size: 12px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; transition: 0.3s; cursor: pointer; }
-.btn-anexo:hover { background: #10b981; color: #fff; }
-.badge-sem-anexo { font-size: 11px; color: #f59e0b; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); padding: 6px 10px; border-radius: 8px; font-weight: 600; }
+.badge-com-anexo { font-size: 11px; color: #10b981; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.3); padding: 6px 10px; border-radius: 8px; font-weight: 600; display: inline-block;}
+.badge-sem-anexo { font-size: 11px; color: #f59e0b; background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.3); padding: 6px 10px; border-radius: 8px; font-weight: 600; display: inline-block;}
+
+/* SEÇÃO DE DOCS NO MODAL DE DETALHES */
+.docs-section { border: 1px dashed rgba(255,255,255,0.2); background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; margin-bottom: 14px; }
+.docs-section h4 { font-size: 14px; margin-bottom: 12px; color: #fff; }
+.doc-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.08); padding: 10px; border-radius: 8px; margin-bottom: 8px; font-size: 13px; }
+.doc-item a { color: #60a5fa; text-decoration: none; word-break: break-all; flex: 1; display: block; }
+.doc-item a:hover { text-decoration: underline; }
 </style>
 
 <script type="module">
@@ -172,19 +178,49 @@ document.addEventListener('DOMContentLoaded', () => {
         toastEl._t = setTimeout(() => { toastEl.style.display = 'none'; }, 3000);
     }
 
+    /* ================= FORÇAR DOWNLOAD DE DOCUMENTO ================= */
+    window.forceDownload = async function(url, filename, event) {
+        if(event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        showToast("Iniciando download...");
+        try {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            const objectUrl = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = objectUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(objectUrl);
+        } catch (error) {
+            console.warn("Bloqueio de CORS. Abrindo em nova aba para download manual.", error);
+            window.open(url, '_blank');
+        }
+    };
+
     let currentUser = null;
     let mapaFuncionarios = {}; 
     window.todosClientes = []; 
     let chartEstadoInstancia = null;
     let chartAcaoInstancia = null;
 
+    // Variáveis de controle para o botão "Voltar"
+    let relatorioAtualFuncId = null;
+    let relatorioAtualFuncNome = null;
+
     // Elementos
     const gridFuncionarios = document.getElementById('gridFuncionarios');
     const modalFunc = document.getElementById('modalFuncionario');
     const modalRelatorio = document.getElementById('modalRelatorio');
+    const modalDetalhesCliente = document.getElementById('modalDetalhesCliente');
     const btnNovo = document.getElementById('btnNovoFuncionario');
     const btnCancelFunc = document.getElementById('btnCancelFunc');
     const btnFecharRelatorio = document.getElementById('btnFecharRelatorio');
+    const btnFecharDetalhes = document.getElementById('btnFecharDetalhes');
     const formFunc = document.getElementById('formFuncionario');
 
     // Elementos Tarefas
@@ -195,7 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const subtituloTarefa = document.getElementById('subtituloTarefa');
     const inputTarefaFuncId = document.getElementById('inputTarefaFuncId');
 
-    // Abre Modais
+    // Abre Modais Básicos
     if(btnNovo) {
         btnNovo.onclick = () => {
             formFunc.reset();
@@ -207,6 +243,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if(btnFecharRelatorio) {
         btnFecharRelatorio.onclick = () => modalRelatorio.style.display = 'none';
+    }
+    if(btnFecharDetalhes) {
+        btnFecharDetalhes.onclick = () => {
+            modalDetalhesCliente.style.display = 'none';
+            window.abrirRelatorio(relatorioAtualFuncId, relatorioAtualFuncNome);
+        };
     }
 
     window.abrirModalTarefa = (event, funcId, funcNome) => {
@@ -223,7 +265,13 @@ document.addEventListener('DOMContentLoaded', () => {
         btnCancelTarefa.onclick = () => modalTarefa.style.display = 'none';
     }
 
+    // ==============================================================
+    // MODAL: RELATÓRIO DO FUNCIONÁRIO E LISTA DE CONTRATOS
+    // ==============================================================
     window.abrirRelatorio = (funcId, funcNome) => {
+        relatorioAtualFuncId = funcId;
+        relatorioAtualFuncNome = funcNome;
+        
         document.getElementById('nomeFuncRelatorio').innerText = `Desempenho: ${funcNome}`;
         modalRelatorio.style.display = 'flex';
 
@@ -256,25 +304,92 @@ document.addEventListener('DOMContentLoaded', () => {
                 const acaoCliente = c.classe || c.acao || c.tipoAcao || 'Não informada';
                 const dataCard = c.dataFechamento ? new Date(c.dataFechamento).toLocaleDateString('pt-BR') : 'Data não registrada';
                 
-                const btnDoc = c.documentoUrl 
-                    ? `<a href="${c.documentoUrl}" target="_blank" class="btn-anexo">📄 Ver Documentação</a>`
+                // VERIFICA O ARRAY DE DOCUMENTOS (Nova Lógica Baseada no CRM)
+                const temDocs = Array.isArray(c.documentos) && c.documentos.length > 0;
+                
+                const badgeDoc = temDocs 
+                    ? `<span class="badge-com-anexo">📎 ${c.documentos.length} Anexo(s)</span>`
                     : `<span class="badge-sem-anexo">⚠️ Pendente Anexo</span>`;
 
+                // Card Clicável chamando abrirDetalhesCliente
                 listaFechadosEl.innerHTML += `
-                    <div class="card-fechado">
+                    <div class="card-fechado" onclick="window.abrirDetalhesCliente('${c.id}')" title="Clique para ver os detalhes e documentos do cliente">
                         <div class="card-fechado-info">
                             <h4>${nomeCliente}</h4>
                             <p><strong>Ação:</strong> ${acaoCliente}</p>
                             <p><strong>Data de Fechamento:</strong> ${dataCard}</p>
                         </div>
                         <div>
-                            ${btnDoc}
+                            ${badgeDoc}
+                            <div style="font-size: 10px; color: #10b981; margin-top: 5px; text-align: right;">Ver Card ➔</div>
                         </div>
                     </div>
                 `;
             });
         }
     };
+
+    // ==============================================================
+    // MODAL: DETALHES DO CLIENTE E DOCUMENTOS (NOVO)
+    // ==============================================================
+    window.abrirDetalhesCliente = (clienteId) => {
+        const cliente = window.todosClientes.find(c => c.id === clienteId);
+        if(!cliente) return;
+
+        // Esconde o relatório atual
+        modalRelatorio.style.display = 'none';
+
+        document.getElementById('detalheClienteNome').innerText = cliente.nome || 'Cliente sem nome';
+
+        const processos = cliente.processo ? cliente.processo.split(',').join('<br>') : '-';
+        const telefones = cliente.numeros ? cliente.numeros.split(',').join('<br>') : '-';
+        
+        let valorCardFormatado = "0,00";
+        if (cliente.valor) {
+            if (!isNaN(cliente.valor) && !cliente.valor.toString().includes(',')) {
+                valorCardFormatado = parseFloat(cliente.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            } else {
+                valorCardFormatado = cliente.valor;
+            }
+        }
+
+        // Injeta os dados do cliente
+        document.getElementById('detalheClienteInfo').innerHTML = `
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <p><strong>CPF/CNPJ:</strong><br> ${cliente.cpf || '-'}</p>
+                <p><strong>Classe:</strong><br> ${cliente.classe || '-'}</p>
+                <p><strong>Estado:</strong><br> ${cliente.estado || '-'}</p>
+                <p><strong>Valor:</strong><br> R$ ${valorCardFormatado}</p>
+            </div>
+            <div style="margin-top: 10px;">
+                <p><strong>Telefone(s):</strong><br> ${telefones}</p>
+                <p style="margin-top: 10px;"><strong>Processo(s):</strong><br> ${processos}</p>
+                <p style="margin-top: 10px;"><strong>Observações:</strong><br> ${cliente.obs || '-'}</p>
+            </div>
+        `;
+
+        // Renderiza a lista de documentos para download
+        const docsList = document.getElementById('detalheClienteDocs');
+        docsList.innerHTML = '';
+
+        if(Array.isArray(cliente.documentos) && cliente.documentos.length > 0) {
+            cliente.documentos.forEach(doc => {
+                docsList.innerHTML += `
+                    <div class="doc-item">
+                        <a href="javascript:void(0)" onclick="window.forceDownload('${doc.url}', '${doc.name}', event)">
+                            📄 ${doc.name} <span style="font-size:10px; color:#9ca3af; margin-left: 5px;">(Clique para Baixar)</span>
+                        </a>
+                    </div>
+                `;
+            });
+        } else {
+            docsList.innerHTML = '<span style="color:rgba(255,255,255,0.5); font-size:12px;">Nenhum documento anexado ao card deste cliente.</span>';
+        }
+
+        // Exibe o modal
+        modalDetalhesCliente.style.display = 'flex';
+    };
+
 
     function renderizarGraficos(dadosEstados, dadosAcoes) {
         const ctxEstado = document.getElementById('chartEstados').getContext('2d');
@@ -343,7 +458,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const todosFuncionarios = [...funcionariosAtivos, ...preCadastros];
 
             const clientesSnap = await getDocs(collection(db, "clientes"));
-            window.todosClientes = clientesSnap.docs.map(d => d.data());
+            window.todosClientes = clientesSnap.docs.map(d => ({ id: d.id, ...d.data() })); // Garantindo que o ID vai junto para buscar depois
 
             // ================== LÓGICA DO PAINEL GERAL ==================
             let totalListaFria = 0;
@@ -818,8 +933,29 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <div id="listaContratosFechados" class="lista-fechados">
             </div>
+
         <div class="actions">
             <button type="button" class="btn btn-ghost" id="btnFecharRelatorio">Fechar Relatório</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-backdrop" id="modalDetalhesCliente">
+    <div class="modal">
+        <h3 id="detalheClienteNome">Nome do Cliente</h3>
+        <p class="subtitle">Detalhes e documentos para validação de comissão.</p>
+        
+        <div id="detalheClienteInfo" style="margin-bottom: 20px; font-size: 13px; line-height: 1.5; color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px;">
+            </div>
+
+        <div class="docs-section">
+            <h4>Documentação Anexada</h4>
+            <div id="detalheClienteDocs">
+                </div>
+        </div>
+
+        <div class="actions">
+            <button type="button" class="btn primary" id="btnFecharDetalhes">⬅ Voltar para Relatório</button>
         </div>
     </div>
 </div>
