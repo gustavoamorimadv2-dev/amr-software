@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Declaração - Ajuris</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        body { font-family: 'Arial', sans-serif; background-color: #f0f0f0; margin: 0; padding: 20px; }
+        .toolbar { text-align: center; margin-bottom: 20px; }
+        .toolbar button { background-color: #d4af37; color: #0c2340; border: none; padding: 15px 30px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.3s; }
+        .toolbar button:hover { background-color: #c19b2e; transform: translateY(-2px); }
+
+        #pdf-content { background: white; padding: 40px; max-width: 800px; margin: 0 auto; box-shadow: 0 0 20px rgba(0,0,0,0.1); font-size: 13px; line-height: 1.6; text-align: justify; color: #000; }
+        
+        #pdf-content p { margin-bottom: 15px; }
+        #pdf-content h3 { text-align: center; text-transform: uppercase; margin-bottom: 20px; font-size: 14px; font-weight: bold;}
+        .center-text { text-align: center; margin-top: 40px; }
+        .text-lowercase { text-transform: lowercase; }
+        
+        .grid-qualificacao { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px;}
+        .grid-qualificacao td { border: 1px solid #000; padding: 6px; vertical-align: middle; }
+        .grid-label { font-weight: bold; font-size: 10px; color: #555; text-transform: uppercase; display: block; margin-bottom: 2px;}
+        .grid-value { font-weight: bold; text-transform: uppercase; font-size: 12px;}
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <button onclick="gerarPDF()">Baixar PDF da Declaração</button>
+</div>
+
+<div id="pdf-content">
+    <h3>DECLARAÇÃO</h3>
+    
+    <table class="grid-qualificacao">
+        <tr><td colspan="3"><span class="grid-label">NOME</span><span class="grid-value out-nome"></span></td></tr>
+        <tr>
+            <td><span class="grid-label">NACIONALIDADE</span><span class="grid-value out-nacionalidade"></span></td>
+            <td><span class="grid-label">ESTADO CIVIL</span><span class="grid-value out-estadocivil"></span></td>
+            <td><span class="grid-label">PROFISSÃO</span><span class="grid-value out-profissao"></span></td>
+        </tr>
+        <tr><td colspan="3"><span class="grid-label">ENDEREÇO</span><span class="grid-value out-endereco"></span></td></tr>
+        <tr>
+            <td><span class="grid-label">BAIRRO</span><span class="grid-value out-bairro"></span></td>
+            <td><span class="grid-label">CIDADE</span><span class="grid-value out-cidade"></span></td>
+            <td><span class="grid-label">UF / CEP</span><span class="grid-value"><span class="out-uf"></span> <span class="out-cep"></span></span></td>
+        </tr>
+        <tr>
+            <td><span class="grid-label">RG</span><span class="grid-value out-rg"></span></td>
+            <td><span class="grid-label">CPF</span><span class="grid-value out-cpf"></span></td>
+            <td><span class="grid-label">TELEFONE</span><span class="grid-value out-telefone"></span></td>
+        </tr>
+        <tr><td colspan="3"><span class="grid-label">EMAIL</span><span class="grid-value text-lowercase out-email"></span></td></tr>
+    </table>
+
+    <p>Declaro que, em função de minha condição financeira, não tenho condições de arcar com o pagamento das custas processuais e honorário advocatícios iniciais do processo, sob pena de implicar em prejuízo próprio e de minha família, nos termos do art. 5º, LXXIV, da Constituição da República e da Lei nº 1.060/50.</p>
+
+    <div class="center-text">
+        <p><span class="out-cidade_assinatura"></span>, <span class="out-dataformatada"></span></p>
+        <br><br>
+        <p>_______________________________________________________<br><strong><span class="out-nome"></span></strong></p>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const dadosStr = localStorage.getItem('ajuris_dados_contrato');
+        if (!dadosStr) return alert("Nenhum dado encontrado. Por favor, preencha o formulário primeiro.");
+        const dados = JSON.parse(dadosStr);
+
+        for (const [key, value] of Object.entries(dados)) {
+            document.querySelectorAll('.out-' + key).forEach(el => {
+                el.innerText = (key === 'email' || key === 'tipoacao') ? value.toLowerCase() : value.toUpperCase();
+            });
+        }
+    });
+
+    function gerarPDF() {
+        const element = document.getElementById('pdf-content');
+        const nomeCliente = document.querySelector('.out-nome').innerText || 'Cliente';
+        
+        const opt = {
+            margin:       [15, 15, 15, 15], 
+            filename:     'Declaracao_' + nomeCliente.replace(/\s+/g, '_') + '.pdf',
+            image:        { type: 'jpeg', quality: 1 },
+            html2canvas:  { scale: 2, useCORS: true, scrollY: 0, scrollX: 0 },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save();
+    }
+</script>
+</body>
+</html>
