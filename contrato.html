@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Contrato - Ajuris</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        body { font-family: 'Arial', sans-serif; background-color: #f0f0f0; margin: 0; padding: 20px; }
+        
+        .toolbar { text-align: center; margin-bottom: 20px; }
+        .toolbar button { background-color: #d4af37; color: #0c2340; border: none; padding: 15px 30px; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: 0.3s; }
+        .toolbar button:hover { background-color: #c19b2e; transform: translateY(-2px); }
+
+        #pdf-content { background: white; padding: 40px; max-width: 800px; margin: 0 auto; box-shadow: 0 0 20px rgba(0,0,0,0.1); font-size: 13px; line-height: 1.6; text-align: justify; color: #000; }
+        
+        #pdf-content p { margin-bottom: 15px; }
+        #pdf-content h3 { text-align: center; text-transform: uppercase; margin-bottom: 20px; font-size: 14px; font-weight: bold;}
+        .center-text { text-align: center; margin-top: 40px; }
+        .text-lowercase { text-transform: lowercase; }
+        
+        .grid-qualificacao { width: 100%; border-collapse: collapse; margin-bottom: 20px; font-size: 12px;}
+        .grid-qualificacao td { border: 1px solid #000; padding: 6px; vertical-align: middle; }
+        .grid-label { font-weight: bold; font-size: 10px; color: #555; text-transform: uppercase; display: block; margin-bottom: 2px;}
+        .grid-value { font-weight: bold; text-transform: uppercase; font-size: 12px;}
+    </style>
+</head>
+<body>
+
+<div class="toolbar">
+    <button onclick="gerarPDF()">Baixar PDF do Contrato</button>
+</div>
+
+<div id="pdf-content">
+    <h3>CONTRATO DE HONORÁRIOS ADVOCATÍCIOS</h3>
+    
+    <table class="grid-qualificacao">
+        <tr><td colspan="3"><span class="grid-label">NOME</span><span class="grid-value out-nome"></span></td></tr>
+        <tr>
+            <td><span class="grid-label">NACIONALIDADE</span><span class="grid-value out-nacionalidade"></span></td>
+            <td><span class="grid-label">ESTADO CIVIL</span><span class="grid-value out-estadocivil"></span></td>
+            <td><span class="grid-label">PROFISSÃO</span><span class="grid-value out-profissao"></span></td>
+        </tr>
+        <tr><td colspan="3"><span class="grid-label">ENDEREÇO</span><span class="grid-value out-endereco"></span></td></tr>
+        <tr>
+            <td><span class="grid-label">BAIRRO</span><span class="grid-value out-bairro"></span></td>
+            <td><span class="grid-label">CIDADE</span><span class="grid-value out-cidade"></span></td>
+            <td><span class="grid-label">UF / CEP</span><span class="grid-value"><span class="out-uf"></span> <span class="out-cep"></span></span></td>
+        </tr>
+        <tr>
+            <td><span class="grid-label">RG</span><span class="grid-value out-rg"></span></td>
+            <td><span class="grid-label">CPF</span><span class="grid-value out-cpf"></span></td>
+            <td><span class="grid-label">TELEFONE</span><span class="grid-value out-telefone"></span></td>
+        </tr>
+        <tr><td colspan="3"><span class="grid-label">EMAIL</span><span class="grid-value text-lowercase out-email"></span></td></tr>
+    </table>
+
+    <p><strong>BRUNO DURAO SOCIEDADE INDIVIDUAL DE ADVOCACIA</strong>, CNPJ 10.615.803/0001-04 com escritório na Avenida das Américas, n 3443, bloco 4, sala 101, Barra da Tijuca - Rio de Janeiro - RJ, CEP 22631-004, doravante identificado como CONTRATADO.</p>
+    
+    <p><strong>SUPORTE AO CLIENTE</strong><br>
+    Forma presencial com hora marcada no Whatsapp (21) 2018-7918 em menos de 24h já marcamos o seu atendimento ou caso for urgência explicar o motivo que dentro da possibilidade vamos agilizar este atendimento e se for para saber qual o valor do seu acordo judicial o telefone do setor de acordo judicial que é WhatsApp (21) 96775-6096.</p>
+    
+    <p>As partes acima identificadas têm, entre si, justo e acertado o presente Contrato de Honorários Advocatícios, que se regerá pelas cláusulas seguintes e pelas condições descritas no presente.</p>
+    
+    <p><strong>DO OBJETO DO CONTRATO</strong><br>
+    Cláusula 1ª. O presente instrumento tem como OBJETO a prestação de serviços advocatícios em uma ação judicial de <span class="out-tipoacao text-lowercase"></span> com o processo nº <span class="out-processo"></span>. Realizar a defesa da ação e os procedimentos cabíveis, que lhe é movida a serem realizados nas Instâncias ordinárias e em grau de recurso ao qual fica obrigada a parte contratante a verificar o os fatos e fundamentos do processo através do site do tribunal de referência ou ir a serventia para verificar o seu processo e o ratifica-lo e não fazendo estará automaticamente ratificado o processo com seus fatos e fundamentos redigidos. Fica obrigada a parte contratante tomar ciência do processo e seu número através do telefone do escritório ou pessoalmente ao mesmo.</p>
+    
+    <p>Parágrafo Único A contratação de que trata o caput da Cláusula Primeira implica no acompanhamento integral do processo em todas as suas fases até o primeiro/segundo/terceiro grau de jurisdição, incluído os Recursos em sede de STF e STJ.</p>
+    
+    <p><strong>DAS ATIVIDADES</strong><br>
+    Cláusula 2ª. As atividades inclusas na prestação de serviço objeto deste instrumento são todas aquelas inerentes à profissão, ou seja, todos os atos inerentes ao exercício da advocacia e aqueles constantes no Estatuto da Ordem dos Advogados do Brasil, bem como os especificados no instrumento de mandato. Atividades que fazem parte além as da procuração são a de atendimento ao cliente inicial, redigir a petição inicial, fazer o cálculo de financiamento do veículo, distribuição da ação judicial, atendimento ao cliente por telefone diariamente em todos os dias úteis do ano, atendimento presencial quando solicitado por Whatsapp (21) 2018-7918, acompanhamento diário do processo judicial, petições interlocutórias no processo.</p>
+    
+    <p><strong>DOS ATOS PROCESSUAIS</strong><br>
+    Cláusula 3ª. Havendo necessidade de contratação de outros profissionais, no decurso do processo, CONTRATADO elaborará substabelecimento, indicando os advogados de seu conhecimento.<br>
+    Parágrafo Único. A distribuição dos processos ficará a cargo do contratado.</p>
+    
+    <p><strong>DA COBRANÇA</strong><br>
+    Cláusula 4ª. As partes acordam que o CONTRATADO realizará a cobrança dos honorários advocatícios exclusivamente por meio de Pix Recorrente, modalidade de pagamento automático autorizado pelo CONTRATANTE, em conformidade com a Resolução nº 269/2022 do Banco Central do Brasil. O pagamento será debitado automaticamente da conta bancária do CONTRATANTE, na data pactuada, por meio de sistema de PIX com recorrência programada, cabendo ao contratante garantir saldo disponível para a efetivação do débito. O CONTRATANTE autoriza expressamente o agendamento recorrente, ficando desde já esclarecido que todos os pagamentos serão destinados unicamente à conta vinculada à razão social BRUNO DURAO SOCIEDADE INDIVIDUAL DE ADVOCACIA, CNPJ 10.615.803/0001-04.</p>
+    
+    <p>Cláusula 5ª. Fará jus o contrato o valor de R$ <span class="out-valortotal"></span> de honorários iniciais, pagos R$ <span class="out-valorentrada"></span> de entrada dia <span class="out-dataentrada"></span> e mais <span class="out-qtdparcelas"></span> parcelas:</p>
+    
+    <div id="out-lista-parcelas" style="margin-left: 20px; font-weight: bold; margin-bottom: 15px;"></div>
+    
+    <p>Será devido honorários mensais de R$ <span class="out-valormensal"></span> pago por mês a partir de <span class="out-datamensalidade"></span> até o a baixa do processo ou recebimento do mandado de pagamento ou precatório judicial, o que for posterior, sendo o mesmo não mais devido caso tenha efetivado e pago o acordo judicial no processo.</p>
+    
+    <p>Parágrafo Primeiro. Caso não pague a prestação ou os honorários mensais, incidirá multa de 10% do valor devido e mais juros de 1% e correção pelo IGP-M ao mês (na falta do índice do IGP-M será adotado outro índice oficial que vier a ser adotado em seu lugar ou equivalente).</p>
+    <p>Parágrafo segundo. Os honorários de sucumbência, que são pagos pela parte contrária, serão revertidos integralmente ao CONTRATADO</p>
+    <p>Parágrafo terceiro e em caso de procedência ou parcial procedência do processo judicial dos honorários de êxito será auferido ao escritório mais 30% de qualquer indenização que a parte ré pagar ao processo e caso exista embargo, execução, pedido de penhora, apresentação de planilha de cálculo, recurso de qualquer natureza e de qualquer das partes autora ou réu, desarquivamento, qualquer petição depois da sentença ou recurso de qualquer das partes será cobrado o acréscimo de 10%, totalizando assim 40% de honorários de êxito.</p>
+    <p>Parágrafo quarto. Caso haja morte ou incapacidade civil do CONTRATADO, seus sucessores ou representante legal receberão os honorários.</p>
+    <p>Parágrafo Quinto. O contratado está autorizado a receber pelo contratante e dar quitação ao processo e retirar a sua parte dos honorários diretamente do valor que for recebido e quando não se tiver contato ou o cliente estiver incomunicável com o escritório, terá o prazo de 24 meses para efetuar o pagamento do valor devido ao contratante sem incidir juros e correção monetária, caso o contratante entre em contato com o escritório será pago os valores em 48 horas, depois de confirmado o recebimento dos valores.</p>
+    <p>Parágrafo sexto. Caso tenha que pagar Imposto de Renda ou qualquer outro imposto ou que o mesmo seja automaticamente deduzido no valor que receba de indenizações materiais, morais ou qualquer outra natureza os mesmos serão pagos exclusivamente pela parte contratante.</p>
+    <p>Parágrafo sétimo. Caso não pague uma das parcelas dos honorários iniciais será antecipada todas as parcelas para a data do atraso do pagamento.</p>
+    <p>Parágrafo oitavo. Caso tenha acordo judicial ou extrajudicial antes de terminar as parcelas dos honorários iniciais só será assinado o acordo se pago todas as prestações devidas e futuras, sempre vamos disponibilizar opção de pagamento para ajudar ao pagamento de cartão de crédito.</p>
+    <p>Parágrafo nono. Caso tenha acordo judicial ou extrajudicial e o cliente estiver com parcelas de honorarios iniciais ou de mensalidade em aberto só poderá será assinado o acordo depois de pago as mesmas, sempre vamos disponibilizar opção de pagamento para ajudar ao pagamento de cartão de crédito.</p>
+    <p>Parágrafo Décimo. Em caso de cancelamento unilateral, suspensão ou revogação da autorização do Pix Recorrente por parte do CONTRATANTE, antes da quitação integral dos valores pactuados neste contrato, ficará caracterizado inadimplemento contratual. Nesta hipótese, será aplicada multa compensatória correspondente ao dobro (2x) do valor total do contrato, independentemente das demais penalidades previstas, sem prejuízo da cobrança integral dos valores vencidos e vincendos, acrescidos de juros, correção monetária e demais encargos legais.</p>
+    
+    <p>Cláusula 6ª. Havendo acordo entre o CONTRATANTE e a parte contrária, tal fato não prejudicará o recebimento dos honorários contratados e da sucumbência.</p>
+    
+    <p><strong>DA RESCISÃO</strong><br>
+    Cláusula 7ª. O presente contrato poderá ser rescindido por qualquer das partes, mediante aviso prévio, por escrito com aviso de recebimento em mãos próprias em nome de Samuel Cardoso da Silva no endereço Avenida das Américas, n 3443, bloco 4, sala 101, Barra da Tijuca - Rio de Janeiro - RJ, CEP 22631-004 com 30 (trinta) dias de antecedência, depois de quitado os débitos com o escritório.</p>
+    
+    <p><strong>DOS DADOS</strong><br>
+    Cláusula 8ª. O contratante autoriza desde já a disponibilização dos dados somente e exclusivamente para os colaboradores da empresa contratada e a única exceção será caso fique inadimplente com o escritório contratado fica autorizado a disponibilizar os dados aos serviços de cadastros de inadimplentes como o SPC, SERASA ou cartório de títulos e documento.</p>
+    
+    <p><strong>DO FORO</strong><br>
+    Cláusula 9ª. Para dirimir quaisquer controvérsias oriundas do CONTRATO, as partes elegem o foro do Centro da Cidade (comarca da capital) da comarca do Rio de Janeiro, Rio de Janeiro.</p>
+    <p>Cláusula 10ª. O CONTRATANTE declara estar ciente de que a obrigação assumida pelo CONTRATADO é de meio e não de resultado, nos termos da legislação aplicável à prestação de serviços advocatícios. Dessa forma, o CONTRATADO compromete-se a empregar todos os esforços técnicos e jurídicos cabíveis, com diligência e ética profissional, sem, no entanto, garantir qualquer resultado específico, êxito na demanda ou valor indenizatório. Qualquer manifestação sobre expectativas de êxito ou possíveis desfechos processuais terá apenas caráter estimativo, não vinculando o CONTRATADO a eventual resultado.</p>
+    
+    <p>Por estarem assim justos e contratados, firmam o presente instrumento, em duas vias de igual teor.</p>
+
+    <div class="center-text">
+        <p><span class="out-cidade_assinatura"></span>, <span class="out-dataformatada"></span></p>
+        <br><br>
+        <p>_______________________________________________________<br><strong><span class="out-nome"></span></strong></p>
+        <br>
+        <p>TESTEMUNHAS:<br>
+        _______________________________________________________<br>
+        <strong>BRUNO DURAO SOCIEDADE INDIVIDUAL DE ADVOCACIA</strong></p>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const dadosStr = localStorage.getItem('ajuris_dados_contrato');
+        if (!dadosStr) {
+            alert("Nenhum dado encontrado. Por favor, preencha o formulário primeiro.");
+            return;
+        }
+        const dados = JSON.parse(dadosStr);
+
+        for (const [key, value] of Object.entries(dados)) {
+            document.querySelectorAll('.out-' + key).forEach(el => {
+                if(key === 'email' || key === 'tipoacao') {
+                    el.innerText = value.toLowerCase();
+                } else {
+                    el.innerText = typeof value === 'string' ? value.toUpperCase() : value;
+                }
+            });
+        }
+        
+        if (dados.listaParcelas) {
+            document.getElementById('out-lista-parcelas').innerHTML = dados.listaParcelas;
+        }
+    });
+
+    function gerarPDF() {
+        const element = document.getElementById('pdf-content');
+        const nomeCliente = document.querySelector('.out-nome').innerText || 'Cliente';
+        
+        const opt = {
+            margin:       [15, 15, 15, 15], 
+            filename:     'Contrato_' + nomeCliente.replace(/\s+/g, '_') + '.pdf',
+            image:        { type: 'jpeg', quality: 1 },
+            html2canvas:  { scale: 2, useCORS: true, scrollY: 0, scrollX: 0 },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(element).save();
+    }
+</script>
+</body>
+</html>
