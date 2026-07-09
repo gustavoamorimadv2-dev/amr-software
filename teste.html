@@ -29,7 +29,8 @@
         
         /* Estilos Ocultos para o PDF */
         #pdf-content { display: none; }
-        .doc-page { padding: 40px 50px; font-family: 'Arial', sans-serif; font-size: 13px; line-height: 1.5; text-align: justify; page-break-after: always; color: #000; }
+        /* Removido o padding agressivo daqui. O html2pdf cuidará das margens agora */
+        .doc-page { font-family: 'Arial', sans-serif; font-size: 13px; line-height: 1.5; text-align: justify; color: #000; }
         .doc-page h3 { text-align: center; text-transform: uppercase; margin-bottom: 20px; font-size: 14px; font-weight: bold;}
         .center-text { text-align: center; margin-top: 40px; }
         .text-lowercase { text-transform: lowercase; }
@@ -119,10 +120,8 @@
     </form>
 </div>
 
-<!-- ================= TEMPLATE DO PDF ================= -->
 <div id="pdf-content">
     
-    <!-- PÁGINA 1: CONTRATO -->
     <div class="doc-page">
         <h3>CONTRATO DE HONORÁRIOS ADVOCATÍCIOS</h3>
         
@@ -216,7 +215,8 @@
         </div>
     </div>
 
-    <!-- PÁGINA 2: DECLARAÇÃO -->
+    <div class="html2pdf__page-break"></div>
+
     <div class="doc-page">
         <h3>DECLARAÇÃO</h3>
         
@@ -256,7 +256,8 @@
         </div>
     </div>
 
-    <!-- PÁGINA 3: PROCURAÇÃO -->
+    <div class="html2pdf__page-break"></div>
+
     <div class="doc-page">
         <h3>PROCURAÇÃO</h3>
         
@@ -360,7 +361,7 @@
     // Função para gerar a lista de parcelas automaticamente
     function gerarListaParcelas(qtd, valorParcela, dataInicioStr) {
         let listaHTML = "";
-        let dataAtual = new Date(dataInicioStr + "T12:00:00"); // T12 para evitar fuso horário puxando 1 dia antes
+        let dataAtual = new Date(dataInicioStr + "T12:00:00"); 
 
         for (let i = 1; i <= qtd; i++) {
             // Adiciona 1 mês
@@ -428,7 +429,7 @@
         document.getElementById('out-email-declaracao').innerText = emailValue;
         document.getElementById('out-email-procuracao').innerText = emailValue;
 
-        // Gerar Lista de Parcelas Dinâmica baseada no input
+        // Gerar Lista de Parcelas Dinâmica
         const listaParcelas = gerarListaParcelas(dados.qtdparcelas, dados.valorparcela, dataEntradaInput);
         document.getElementById('out-lista-parcelas').innerHTML = listaParcelas;
 
@@ -443,23 +444,23 @@
                 timestamp: serverTimestamp()
             });
 
-            // Gerar PDF
+            // Gerar PDF Configurações Corrigidas com Margens Nativas
             const element = document.getElementById('pdf-content');
             element.style.display = 'block';
             
             const opt = {
-                margin: 0,
-                filename: 'Kit_Contratual_' + dados.nome.replace(/\s+/g, '_') + '.pdf',
-                image: { type: 'jpeg', quality: 1 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                margin:       [20, 20, 20, 20], // Adiciona 20mm de margem em todas as bordas para evitar corte
+                filename:     'Kit_Contratual_' + dados.nome.replace(/\s+/g, '_') + '.pdf',
+                image:        { type: 'jpeg', quality: 1 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['css', 'legacy'], avoid: ['p', 'tr', 'h3', '.center-text', '.grid-qualificacao'] } // Evita cortar parágrafos e tabelas no meio!
             };
 
             html2pdf().set(opt).from(element).save().then(() => {
                 element.style.display = 'none';
                 alert("Kit Contratual gerado e registrado no sistema com sucesso!");
                 btn.innerText = "Gerar Contratos e Salvar no Sistema";
-                // document.getElementById('contract-form').reset();
             });
 
         } catch (error) {
