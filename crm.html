@@ -1844,6 +1844,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 fechadoPor: novoStatus === 'fechado' ? (currentUser ? currentUser.email : '') : ""
             };
 
+            // NOVA REGRA: Se arrastou para Fechado, salva o e-mail do vendedor e a data
+            if (novoStatus === 'fechado') {
+                updatePayload.vendedor = currentUser ? currentUser.email : "Não informado";
+                updatePayload.dataFechamento = new Date().toISOString();
+            }
+
             // Se arrastou para Em Negociação
             if (novoStatus === 'em-negociacao') {
                 updatePayload.dataEmNegociacao = new Date().toISOString();
