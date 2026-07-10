@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Clientes Fechados - Gerar Boletos</title>
+<title>Clientes Fechados - Gerar Boletos e Docs</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.1.0/uicons-thin-rounded/css/uicons-thin-rounded.css'>
@@ -81,14 +80,30 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 .card { 
     display:flex; background:rgba(255,255,255,0.05); backdrop-filter:blur(15px);
     border:1px solid rgba(255,255,255,0.08); border-radius:16px; box-shadow:0 8px 30px rgba(0,0,0,0.15);
-    cursor:pointer; overflow:hidden; transition:transform 0.3s, background 0.3s; 
-    flex-direction:row; position:relative; width:340px; max-height: 300px;
+    overflow:hidden; transition:transform 0.3s, background 0.3s; 
+    flex-direction:row; position:relative; width:340px; max-height: 320px;
 }
 .card:hover { transform:translateY(-5px); background:rgba(255,255,255,0.08); }
 .card .color-bar { width:6px; height:100%; border-radius:16px 0 0 16px; background:#10b981; flex-shrink: 0;}
 
 .card-content { padding:20px; flex:1; display:flex; flex-direction:column; overflow:hidden; }
-.card h2 { font-size:18px; margin-bottom:8px; color:#fff; font-weight:700; }
+
+/* Data e Badges de Ação */
+.card-header-info { margin-bottom: 12px; display: flex; align-items: center; }
+.card-date { font-size: 11px; color: #10b981; font-weight: 600; background: rgba(16, 185, 129, 0.1); padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(16, 185, 129, 0.2); }
+
+.action-badges { position: absolute; top: 15px; right: 15px; display: flex; gap: 8px; }
+.badge-btn {
+    width: 32px; height: 32px; border-radius: 10px; display: flex;
+    align-items: center; justify-content: center; font-size: 16px; font-weight: bold;
+    cursor: pointer; transition: 0.3s;
+}
+.badge-docs { background: rgba(59, 130, 246, 0.2); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
+.badge-docs:hover { background: #3b82f6; color: #fff; }
+.badge-boleto { background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+.badge-boleto:hover { background: #10b981; color: #fff; }
+
+.card h2 { font-size:18px; margin-bottom:8px; color:#fff; font-weight:700; padding-right: 70px; /* Evita sobrepor os botões */ }
 .card p { font-size:13px; color:rgba(255,255,255,0.7); margin:2px 0; }
 .card p strong { color: #fff; font-weight: 600; }
 
@@ -111,13 +126,6 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 }
 .btn-copy:hover { background: rgba(255,255,255,0.2); }
 
-.add-boleto-badge {
-    position: absolute; top: 15px; right: 15px; background: rgba(16, 185, 129, 0.2);
-    color: #10b981; width: 32px; height: 32px; border-radius: 10px; display: flex;
-    align-items: center; justify-content: center; font-size: 18px; font-weight: bold;
-    border: 1px solid rgba(16, 185, 129, 0.3); transition: 0.3s;
-}
-.card:hover .add-boleto-badge { background: #10b981; color: #fff; }
 
 /* ================= MODAL ================= */
 .modal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(8px); justify-content:center; align-items:center; z-index:50; }
@@ -134,6 +142,24 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 }
 .modal input:focus { background:rgba(255,255,255,0.1); border-color: #10b981; }
 .modal input::placeholder { color: rgba(255,255,255,0.3); }
+
+/* Estilos do Modal de Documentos */
+.doc-list-container { display: flex; flex-direction: column; gap: 10px; }
+.doc-item {
+    display: flex; justify-content: space-between; align-items: center;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+    padding: 12px 16px; border-radius: 12px; transition: 0.2s;
+}
+.doc-item:hover { background: rgba(255,255,255,0.08); border-color: rgba(59, 130, 246, 0.3); }
+.doc-info { display: flex; align-items: center; gap: 12px; }
+.doc-info i { color: #3b82f6; font-size: 18px; }
+.doc-info span { font-size: 14px; font-weight: 500; color: #fff; }
+.btn-view-doc {
+    background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: none;
+    padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 600;
+    cursor: pointer; text-decoration: none; transition: 0.2s;
+}
+.btn-view-doc:hover { background: #3b82f6; color: #fff; }
 
 /* ================= BUTTONS ================= */
 .modal .actions { display:flex; gap:12px; justify-content:flex-end; margin-top:30px; }
@@ -237,6 +263,17 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     </div>
 </div>
 
+<div id="modalDocs" class="modal-backdrop">
+    <div class="modal">
+        <h3 id="docsModalTitle">Documentação do Cliente</h3>
+        <div class="doc-list-container" id="docsListContainer">
+            </div>
+        <div class="actions">
+            <button class="btn ghost" id="btnCancelDocs">Fechar</button>
+        </div>
+    </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script type="module">
@@ -301,6 +338,17 @@ function exibirClientes(lista) {
         const card = document.createElement("div");
         card.className = "card";
         
+        // Formatar Data de Fechamento (Suporta Timestamp do Firebase ou string/data ISO)
+        let dataFechamentoStr = "Data não registrada";
+        if (cliente.dataFechamento) {
+            try {
+                const dataObj = cliente.dataFechamento.toDate ? cliente.dataFechamento.toDate() : new Date(cliente.dataFechamento);
+                dataFechamentoStr = dataObj.toLocaleDateString('pt-BR');
+            } catch (e) {
+                console.error("Erro ao formatar data", e);
+            }
+        }
+
         const boletosHtml = (cliente.boletos || []).map(b => `
             <div class="boleto-item">
                 <div class="boleto-info">
@@ -316,7 +364,17 @@ function exibirClientes(lista) {
         card.innerHTML = `
             <div class="color-bar"></div>
             <div class="card-content">
-                <div class="add-boleto-badge">+</div>
+                <div class="action-badges">
+                    <div class="badge-btn badge-docs" title="Ver Documentação" id="btnDocs-${cliente.id}">
+                        <i class="fi fi-tr-folder-open"></i>
+                    </div>
+                    <div class="badge-btn badge-boleto" title="Gerar Boleto" id="btnBoleto-${cliente.id}">
+                        +
+                    </div>
+                </div>
+                <div class="card-header-info">
+                    <span class="card-date">Fechado em: ${dataFechamentoStr}</span>
+                </div>
                 <h2>${cliente.nome || "Sem nome"}</h2>
                 <p><strong>CPF/CNPJ:</strong> ${cliente.cpf || "-"}</p>
                 <div class="boletos-list" id="boletos-${cliente.id}">
@@ -325,11 +383,18 @@ function exibirClientes(lista) {
             </div>
         `;
         
-        card.onclick = (e) => {
-            if(!e.target.closest('.btn-copy')) abrirModal(cliente, cliente.id);
-        };
-        
         container.appendChild(card);
+
+        // Eventos dos botões do card
+        document.getElementById(`btnBoleto-${cliente.id}`).onclick = (e) => {
+            e.stopPropagation();
+            abrirModal(cliente, cliente.id);
+        };
+
+        document.getElementById(`btnDocs-${cliente.id}`).onclick = (e) => {
+            e.stopPropagation();
+            abrirModalDocs(cliente);
+        };
     });
 }
 
@@ -352,8 +417,8 @@ document.getElementById('buscarCliente').addEventListener('input', (e) => {
     exibirClientes(filtrados);
 });
 
-// Referências do Modal
-const modal = document.getElementById('modalBoleto');
+// ================= LÓGICA DO MODAL DE BOLETOS =================
+const modalBoleto = document.getElementById('modalBoleto');
 const modalNome = document.getElementById('modalNome');
 const modalCpf = document.getElementById('modalCpf');
 const modalEmail = document.getElementById('modalEmail');
@@ -366,7 +431,6 @@ const modalValor = document.getElementById('modalValor');
 const modalVencimento = document.getElementById('modalVencimento');
 const confirmBtn = document.getElementById('confirmBoletoBtn');
 
-// Auto-Preenchimento ViaCEP
 modalCep.addEventListener('blur', async (e) => {
     let cep = e.target.value.replace(/\D/g, '');
     if (cep.length === 8) {
@@ -385,7 +449,6 @@ modalCep.addEventListener('blur', async (e) => {
     }
 });
 
-// Máscara de Moeda Real-Time
 modalValor.addEventListener('input', (e) => {
     let val = e.target.value.replace(/\D/g, '');
     if(val === '') { e.target.value = ''; return; }
@@ -410,13 +473,13 @@ function abrirModal(cliente, id) {
     date.setDate(date.getDate() + 5);
     modalVencimento.value = date.toISOString().split('T')[0];
     
-    modal.style.display = "flex";
+    modalBoleto.style.display = "flex";
 }
 
-document.getElementById('btnCancel').onclick = () => { modal.style.display = "none"; clienteAtualId = null; };
+document.getElementById('btnCancel').onclick = () => { modalBoleto.style.display = "none"; clienteAtualId = null; };
 
-modal.addEventListener('click', (e) => {
-    if(e.target === modal) { modal.style.display = 'none'; }
+modalBoleto.addEventListener('click', (e) => {
+    if(e.target === modalBoleto) { modalBoleto.style.display = 'none'; }
 });
 
 confirmBtn.onclick = async () => {
@@ -475,7 +538,7 @@ confirmBtn.onclick = async () => {
             clienteData.boletos = novosBoletos;
             
             exibirClientes(clientesData);
-            modal.style.display = "none";
+            modalBoleto.style.display = "none";
             
         } else {
             showToast("Erro da API: " + JSON.stringify(data.erro));
@@ -489,9 +552,45 @@ confirmBtn.onclick = async () => {
     }
 };
 
+// ================= LÓGICA DO MODAL DE DOCUMENTOS =================
+const modalDocs = document.getElementById('modalDocs');
+const docsListContainer = document.getElementById('docsListContainer');
+const docsModalTitle = document.getElementById('docsModalTitle');
+
+function abrirModalDocs(cliente) {
+    docsModalTitle.textContent = `Documentação: ${cliente.nome || "Cliente"}`;
+    docsListContainer.innerHTML = '';
+
+    // Espera-se que no Firestore exista um array 'documentos' com {nome: '...', url: '...'}
+    // Exemplo: documentos: [{ nome: "Procuração", url: "https://..." }]
+    const documentos = cliente.documentos || [];
+
+    if (documentos.length === 0) {
+        docsListContainer.innerHTML = '<p style="color:rgba(255,255,255,0.5); font-size:14px;">Nenhum documento anexado a este cliente.</p>';
+    } else {
+        documentos.forEach(doc => {
+            docsListContainer.innerHTML += `
+                <div class="doc-item">
+                    <div class="doc-info">
+                        <i class="fi fi-tr-document"></i>
+                        <span>${doc.nome || 'Documento sem nome'}</span>
+                    </div>
+                    <a href="${doc.url || '#'}" target="_blank" class="btn-view-doc">Visualizar</a>
+                </div>
+            `;
+        });
+    }
+
+    modalDocs.style.display = "flex";
+}
+
+document.getElementById('btnCancelDocs').onclick = () => { modalDocs.style.display = "none"; };
+modalDocs.addEventListener('click', (e) => {
+    if(e.target === modalDocs) { modalDocs.style.display = 'none'; }
+});
+
+// Iniciar a página
 carregarClientes();
 </script>
 </body>
 </html>
-
-```
