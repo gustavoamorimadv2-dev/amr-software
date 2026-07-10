@@ -321,7 +321,7 @@ select option {
     margin-bottom:12px;
     color:#fff;
     font-weight: 700;
-    padding-right: 160px; /* Aumentado para caber até 4 botões na lista fria */
+    padding-right: 170px; /* Levemente aumentado para acomodar o botão extra */
     word-break: break-word; 
 }
 
@@ -338,11 +338,12 @@ select option {
 
 /* CORES DOS CARDS */
 .lista-fria .color-bar{ background:#3b82f6; } /* Azul */
-.dia-1 .color-bar{ background:#06b6d4; } /* Ciano (NOVO) */
+.dia-1 .color-bar{ background:#06b6d4; } /* Ciano */
 .dia-2 .color-bar{ background:#10b981; } /* Verde claro */
 .dia-3 .color-bar{ background:#f59e0b; } /* Amarelo */
 .dia-4 .color-bar{ background:#8b5cf6; } /* Roxo */
 .dia-5 .color-bar{ background:#ef4444; } /* Vermelho */
+.em-negociacao .color-bar{ background:#eab308; } /* Amarelo Especial */
 .contrato-assinado .color-bar{ background:#0284c7; } /* Azul escuro */
 .fechado .color-bar{ background:#16a34a; } /* Verde escuro */
 
@@ -352,6 +353,7 @@ select option {
     right:15px;
     display:flex;
     gap:8px;
+    align-items: center;
 }
 
 .card-actions button{
@@ -685,7 +687,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Colunas Ajustadas (COM DIA 1 INCLUSO)
+    // Colunas Ajustadas com EM NEGOCIAÇÃO
     const STATUS = [
         'lista-fria',
         'dia-1',
@@ -693,6 +695,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'dia-3',
         'dia-4',
         'dia-5',
+        'em-negociacao',
         'contrato-assinado',
         'fechado'
     ];
@@ -1059,11 +1062,15 @@ document.addEventListener('DOMContentLoaded', () => {
             // Usa a dataPipeline para o modal se já tiver sido ativado, senão usa data de cadastro
             const dataBaseParaCalculo = data.dataPipeline || data.dataCadastro;
             const diaCalc = getDiaPipeline(dataBaseParaCalculo);
-            const statusTexto = data.status === 'lista-fria' ? 'Aguardando Disparo' : (diaCalc > 5 ? '5+ (Funil Geral)' : diaCalc);
+            let statusTexto = data.status === 'lista-fria' ? 'Aguardando Disparo' : (diaCalc > 5 ? '5+ (Funil Geral)' : diaCalc);
             
+            if(data.status === 'em-negociacao') statusTexto = 'Em Negociação';
+            if(data.status === 'contrato-assinado') statusTexto = 'Contrato Assinado';
+            if(data.status === 'fechado') statusTexto = 'Fechado';
+
             infoExtra.innerHTML = `
                 <p><strong>Data de criação:</strong> ${dataCadStr}</p>
-                <p><strong>Dia do pipeline:</strong> ${data.status === 'lista-fria' ? statusTexto : 'Dia ' + statusTexto}</p>
+                <p><strong>Dia do pipeline:</strong> ${data.status === 'lista-fria' || data.status === 'em-negociacao' || data.status === 'contrato-assinado' || data.status === 'fechado' ? statusTexto : 'Dia ' + statusTexto}</p>
                 <p><strong>Criado por:</strong> ${data.criadoPor || '-'}</p>
                 ${data.fechadoPor ? `<p><strong>Fechado por:</strong> ${data.fechadoPor}</p>` : ''}
             `;
@@ -1270,6 +1277,35 @@ document.addEventListener('DOMContentLoaded', () => {
         const actionsDiv = document.createElement('div');
         actionsDiv.className = 'card-actions';
 
+        // BOTÃO EM NEGOCIAÇÃO (AMARELO)
+        if (status !== 'em-negociacao' && status !== 'contrato-assinado' && status !== 'fechado') {
+            const btnNegociacao = document.createElement('button');
+            btnNegociacao.title = "Mover para Em Negociação";
+            btnNegociacao.style.background = '#facc15'; /* Amarelo */
+            btnNegociacao.style.color = '#422006';
+            btnNegociacao.style.fontWeight = 'bold';
+            btnNegociacao.style.fontSize = '11px';
+            btnNegociacao.style.padding = '4px 8px';
+            btnNegociacao.style.border = 'none';
+            btnNegociacao.style.borderRadius = '6px';
+            btnNegociacao.innerText = 'Em Negociação';
+            
+            btnNegociacao.onclick = async (e) => {
+                e.stopPropagation();
+                try {
+                    const docRef = doc(db, "clientes", cliente.id);
+                    await updateDoc(docRef, { 
+                        status: 'em-negociacao',
+                        dataEmNegociacao: new Date().toISOString()
+                    });
+                    render(); // Re-renderiza para atualizar a posição
+                } catch (error) {
+                    console.error("Erro ao mover para Em Negociação:", error);
+                }
+            };
+            actionsDiv.appendChild(btnNegociacao);
+        }
+
         // BOTÃO GERAR CONTRATO
         const btnContrato = document.createElement('button');
         btnContrato.title = "Baixar Contrato (Word)";
@@ -1321,7 +1357,7 @@ document.addEventListener('DOMContentLoaded', () => {
         actionsDiv.appendChild(btnCall);
         actionsDiv.appendChild(btnWa);
 
-        // NOVO: BOTÃO DE EXCLUIR (Apenas para Lista Fria)
+        // BOTÃO DE EXCLUIR (Apenas para Lista Fria)
         if (status === 'lista-fria') {
             const btnExcluir = document.createElement('button');
             btnExcluir.title = "Excluir Card";
@@ -1360,7 +1396,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const dataBaseParaCalculo = cliente.dataPipeline || cliente.dataCadastro;
         const diaCalc = getDiaPipeline(dataBaseParaCalculo);
-        const textoPipeline = cliente.status === 'lista-fria' ? 'Aguardando disparo' : `Dia ${diaCalc}`;
+        
+        let textoPipeline = '';
+        if(cliente.status === 'lista-fria') {
+            textoPipeline = 'Aguardando disparo';
+        } else if (cliente.status === 'em-negociacao') {
+            const diasEmNegociacao = getDiaPipeline(cliente.dataEmNegociacao || cliente.dataPipeline || cliente.dataCadastro);
+            textoPipeline = `Negociação (Dia ${diasEmNegociacao})`;
+        } else if (cliente.status === 'contrato-assinado') {
+            const diasContrato = getDiaPipeline(cliente.dataContratoAssinado || cliente.dataCadastro);
+            textoPipeline = `Contrato (Dia ${diasContrato})`;
+        } else {
+            textoPipeline = `Dia ${diaCalc}`;
+        }
 
         // Permite que o card exiba exatamente o valor digitado no formato do tribunal
         let valorCardFormatado = "0,00";
@@ -1458,14 +1506,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const hojeStr = new Date().toLocaleDateString('pt-BR');
         
         if (currentUser) {
-            // Conta os cards que o usuário cadastrou hoje e estão na lista fria
             countListaFriaHoje = clientes.filter(c => {
                 if (!c.dataCadastro || c.status !== 'lista-fria') return false;
                 const cardDateStr = new Date(c.dataCadastro).toLocaleDateString('pt-BR');
                 return cardDateStr === hojeStr && c.criadoPor === currentUser.email;
             }).length;
 
-            // Conta os cards que o usuário chamou hoje (tiveram dataPipeline inserida hoje e estão no dia 1)
             countDia1Hoje = clientes.filter(c => {
                 if (!c.dataPipeline || c.status !== 'dia-1') return false;
                 const pipelineDateStr = new Date(c.dataPipeline).toLocaleDateString('pt-BR');
@@ -1503,6 +1549,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
             } else if (status === 'dia-2') {
                 col.innerHTML = `<h2>EM NEGOCIAÇÃO (DIA 2)</h2>`;
+            } else if (status === 'em-negociacao') {
+                col.innerHTML = `<h2>EM NEGOCIAÇÃO</h2>`;
             } else {
                 col.innerHTML = `<h2>${status.replace('-', ' ').toUpperCase()}</h2>`;
             }
@@ -1518,45 +1566,67 @@ document.addEventListener('DOMContentLoaded', () => {
                 cliente.dataCadastro = new Date().toISOString();
             }
 
-            // REGRA 1: Se está na lista fria, ele NUNCA avança sozinho, só pelo Agente ou pelo usuário
+            // REGRA 1: LISTA FRIA (nunca avança sozinho)
             if (cliente.status === 'lista-fria') {
                 criarCard(cliente);
-                continue; // Pula todo o resto da lógica de avançar dia
+                continue; 
             }
 
-            // REGRA 2: Se não está na lista fria, vamos calcular os dias com base em quando ele foi ativado
+            // REGRA 2: EM NEGOCIAÇÃO (Expirar para funil geral após 10 dias)
+            if (cliente.status === 'em-negociacao') {
+                const diasEmNegociacao = getDiaPipeline(cliente.dataEmNegociacao || cliente.dataPipeline || cliente.dataCadastro);
+                if (diasEmNegociacao > 10) {
+                    cliente.status = 'funil-geral';
+                    updateDoc(doc(db, "clientes", cliente.id), { status: 'funil-geral' });
+                } else {
+                    criarCard(cliente);
+                }
+                continue; 
+            }
+
+            // REGRA 3: CONTRATO ASSINADO (Expirar para funil geral após 30 dias)
+            if (cliente.status === 'contrato-assinado') {
+                const diasContrato = getDiaPipeline(cliente.dataContratoAssinado || cliente.dataCadastro);
+                if (diasContrato > 30) {
+                    cliente.status = 'funil-geral';
+                    updateDoc(doc(db, "clientes", cliente.id), { status: 'funil-geral' });
+                } else {
+                    criarCard(cliente);
+                }
+                continue; 
+            }
+
+            if (cliente.status === 'fechado' || cliente.status === 'funil-geral') {
+                if (cliente.status !== 'funil-geral') criarCard(cliente);
+                continue; 
+            }
+
+            // REGRA 4: DIAS 1 ao 5 (Baseados no dataPipeline original)
             const dataBaseParaCalculo = cliente.dataPipeline || cliente.dataCadastro;
             const diaCalc = getDiaPipeline(dataBaseParaCalculo);
 
-            // Respeita o envio pro Funil Geral se passar de 5 dias e não estiver contratado/fechado
-            if (diaCalc > 5 && cliente.status !== 'contrato-assinado' && cliente.status !== 'fechado') {
+            // Respeita o envio pro Funil Geral se passar de 5 dias na automação normal
+            if (diaCalc > 5) {
                 if (cliente.status !== 'funil-geral') {
                     cliente.status = 'funil-geral';
-                    const docRef = doc(db, "clientes", cliente.id);
-                    updateDoc(docRef, { status: 'funil-geral' });
+                    updateDoc(doc(db, "clientes", cliente.id), { status: 'funil-geral' });
                 }
                 continue; 
             }
 
             // Movimenta os dias sozinho do 1 ao 5
-            if (cliente.status !== 'contrato-assinado' && cliente.status !== 'fechado' && cliente.status !== 'funil-geral') {
-                
-                let statusCalc = 'dia-1';
-                if (diaCalc === 2) statusCalc = 'dia-2';
-                else if (diaCalc === 3) statusCalc = 'dia-3';
-                else if (diaCalc === 4) statusCalc = 'dia-4';
-                else if (diaCalc === 5) statusCalc = 'dia-5';
-                
-                if (cliente.status !== statusCalc) {
-                    cliente.status = statusCalc;
-                    const docRef = doc(db, "clientes", cliente.id);
-                    updateDoc(docRef, { status: statusCalc });
-                }
+            let statusCalc = 'dia-1';
+            if (diaCalc === 2) statusCalc = 'dia-2';
+            else if (diaCalc === 3) statusCalc = 'dia-3';
+            else if (diaCalc === 4) statusCalc = 'dia-4';
+            else if (diaCalc === 5) statusCalc = 'dia-5';
+            
+            if (cliente.status !== statusCalc) {
+                cliente.status = statusCalc;
+                updateDoc(doc(db, "clientes", cliente.id), { status: statusCalc });
             }
 
-            if (cliente.status !== 'funil-geral') {
-                criarCard(cliente);
-            }
+            criarCard(cliente);
         }
 
         filtragemAplicada();
@@ -1568,7 +1638,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         e.preventDefault();
 
-        // ================= CORREÇÃO DO PROBLEMA DE DUPLICAÇÃO ================= 
         // 1. Pegamos o botão de submit do formulário
         const submitBtn = clientForm.querySelector('button[type="submit"]');
         
@@ -1647,6 +1716,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     novo.fechadoPor = antigo.fechadoPor || "";
                     novo.dataCadastro = antigo.dataCadastro || new Date().toISOString();
                     novo.dataPipeline = antigo.dataPipeline || null; 
+                    novo.dataEmNegociacao = antigo.dataEmNegociacao || null;
+                    novo.dataContratoAssinado = antigo.dataContratoAssinado || null;
                     novo.status = antigo.status || "lista-fria";
                 }
                 await saveCliente(novo);
@@ -1670,7 +1741,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    /* ================= DRAG AND DROP MELHORADO COM REGRAS E BLOQUEIOS ================= */
+    /* ================= DRAG AND DROP ================= */
 
     let draggedCard = null;
 
@@ -1727,9 +1798,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // Regra: Funcionário só arrasta para contrato-assinado ou fechado.
-            if (novoStatus !== 'contrato-assinado' && novoStatus !== 'fechado') {
-                showToast("Avanço automático! Você só tem permissão para arrastar manualmente para 'Contrato Assinado' ou 'Fechado'.");
+            // Regra: Funcionário só arrasta para contrato-assinado, fechado ou em-negociacao.
+            if (novoStatus !== 'contrato-assinado' && novoStatus !== 'fechado' && novoStatus !== 'em-negociacao') {
+                showToast("Avanço automático! Você só tem permissão para arrastar manualmente para 'Em Negociação', 'Contrato Assinado' ou 'Fechado'.");
                 return;
             }
 
@@ -1757,9 +1828,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 fechadoPor: novoStatus === 'fechado' ? (currentUser ? currentUser.email : '') : ""
             };
 
-            // Se arrastou pra dia 1 manual (caso seja permitido), ativa o pipeline
-            if (novoStatus === 'dia-1' && currentStatus === 'lista-fria') {
-                updatePayload.dataPipeline = new Date().toISOString();
+            // Se arrastou para Em Negociação
+            if (novoStatus === 'em-negociacao') {
+                updatePayload.dataEmNegociacao = new Date().toISOString();
+            }
+
+            // Se arrastou para Contrato Assinado
+            if (novoStatus === 'contrato-assinado') {
+                updatePayload.dataContratoAssinado = new Date().toISOString();
             }
 
             await updateDoc(docRef, updatePayload);
@@ -1892,6 +1968,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <option value="dia-3">Dia 3</option>
         <option value="dia-4">Dia 4</option>
         <option value="dia-5">Dia 5</option>
+        <option value="em-negociacao">Em Negociação</option>
         <option value="contrato-assinado">Contrato Assinado</option>
         <option value="fechado">Fechado</option>
     </select>
@@ -1918,6 +1995,9 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
 
     <div class="column" id="dia-5">
+        </div>
+
+    <div class="column" id="em-negociacao">
         </div>
 
     <div class="column" id="contrato-assinado">
