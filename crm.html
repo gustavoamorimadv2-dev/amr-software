@@ -308,6 +308,7 @@ select option {
 
 .card-content{
     padding:20px;
+    padding-right: 140px; /* Protege todo o lado direito do card de sobreposição dos botões */
     flex:1;
     display:flex;
     flex-direction:column;
@@ -321,7 +322,6 @@ select option {
     margin-bottom:12px;
     color:#fff;
     font-weight: 700;
-    padding-right: 170px; /* Levemente aumentado para acomodar o botão extra */
     word-break: break-word; 
 }
 
@@ -347,16 +347,24 @@ select option {
 .contrato-assinado .color-bar{ background:#0284c7; } /* Azul escuro */
 .fechado .color-bar{ background:#16a34a; } /* Verde escuro */
 
+/* ================= AÇÕES DOS CARDS (BOTÕES) ================= */
+
 .card-actions{
     position:absolute;
     top:15px;
     right:15px;
     display:flex;
+    flex-direction: column; /* Coloca um em cima do outro */
+    align-items: flex-end;  /* Alinha os botões na direita */
     gap:8px;
-    align-items: center;
 }
 
-.card-actions button{
+.icon-actions{
+    display:flex;
+    gap:8px;
+}
+
+.icon-actions button{
     background:rgba(255,255,255,0.1);
     border:1px solid rgba(255,255,255,0.05);
     border-radius: 8px;
@@ -368,7 +376,7 @@ select option {
     transition: 0.3s;
 }
 
-.card-actions img{
+.icon-actions img{
     width:16px;
     height:16px;
     filter:invert(1); 
@@ -376,10 +384,10 @@ select option {
     transition:opacity 0.2s;
 }
 
-.card-actions button:hover{
+.icon-actions button:hover{
     background:rgba(255,255,255,0.2);
 }
-.card-actions button:hover img{
+.icon-actions button:hover img{
     opacity:1;
 }
 
@@ -1276,35 +1284,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const actionsDiv = document.createElement('div');
         actionsDiv.className = 'card-actions';
-
-        // BOTÃO EM NEGOCIAÇÃO (AMARELO)
-        if (status !== 'em-negociacao' && status !== 'contrato-assinado' && status !== 'fechado') {
-            const btnNegociacao = document.createElement('button');
-            btnNegociacao.title = "Mover para Em Negociação";
-            btnNegociacao.style.background = '#facc15'; /* Amarelo */
-            btnNegociacao.style.color = '#422006';
-            btnNegociacao.style.fontWeight = 'bold';
-            btnNegociacao.style.fontSize = '11px';
-            btnNegociacao.style.padding = '4px 8px';
-            btnNegociacao.style.border = 'none';
-            btnNegociacao.style.borderRadius = '6px';
-            btnNegociacao.innerText = 'Em Negociação';
-            
-            btnNegociacao.onclick = async (e) => {
-                e.stopPropagation();
-                try {
-                    const docRef = doc(db, "clientes", cliente.id);
-                    await updateDoc(docRef, { 
-                        status: 'em-negociacao',
-                        dataEmNegociacao: new Date().toISOString()
-                    });
-                    render(); // Re-renderiza para atualizar a posição
-                } catch (error) {
-                    console.error("Erro ao mover para Em Negociação:", error);
-                }
-            };
-            actionsDiv.appendChild(btnNegociacao);
-        }
+        
+        // Container dos ícones (Documento, Ligar, WhatsApp, Excluir)
+        const iconActions = document.createElement('div');
+        iconActions.className = 'icon-actions';
 
         // BOTÃO GERAR CONTRATO
         const btnContrato = document.createElement('button');
@@ -1352,10 +1335,10 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         btnWa.innerHTML = '<img src="https://img.icons8.com/ios-glyphs/30/000000/whatsapp.png"/>';
 
-        // Anexando os botões na tela
-        actionsDiv.appendChild(btnContrato);
-        actionsDiv.appendChild(btnCall);
-        actionsDiv.appendChild(btnWa);
+        // Anexando os ícones na fileira de ícones
+        iconActions.appendChild(btnContrato);
+        iconActions.appendChild(btnCall);
+        iconActions.appendChild(btnWa);
 
         // BOTÃO DE EXCLUIR (Apenas para Lista Fria)
         if (status === 'lista-fria') {
@@ -1376,7 +1359,40 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
             };
-            actionsDiv.appendChild(btnExcluir);
+            iconActions.appendChild(btnExcluir);
+        }
+
+        // Adiciona a fileira de ícones na Div principal de ações
+        actionsDiv.appendChild(iconActions);
+
+        // BOTÃO EM NEGOCIAÇÃO (AMARELO) - Fica logo abaixo da fileira de ícones
+        if (status !== 'em-negociacao' && status !== 'contrato-assinado' && status !== 'fechado') {
+            const btnNegociacao = document.createElement('button');
+            btnNegociacao.title = "Mover para Em Negociação";
+            btnNegociacao.style.background = '#facc15'; /* Amarelo */
+            btnNegociacao.style.color = '#422006';
+            btnNegociacao.style.fontWeight = 'bold';
+            btnNegociacao.style.fontSize = '11px';
+            btnNegociacao.style.padding = '6px 12px';
+            btnNegociacao.style.border = 'none';
+            btnNegociacao.style.borderRadius = '6px';
+            btnNegociacao.style.cursor = 'pointer';
+            btnNegociacao.innerText = 'Em Negociação';
+            
+            btnNegociacao.onclick = async (e) => {
+                e.stopPropagation();
+                try {
+                    const docRef = doc(db, "clientes", cliente.id);
+                    await updateDoc(docRef, { 
+                        status: 'em-negociacao',
+                        dataEmNegociacao: new Date().toISOString()
+                    });
+                    render(); // Re-renderiza para atualizar a posição
+                } catch (error) {
+                    console.error("Erro ao mover para Em Negociação:", error);
+                }
+            };
+            actionsDiv.appendChild(btnNegociacao);
         }
 
         card.appendChild(actionsDiv);
