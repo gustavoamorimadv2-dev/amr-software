@@ -81,7 +81,7 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     display:flex; background:rgba(255,255,255,0.05); backdrop-filter:blur(15px);
     border:1px solid rgba(255,255,255,0.08); border-radius:16px; box-shadow:0 8px 30px rgba(0,0,0,0.15);
     overflow:hidden; transition:transform 0.3s, background 0.3s; 
-    flex-direction:row; position:relative; width:340px; max-height: 320px;
+    flex-direction:row; position:relative; width:340px; max-height: 350px;
     cursor: pointer;
 }
 .card:hover { transform:translateY(-5px); background:rgba(255,255,255,0.08); border-color: rgba(16, 185, 129, 0.4); }
@@ -220,7 +220,16 @@ input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); co
             <div>
                 <h4 class="section-title">Dados Pessoais</h4>
                 <div class="info-pessoal" id="dadosPessoaisContainer">
+                </div>
+
+                <h4 class="section-title" style="margin-top: 25px;">Detalhes do Fechamento</h4>
+                <div class="honorarios-box" style="display: flex; gap: 10px; align-items: flex-end;">
+                    <div style="flex: 1;">
+                        <label>Data de Fechamento</label>
+                        <input type="date" id="editDataFechamento">
                     </div>
+                    <button class="btn primary" onclick="salvarDataFechamento()" id="btnSalvarData">Salvar</button>
+                </div>
 
                 <h4 class="section-title" style="margin-top: 25px;">Honorários e Parcelas</h4>
                 <div class="honorarios-box">
@@ -242,7 +251,7 @@ input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); co
                 </div>
                 
                 <div id="listaHonorariosGerados" class="boletos-list" style="max-height: 150px;">
-                    </div>
+                </div>
             </div>
 
             <div>
@@ -250,7 +259,7 @@ input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); co
                 
                 <div class="honorarios-box">
                     <label>Nome do Documento</label>
-                    <input type="text" id="addDocNome" placeholder="Ex: Procuração Assinada" style="margin-bottom:10px;">
+                    <input type="text" id="addDocNome" placeholder="Opcional (Usa nome do arquivo se vazio)" style="margin-bottom:10px;">
                     
                     <label>Arquivo</label>
                     <input type="file" id="addDocFile" style="margin-bottom:10px;">
@@ -259,7 +268,7 @@ input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); co
                 </div>
 
                 <div id="listaDocsContainer" class="boletos-list" style="max-height: 250px;">
-                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -298,7 +307,6 @@ input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); co
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
 import { getFirestore, collection, query, where, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
-// Adicionado Import do Storage
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js";
 
 const firebaseConfig = {
@@ -312,7 +320,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const storage = getStorage(app); // Inicializa Storage
+const storage = getStorage(app);
 
 const sidebar = document.querySelector(".sidebar");
 const mainContent = document.querySelector(".main");
@@ -392,6 +400,7 @@ function exibirClientes(lista) {
                 </div>
                 <h2>${cliente.nome || "Sem nome"}</h2>
                 <p><strong>CPF:</strong> ${cliente.cpf || "-"}</p>
+                <p><strong>Vendedor:</strong> ${cliente.vendedor || "Não informado"}</p>
                 <div class="boletos-list">
                     ${boletosHtml || '<p style="font-size:11px; color:rgba(255,255,255,0.4);">Sem boletos.</p>'}
                     ${(cliente.boletos && cliente.boletos.length > 3) ? '<p style="font-size:10px; color:#10b981;">+ outros</p>' : ''}
@@ -434,6 +443,14 @@ window.abrirModalCompleto = function(cliente) {
         <p><strong>CEP:</strong> ${cliente.cep || "Não informado"}</p>
     `;
 
+    // Preencher Data de Fechamento se existir
+    if (cliente.dataFechamento) {
+        const dataObj = cliente.dataFechamento.toDate ? cliente.dataFechamento.toDate() : new Date(cliente.dataFechamento);
+        document.getElementById('editDataFechamento').value = dataObj.toISOString().split('T')[0];
+    } else {
+        document.getElementById('editDataFechamento').value = "";
+    }
+
     // Limpar campos de Honorários
     document.getElementById('addHonValor').value = "";
     document.getElementById('addHonParcelas').value = "";
@@ -457,6 +474,41 @@ window.fecharModalCompleto = function() {
 modalClienteCompleto.addEventListener('click', (e) => {
     if(e.target === modalClienteCompleto) fecharModalCompleto();
 });
+
+// ================= LÓGICA DE SALVAR DATA DE FECHAMENTO =================
+window.salvarDataFechamento = async function() {
+    if(!clienteAtual) return;
+    
+    const novaDataStr = document.getElementById('editDataFechamento').value;
+    if(!novaDataStr) {
+        showToast("Selecione uma data válida.");
+        return;
+    }
+    
+    const btn = document.getElementById('btnSalvarData');
+    btn.textContent = "Salvando...";
+    btn.disabled = true;
+
+    try {
+        // Salvamos ao meio-dia para evitar bugs de conversão de fuso horário (-03:00)
+        const novaDataFormatada = novaDataStr + "T12:00:00"; 
+        
+        const docRef = doc(db, "clientes", clienteAtual.id);
+        await updateDoc(docRef, { dataFechamento: novaDataFormatada });
+        
+        // Atualiza a memória e recarrega os cards
+        clienteAtual.dataFechamento = novaDataFormatada;
+        showToast("Data atualizada com sucesso!");
+        exibirClientes(clientesData);
+        
+    } catch(err) {
+        console.error(err);
+        showToast("Erro ao atualizar a data.");
+    } finally {
+        btn.textContent = "Salvar";
+        btn.disabled = false;
+    }
+}
 
 // ================= LÓGICA DE HONORÁRIOS =================
 document.getElementById('addHonValor').addEventListener('input', (e) => {
@@ -482,10 +534,9 @@ window.gerarHonorarios = async function() {
     const valorParcela = (valorFloat / parcelas).toFixed(2).replace('.', ',');
 
     let novosHonorarios = clienteAtual.honorarios || [];
-    let dataAtualObj = new Date(dataInicial + "T00:00:00"); // Corrige fuso horário
+    let dataAtualObj = new Date(dataInicial + "T00:00:00");
 
     for(let i = 0; i < parcelas; i++) {
-        // Incrementa o mês para cada parcela
         let dataParcela = new Date(dataAtualObj);
         dataParcela.setMonth(dataParcela.getMonth() + i);
         
@@ -538,30 +589,29 @@ function renderizarHonorarios() {
 window.anexarDocumento = async function() {
     if(!clienteAtual) return;
 
-    const nomeInput = document.getElementById('addDocNome').value.trim();
+    let nomeInput = document.getElementById('addDocNome').value.trim();
     const fileInput = document.getElementById('addDocFile');
     const file = fileInput.files[0];
     const btn = document.getElementById('btnAnexarDoc');
 
-    if(!nomeInput || !file) {
-        showToast("Insira um nome e selecione um arquivo.");
+    if(!file) {
+        showToast("Selecione um arquivo para anexar.");
         return;
+    }
+    
+    // Se nenhum nome for fornecido, usa o nome do arquivo selecionado
+    if(!nomeInput) {
+        nomeInput = file.name;
     }
 
     btn.textContent = "Enviando...";
     btn.disabled = true;
 
     try {
-        // Criar referência no Storage
         const storageRef = ref(storage, `documentos_clientes/${clienteAtual.id}/${Date.now()}_${file.name}`);
-        
-        // Fazer Upload
         const uploadTask = await uploadBytesResumable(storageRef, file);
-        
-        // Pegar URL Pública
         const downloadURL = await getDownloadURL(uploadTask.ref);
 
-        // Atualizar Firestore
         let documentos = clienteAtual.documentos || [];
         documentos.push({
             nome: nomeInput,
@@ -578,7 +628,7 @@ window.anexarDocumento = async function() {
         fileInput.value = "";
         
         renderizarDocumentos();
-        exibirClientes(clientesData); // Re-renderiza para atualizar a tag visual do card
+        exibirClientes(clientesData); 
         showToast("Documento anexado com sucesso!");
 
     } catch (error) {
