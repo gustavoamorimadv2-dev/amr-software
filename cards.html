@@ -258,6 +258,32 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     transform: scale(0.95);
 }
 
+/* Badges para PF / PJ */
+.badge-tipo {
+    display: inline-block;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 8px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+.badge-pf {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.3);
+}
+.badge-pj {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+.badge-indefinido {
+    background: rgba(156, 163, 175, 0.2);
+    color: #9ca3af;
+    border: 1px solid rgba(156, 163, 175, 0.3);
+}
+
 .empty-msg {
     color: rgba(255,255,255,0.4);
     font-size: 14px;
@@ -441,12 +467,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const responsavel = cliente.responsavel || cliente.criadoPor || 'Não Definido';
         const ufCard = cliente.estado || cliente.uf || '-';
         const acao = cliente.classe || cliente.acao || '-';
+        
+        // Lógica para diferenciar CPF vs CNPJ no card
+        const documentoStr = cliente.cpf || '-';
+        let tipoPessoa = 'N/A';
+        let badgeClass = 'badge-indefinido';
+        
+        if (documentoStr !== '-') {
+            const limpo = documentoStr.replace(/\D/g, '');
+            if (limpo.length > 11) {
+                tipoPessoa = 'PJ';
+                badgeClass = 'badge-pj';
+            } else if (limpo.length > 0) {
+                tipoPessoa = 'PF';
+                badgeClass = 'badge-pf';
+            }
+        }
 
         div.innerHTML = `
             <div>
                 <h3>${cliente.nome}</h3>
                 <p><strong>Ação:</strong> ${acao}</p>
-                <p><strong>CPF:</strong> ${cliente.cpf || '-'}</p>
+                <p><strong>CPF/CNPJ:</strong> ${documentoStr} ${tipoPessoa !== 'N/A' ? `<span class="badge-tipo ${badgeClass}">${tipoPessoa}</span>` : ''}</p>
                 <p style="display: flex; align-items: center; justify-content: space-between;">
                     <span><strong>Telefones:</strong> ${todosNumeros}</span>
                     ${todosNumeros !== '-' ? `<button class="btn-copy" onclick="navigator.clipboard.writeText('${todosNumeros}'); this.innerText='Copiado!'; setTimeout(() => this.innerText='Copiar', 2000);" title="Copiar números">Copiar</button>` : ''}
@@ -471,11 +513,21 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        let csvContent = "Name,Phone\n";
+        // Adicionada a coluna "Type" no cabeçalho do CSV
+        let csvContent = "Name,Phone,Type\n";
 
         clientesExibidos.forEach(c => {
             // Remove vírgulas do nome para não quebrar a coluna do CSV
             const nome = c.nome ? c.nome.replace(/,/g, '') : 'Sem Nome'; 
+            
+            // Verifica o tipo de pessoa para incluir na planilha
+            let tipoPessoaCsv = 'PF'; // Padrão
+            if (c.cpf) {
+                const docLimpo = c.cpf.replace(/\D/g, '');
+                if (docLimpo.length > 11) {
+                    tipoPessoaCsv = 'PJ';
+                }
+            }
             
             // Verifica se existem números cadastrados
             if (c.numeros) {
@@ -493,8 +545,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (!wppNumero.startsWith('55') && wppNumero.length >= 10) {
                             wppNumero = '55' + wppNumero;
                         }
-                        // Adiciona uma linha no CSV com o nome do cliente repetido para este número específico
-                        csvContent += `${nome},${wppNumero}\n`;
+                        // Adiciona uma linha no CSV com as 3 colunas: Nome, Telefone, Tipo (PF/PJ)
+                        csvContent += `${nome},${wppNumero},${tipoPessoaCsv}\n`;
                     }
                 });
             }
