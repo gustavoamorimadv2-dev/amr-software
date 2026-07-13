@@ -383,13 +383,30 @@ document.addEventListener('DOMContentLoaded', () => {
                 matchAcao = (acao === selAcao);
             }
 
-            // Verifica Nome (Busca Livre)
-            let matchNome = true;
+            // Verifica Busca Livre (Nome, CPF ou Telefone)
+            let matchBusca = true;
             if (txtBusca) {
-                matchNome = c.nome && c.nome.toLowerCase().includes(txtBusca);
+                const nome = c.nome ? c.nome.toLowerCase() : '';
+                const cpf = c.cpf ? c.cpf.toLowerCase() : '';
+                const numeros = c.numeros ? c.numeros.toLowerCase() : '';
+
+                // Busca pelo texto exato que o usuário digitou
+                const achouTexto = nome.includes(txtBusca) || cpf.includes(txtBusca) || numeros.includes(txtBusca);
+
+                // Busca ignorando formatações (pontos, traços, parênteses) para facilitar encontrar CPFs e Telefones
+                const buscaNumerica = txtBusca.replace(/\D/g, '');
+                let achouNumerico = false;
+                
+                if (buscaNumerica) {
+                    const cpfLimpo = cpf.replace(/\D/g, '');
+                    const numerosLimpos = numeros.replace(/\D/g, '');
+                    achouNumerico = cpfLimpo.includes(buscaNumerica) || numerosLimpos.includes(buscaNumerica);
+                }
+
+                matchBusca = achouTexto || achouNumerico;
             }
 
-            return matchData && matchEstado && matchAcao && matchNome;
+            return matchData && matchEstado && matchAcao && matchBusca;
         });
 
         renderizarCards(clientesExibidos);
@@ -552,7 +569,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </select>
 
         <div class="search-wrapper">
-            <input id="searchInput" placeholder="Buscar por nome do cliente..." />
+            <input id="searchInput" placeholder="Buscar por nome, CPF/CNPJ ou telefone..." />
         </div>
 
         <button class="btn-primary" id="btnFiltrar">Filtrar</button>
