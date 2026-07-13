@@ -172,7 +172,7 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     border-radius:20px;
     padding:15px;
     min-width:340px;
-    width: 32vw; /* Ajustado para caber 3 colunas */
+    width: 32vw; 
     max-height:100%;
     display:flex;
     flex-direction:column;
@@ -193,7 +193,6 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     align-items: center;
 }
 
-/* Estilo visual quando estiver arrastando sobre a coluna */
 .column.drag-over {
     background: rgba(16, 185, 129, 0.1);
     border-color: #10b981;
@@ -221,7 +220,6 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     background:rgba(255,255,255,0.1);
 }
 
-/* Classe aplicada enquanto o card é arrastado */
 .card.dragging {
     opacity: 0.5;
     transform: scale(0.95);
@@ -240,10 +238,9 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     height:100%;
 }
 
-/* Cores de Status de Resgate */
-.disponivel .color-bar { background: #10b981; } /* Verde - Pode pegar */
-.meus .color-bar { background: #3b82f6; } /* Azul - É meu */
-.outros .color-bar { background: #ef4444; } /* Vermelho - De outro */
+.disponivel .color-bar { background: #10b981; } 
+.meus .color-bar { background: #3b82f6; } 
+.outros .color-bar { background: #ef4444; } 
 
 .card-content {
     padding:20px;
@@ -253,6 +250,7 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     justify-content:flex-start;
     overflow:hidden;
     min-width: 0;
+    cursor: pointer; /* Indica que é clicável */
 }
 
 .card h3 {
@@ -287,6 +285,103 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     background: rgba(0,0,0,0.2);
     border-radius: 8px;
     border: 1px solid rgba(255,255,255,0.05);
+}
+
+/* ================= MODAL DETALHES ================= */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 100;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    justify-content: center;
+    align-items: center;
+}
+
+.modal.active {
+    display: flex;
+    animation: fadeInModal 0.2s ease-out forwards;
+}
+
+@keyframes fadeInModal {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.modal-content {
+    background: linear-gradient(135deg, #1e293b, #0f172a);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 30px;
+    width: 90%;
+    max-width: 700px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    position: relative;
+    color: #fff;
+    transform: scale(0.95);
+    transition: transform 0.2s ease-out;
+}
+
+.modal.active .modal-content {
+    transform: scale(1);
+}
+
+.close-btn {
+    position: absolute;
+    top: 20px;
+    right: 25px;
+    font-size: 28px;
+    color: rgba(255,255,255,0.5);
+    cursor: pointer;
+    transition: 0.3s;
+    line-height: 1;
+}
+
+.close-btn:hover { color: #fff; transform: scale(1.1); }
+
+.modal-content h2 { 
+    margin-bottom: 25px; 
+    border-bottom: 1px solid rgba(255,255,255,0.1); 
+    padding-bottom: 15px;
+    font-weight: 800;
+}
+
+.modal-grid { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
+    gap: 15px; 
+}
+
+.modal-field { 
+    background: rgba(255,255,255,0.03); 
+    padding: 15px; 
+    border-radius: 12px; 
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.modal-field.full-width {
+    grid-column: span 2;
+}
+
+.modal-field label { 
+    display: block; 
+    font-size: 12px; 
+    color: rgba(255,255,255,0.5); 
+    margin-bottom: 6px; 
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.modal-field span { 
+    font-size: 15px; 
+    font-weight: 500; 
+    word-break: break-word; 
+    color: #f8fafc;
 }
 
 /* ================= TOAST ================= */
@@ -343,9 +438,35 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentUser = null;
     let todosClientes = [];
 
+    // Modal Elements
+    const modalDetalhes = document.getElementById('modalDetalhes');
+    const closeModalBtn = document.getElementById('closeModal');
+
     if(sidebar){
         sidebar.addEventListener('mouseenter', () => sidebar.classList.add('expanded'));
         sidebar.addEventListener('mouseleave', () => sidebar.classList.remove('expanded'));
+    }
+
+    // Modal Handlers
+    closeModalBtn.addEventListener('click', () => modalDetalhes.classList.remove('active'));
+    window.addEventListener('click', (e) => {
+        if (e.target == modalDetalhes) modalDetalhes.classList.remove('active');
+    });
+
+    function abrirModalDetalhes(cliente) {
+        document.getElementById('detalheNome').textContent = cliente.nome || 'Sem Nome';
+        document.getElementById('detalheCpf').textContent = cliente.cpf || '-';
+        document.getElementById('detalheTelefones').textContent = cliente.numeros || cliente.telefone || '-';
+        document.getElementById('detalheProcessos').textContent = cliente.processo || cliente.processos || '-';
+        document.getElementById('detalheValorCausa').textContent = cliente.valorCausa || cliente.valorDaCausa || '-';
+        document.getElementById('detalheStatus').textContent = cliente.status || '-';
+        document.getElementById('detalheResponsavel').textContent = cliente.responsavel || 'Nenhum / Livre';
+        
+        const formataData = (d) => d ? new Date(d).toLocaleDateString('pt-BR') : '-';
+        document.getElementById('detalheDataCadastro').textContent = formataData(cliente.dataCadastro);
+        document.getElementById('detalheDataResgate').textContent = formataData(cliente.dataUltimoResgate);
+
+        modalDetalhes.classList.add('active');
     }
 
     function showToast(msg){
@@ -400,7 +521,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const colMeusResgates = document.getElementById('col-meus-resgates');
     
     colMeusResgates.addEventListener('dragover', (e) => {
-        e.preventDefault(); // Necessário para permitir o "Drop"
+        e.preventDefault(); 
         colMeusResgates.classList.add('drag-over');
     });
 
@@ -412,7 +533,6 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         colMeusResgates.classList.remove('drag-over');
         
-        // Pega o ID do card arrastado e executa o resgate
         const clienteId = e.dataTransfer.getData('text/plain');
         if(clienteId) {
             window.resgatarCliente(clienteId);
@@ -438,17 +558,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const diasPassados = calcularDias(dataBase);
             const disponivel = diasPassados >= 5;
             
-            // Verificando de quem é o card
             const ehMeu = cliente.userId === currentUser.uid;
 
             const card = document.createElement('div');
             
-            // Definindo as propriedades do Card dependendo da coluna
             if (disponivel) {
                 card.className = 'card disponivel draggable';
-                card.draggable = true; // Habilita o drag and drop
+                card.draggable = true; 
                 
-                // Eventos de Drag Start / Drag End
                 card.addEventListener('dragstart', (e) => {
                     e.dataTransfer.setData('text/plain', cliente.id);
                     card.classList.add('dragging');
@@ -468,7 +585,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const responsavelTexto = cliente.responsavel || 'Sem responsável';
             const dataTexto = dataBase ? new Date(dataBase).toLocaleDateString('pt-BR') : 'Sem registro';
 
-            // Destaque de cor no nome de quem pegou
             let corResponsavel = "#9ca3af";
             if (!disponivel) corResponsavel = ehMeu ? "#60a5fa" : "#f87171";
 
@@ -490,7 +606,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
 
-            // Anexando na coluna correta
+            // Evento para abrir o Modal (Ignora clique no ícone de Drag)
+            const contentClick = card.querySelector('.card-content');
+            contentClick.addEventListener('click', (e) => {
+                if(e.target.classList.contains('drag-handle')) return;
+                abrirModalDetalhes(cliente);
+            });
+
             if (disponivel) {
                 colFunilGeral.appendChild(card);
             } else if (ehMeu) {
@@ -550,19 +672,57 @@ document.addEventListener('DOMContentLoaded', () => {
 
     <div class="kanban-container">
         <main class="kanban" id="kanban">
-            <!-- 1. Coluna de Cards Disponíveis -->
             <div class="column" id="col-funil-geral"></div>
-
-            <!-- 2. Coluna Dropzone (Para onde o usuário arrasta) -->
             <div class="column" id="col-meus-resgates"></div>
-
-            <!-- 3. Coluna mostrando os Cards que estão com outras pessoas -->
             <div class="column" id="col-outros"></div>
         </main>
     </div>
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- MODAL DE DETALHES DO CLIENTE -->
+<div id="modalDetalhes" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" id="closeModal">&times;</span>
+        <h2 id="detalheNome">Nome do Cliente</h2>
+        
+        <div class="modal-grid">
+            <div class="modal-field">
+                <label>CPF</label>
+                <span id="detalheCpf"></span>
+            </div>
+            <div class="modal-field">
+                <label>Telefone(s)</label>
+                <span id="detalheTelefones"></span>
+            </div>
+            <div class="modal-field full-width">
+                <label>Processo(s)</label>
+                <span id="detalheProcessos"></span>
+            </div>
+            <div class="modal-field">
+                <label>Valor da Causa</label>
+                <span id="detalheValorCausa"></span>
+            </div>
+            <div class="modal-field">
+                <label>Status Atual</label>
+                <span id="detalheStatus"></span>
+            </div>
+            <div class="modal-field">
+                <label>Data de Cadastro</label>
+                <span id="detalheDataCadastro"></span>
+            </div>
+            <div class="modal-field">
+                <label>Última Movimentação</label>
+                <span id="detalheDataResgate"></span>
+            </div>
+            <div class="modal-field full-width">
+                <label>Responsável Pelo Resgate</label>
+                <span id="detalheResponsavel"></span>
+            </div>
+        </div>
+    </div>
+</div>
 
 </body>
 </html>
