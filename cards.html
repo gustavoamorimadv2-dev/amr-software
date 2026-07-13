@@ -239,6 +239,25 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     white-space: nowrap;
 }
 
+/* Botão de Copiar Telefone */
+.btn-copy {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.4);
+    border-radius: 6px;
+    padding: 2px 8px;
+    font-size: 11px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.btn-copy:hover {
+    background: rgba(59, 130, 246, 0.4);
+    color: #fff;
+}
+.btn-copy:active {
+    transform: scale(0.95);
+}
+
 .empty-msg {
     color: rgba(255,255,255,0.4);
     font-size: 14px;
@@ -411,7 +430,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <h3>${cliente.nome}</h3>
                 <p><strong>Ação:</strong> ${acao}</p>
                 <p><strong>CPF:</strong> ${cliente.cpf || '-'}</p>
-                <p><strong>Telefones:</strong> ${todosNumeros}</p>
+                <p style="display: flex; align-items: center; justify-content: space-between;">
+                    <span><strong>Telefones:</strong> ${todosNumeros}</span>
+                    ${todosNumeros !== '-' ? `<button class="btn-copy" onclick="navigator.clipboard.writeText('${todosNumeros}'); this.innerText='Copiado!'; setTimeout(() => this.innerText='Copiar', 2000);" title="Copiar números">Copiar</button>` : ''}
+                </p>
                 <p><strong>Processo:</strong> ${primeiroProcesso}</p>
                 <p><strong>Estado:</strong> ${ufCard.toUpperCase()}</p>
                 <p><strong>Valor:</strong> R$ ${cliente.valor || '0'}</p>
