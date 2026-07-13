@@ -764,6 +764,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentDocs = [];
 
     let currentUser = null;
+    let todosClientesCache = []; // Cache para validação rápida de processos duplicados
 
     /* ================= VARIÁVEIS AGENTE WHATSAPP ================= */
     const btnAgente = document.getElementById('btnAgente');
@@ -1116,16 +1117,58 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const row = document.createElement('div');
         row.className = 'processo-row';
+        row.style.alignItems = 'flex-start'; // Alinha os botões ao topo caso a mensagem de erro apareça
+
+        const wrapper = document.createElement('div');
+        wrapper.style.flex = '1';
+        wrapper.style.display = 'flex';
+        wrapper.style.flexDirection = 'column';
 
         const input = document.createElement('input');
         input.className = 'inputProcesso';
         input.placeholder = '0000000-00.0000.0.00.0000';
         input.value = value;
 
+        // Aviso dinâmico de processo duplicado
+        const avisoMsg = document.createElement('span');
+        avisoMsg.style.color = '#ef4444';
+        avisoMsg.style.fontSize = '12px';
+        avisoMsg.style.display = 'none';
+        avisoMsg.style.marginTop = '4px';
+        avisoMsg.style.fontWeight = '600';
+
+        function checkDuplicidade() {
+            const val = input.value.trim();
+            if(!val) {
+                avisoMsg.style.display = 'none';
+                input.style.borderColor = 'rgba(255,255,255,0.1)';
+                return;
+            }
+            const existe = todosClientesCache.some(c => {
+               if (clientForm.dataset.editId && c.id === clientForm.dataset.editId) return false;
+               return c.processo && c.processo.includes(val);
+            });
+            
+            if(existe) {
+                avisoMsg.textContent = 'Este processo já está cadastrado no sistema!';
+                avisoMsg.style.display = 'block';
+                input.style.borderColor = '#ef4444';
+            } else {
+                avisoMsg.style.display = 'none';
+                input.style.borderColor = 'rgba(255,255,255,0.1)';
+            }
+        }
+
+        input.addEventListener('input', checkDuplicidade);
+
+        wrapper.appendChild(input);
+        wrapper.appendChild(avisoMsg);
+
         const btnAdd = document.createElement('button');
         btnAdd.type = 'button';
         btnAdd.className = 'btn ghost';
         btnAdd.textContent = '+';
+        btnAdd.style.height = '42px'; // Mantém alinhado com a altura padrão do input
 
         btnAdd.onclick = () => {
             addProcessoField();
@@ -1135,16 +1178,22 @@ document.addEventListener('DOMContentLoaded', () => {
         btnRemove.type = 'button';
         btnRemove.className = 'btn ghost';
         btnRemove.textContent = '-';
+        btnRemove.style.height = '42px';
 
         btnRemove.onclick = () => {
             row.remove();
         };
 
-        row.appendChild(input);
+        row.appendChild(wrapper);
         row.appendChild(btnAdd);
         row.appendChild(btnRemove);
 
         processosContainer.appendChild(row);
+
+        // Se houver valor inicial (ex: na edição), faz a checagem ao abrir o modal
+        if (value) {
+            setTimeout(checkDuplicidade, 100);
+        }
     }
 
     /* ================= TELEFONES ================= */
@@ -1268,7 +1317,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         card.dataset.id = cliente.id;
         card.dataset.status = status;
+        // Adicionando dados para filtragem ampla (Nome, CPF e Processo)
         card.dataset.nome = cliente.nome.toLowerCase();
+        card.dataset.cpf = (cliente.cpf || '').toLowerCase();
+        card.dataset.processo = (cliente.processo || '').toLowerCase();
         
         // Verifica na renderização se o card possui documento anexado para liberação do arraste
         card.dataset.hasDocs = (Array.isArray(cliente.documentos) && cliente.documentos.length > 0) ? 'true' : 'false';
@@ -1514,6 +1566,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function render(){
 
         const clientes = await getClientes();
+        todosClientesCache = clientes; // Abastece o cache para verificação de processos duplicados
 
         // Calcular quantos cards o usuário atual cadastrou hoje na Lista Fria E quantos ele chamou pro Dia 1 hoje
         let countListaFriaHoje = 0;
@@ -1868,7 +1921,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const filterS = filterStatus.value;
 
         Object.values(cardsMap).forEach(card => {
-            const matchSearch = card.dataset.nome.includes(q);
+            // Busca expandida para os principais dados
+            const matchNome = (card.dataset.nome || '').includes(q);
+            const matchCpf = (card.dataset.cpf || '').includes(q);
+            const matchProc = (card.dataset.processo || '').includes(q);
+            
+            const matchSearch = matchNome || matchCpf || matchProc;
             const matchStatus = !filterS || card.dataset.status === filterS;
 
             card.style.display =
@@ -1973,7 +2031,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     <input
         id="searchInput"
-        placeholder="Buscar cliente..."
+        placeholder="Buscar por Nome, Processo ou CPF..."
     />
 
     <select id="filterStatus">
@@ -2038,6 +2096,9 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="row">
                 <input id="inputNome" placeholder="Nome do cliente" required />
             </div>
+            
+            <div id="processosContainer" style="margin-bottom: 14px;"></div>
+
             <div class="row">
                 <input id="inputCPF" placeholder="CPF/CNPJ" />
             </div>
@@ -2052,7 +2113,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <option value="Execução">Execução</option>
                     <option value="Renegociação">Renegociação</option>
                     <option value="Monitoria">Monitória</option>
-                    <option value=ProcedimentoComum">Procedimento Comum</option>
+                    <option value="Procedimento Comum">Procedimento Comum</option>
                 </select>
             </div>
             <div class="row">
@@ -2089,7 +2150,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     <option value="Tocantins">Tocantins</option>
                 </select>
             </div>
-            <div id="processosContainer"></div>
             <div class="docs-section">
                 <h4>Documentos do Cliente</h4>
                 <div id="docsList"></div>
