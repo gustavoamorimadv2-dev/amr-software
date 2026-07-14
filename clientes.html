@@ -297,11 +297,15 @@ input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); co
                             <input type="text" id="addHonValor" placeholder="0,00">
                         </div>
                         <div>
-                            <label>Qtd. Parcelas</label>
-                            <input type="number" id="addHonParcelas" placeholder="Ex: 5" min="1">
+                            <label>Valor Entrada (R$)</label>
+                            <input type="text" id="addHonEntrada" placeholder="Opcional">
                         </div>
-                        <div style="grid-column: 1 / -1;">
-                            <label>Vencimento da 1ª Parcela</label>
+                        <div>
+                            <label>Qtd. Parcelas</label>
+                            <input type="number" id="addHonParcelas" placeholder="Restantes">
+                        </div>
+                        <div>
+                            <label>Vencimento da 1ª</label>
                             <input type="date" id="addHonData">
                         </div>
                     </div>
@@ -609,7 +613,9 @@ window.abrirModalCompleto = function(cliente) {
         btnSalvar.textContent = "Fechar Cliente";
     }
 
+    // Zera os campos ao abrir para evitar resquícios de outros clientes
     document.getElementById('addHonValor').value = "";
+    document.getElementById('addHonEntrada').value = ""; // Novo campo adicionado e zerado
     document.getElementById('addHonParcelas').value = "";
     document.getElementById('addHonData').value = "";
     document.getElementById('addDocNome').value = "";
@@ -691,8 +697,18 @@ window.salvarDetalhesFechamento = async function() {
     }
 }
 
-// ================= LÓGICA DE HONORÁRIOS =================
+// ================= LÓGICA DE HONORÁRIOS E ENTRADA =================
+
+// Máscara dinâmica para Valor Total
 document.getElementById('addHonValor').addEventListener('input', (e) => {
+    let val = e.target.value.replace(/\D/g, '');
+    if(val === '') { e.target.value = ''; return; }
+    val = (parseInt(val) / 100).toFixed(2);
+    e.target.value = val.replace('.', ',');
+});
+
+// Máscara dinâmica para a Entrada
+document.getElementById('addHonEntrada').addEventListener('input', (e) => {
     let val = e.target.value.replace(/\D/g, '');
     if(val === '') { e.target.value = ''; return; }
     val = (parseInt(val) / 100).toFixed(2);
@@ -703,31 +719,64 @@ window.gerarHonorarios = async function() {
     if(!clienteAtual) return;
 
     const valorTotalStr = document.getElementById('addHonValor').value;
-    const parcelas = parseInt(document.getElementById('addHonParcelas').value);
+    const valorEntradaStr = document.getElementById('addHonEntrada').value; // Recupera valor de entrada
+    const parcelasStr = document.getElementById('addHonParcelas').value;
     const dataInicial = document.getElementById('addHonData').value;
 
-    if(!valorTotalStr || !parcelas || !dataInicial) {
-        showToast("Preencha Valor, Parcelas e Data Inicial.");
+    if(!valorTotalStr) {
+        showToast("Preencha ao menos o Valor Total.");
         return;
     }
 
     const valorFloat = parseFloat(valorTotalStr.replace(/\./g, '').replace(',', '.'));
-    const valorParcela = (valorFloat / parcelas).toFixed(2).replace('.', ',');
+    const entradaFloat = valorEntradaStr ? parseFloat(valorEntradaStr.replace(/\./g, '').replace(',', '.')) : 0;
+    
+    let parcelas = 0;
+    if(parcelasStr) {
+        parcelas = parseInt(parcelasStr);
+    }
+
+    // Validação de Lógica Financeira
+    if (entradaFloat > valorFloat) {
+        showToast("A entrada não pode ser maior que o valor total.");
+        return;
+    }
 
     let novosHonorarios = clienteAtual.honorarios || [];
-    let dataAtualObj = new Date(dataInicial + "T00:00:00");
-
-    for(let i = 0; i < parcelas; i++) {
-        let dataParcela = new Date(dataAtualObj);
-        dataParcela.setMonth(dataParcela.getMonth() + i);
-        
+    
+    // Se existir entrada, processa e abate do saldo
+    if (entradaFloat > 0) {
+        const hoje = new Date().toISOString().split('T')[0];
         novosHonorarios.push({
-            id_parcela: `hon_${Date.now()}_${i}`,
-            parcela: `${i + 1}/${parcelas}`,
-            valor: valorParcela,
-            vencimento: dataParcela.toISOString().split('T')[0],
-            status: "Pendente"
+            id_parcela: `hon_${Date.now()}_entrada`,
+            parcela: `Entrada`,
+            valor: entradaFloat.toFixed(2).replace('.', ','),
+            vencimento: hoje,
+            status: "Pendente" // Lança pendente para forçar a conciliação/confirmação
         });
+    }
+
+    // Processa o residual e gera as faturas recorrentes
+    if (parcelas > 0 && dataInicial) {
+        const valorRestante = valorFloat - entradaFloat;
+        const valorParcela = (valorRestante / parcelas).toFixed(2).replace('.', ',');
+        let dataAtualObj = new Date(dataInicial + "T00:00:00");
+
+        for(let i = 0; i < parcelas; i++) {
+            let dataParcela = new Date(dataAtualObj);
+            dataParcela.setMonth(dataParcela.getMonth() + i);
+            
+            novosHonorarios.push({
+                id_parcela: `hon_${Date.now()}_${i}`,
+                parcela: `${i + 1}/${parcelas}`,
+                valor: valorParcela,
+                vencimento: dataParcela.toISOString().split('T')[0],
+                status: "Pendente"
+            });
+        }
+    } else if (entradaFloat < valorFloat) {
+        showToast("Preencha Qtd. Parcelas e Vencimento para gerar o saldo restante.");
+        return;
     }
 
     try {
@@ -873,7 +922,7 @@ function renderizarDocumentos() {
     `).join('');
 }
 
-// ================= LÓGICA DO MODAL BOLETO AVULSO (MANTIDA) =================
+// ================= LÓGICA DO MODAL BOLETO AVULSO =================
 const modalBoleto = document.getElementById('modalBoleto');
 const modalNome = document.getElementById('modalNome');
 const modalCpf = document.getElementById('modalCpf');
