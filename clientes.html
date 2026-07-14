@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Clientes Fechados - CRM AMR ADV</title>
+<title>Clientes - CRM AMR ADV</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.1.0/uicons-thin-rounded/css/uicons-thin-rounded.css'>
@@ -106,6 +106,7 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 }
 .card:hover { transform:translateY(-5px); background:rgba(255,255,255,0.08); border-color: rgba(16, 185, 129, 0.4); }
 .card .color-bar { width:6px; height:100%; border-radius:16px 0 0 16px; background:#10b981; flex-shrink: 0;}
+.card .color-bar.andamento { background: #3b82f6; }
 
 .card-content { padding:20px; flex:1; display:flex; flex-direction:column; overflow:hidden; position: relative;}
 
@@ -117,8 +118,8 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     border: 1px solid rgba(59, 130, 246, 0.3); display: flex; align-items: center; gap: 5px;
 }
 
-.card-header-info { margin-bottom: 12px; margin-top: 25px; display: flex; align-items: center; }
-.card-date { font-size: 11px; color: #10b981; font-weight: 600; background: rgba(16, 185, 129, 0.1); padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(16, 185, 129, 0.2); }
+.card-header-info { margin-bottom: 12px; margin-top: 25px; display: flex; align-items: center; justify-content: space-between; }
+.card-date { font-size: 11px; color: rgba(255,255,255,0.6); font-weight: 500; }
 
 .action-badges { position: absolute; top: 15px; right: 15px; display: flex; gap: 8px; z-index: 2; }
 .badge-btn {
@@ -138,8 +139,6 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 .boleto-info { display: flex; flex-direction: column; gap: 4px; flex: 1; }
 .boleto-info .val { font-size: 14px; font-weight: 700; color: #10b981; }
 .boleto-info .date { font-size: 11px; color: rgba(255,255,255,0.5); }
-.btn-copy { background: rgba(255,255,255,0.1); border: none; color: #fff; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-.btn-copy:hover { background: rgba(255,255,255,0.2); }
 
 /* Seletor de Status da Parcela */
 .status-select {
@@ -161,7 +160,6 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 .status-pago { color: #10b981; border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.1); }
 .status-aberto { color: #f59e0b; border-color: rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.1); }
 .status-atrasado { color: #ef4444; border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.1); }
-
 
 /* ================= MODAIS ================= */
 .modal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(8px); justify-content:center; align-items:center; z-index:50; }
@@ -240,7 +238,7 @@ input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); co
 
 <div class="main">
     <header>
-        <h1>Clientes Fechados</h1>
+        <h1>Clientes</h1>
     </header>
 
     <!-- Resumo Financeiro Dinâmico -->
@@ -288,7 +286,7 @@ input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); co
                         <label>Vendedor</label>
                         <input type="text" id="editVendedor" placeholder="Nome do vendedor">
                     </div>
-                    <button class="btn primary" onclick="salvarDetalhesFechamento()" id="btnSalvarDetalhes">Salvar</button>
+                    <button class="btn primary" onclick="salvarDetalhesFechamento()" id="btnSalvarDetalhes">Fechar Cliente</button>
                 </div>
 
                 <h4 class="section-title" style="margin-top: 25px;">Honorários e Parcelas</h4>
@@ -366,7 +364,7 @@ input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); co
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-import { getFirestore, collection, query, where, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+import { getFirestore, collection, query, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js";
 
 const firebaseConfig = {
@@ -457,10 +455,14 @@ function atualizarResumoFinanceiro(listaClientes) {
 async function carregarClientes() {
     container.innerHTML = "<p style='color:rgba(255,255,255,0.5);'>Carregando clientes...</p>";
     try {
-        const q = query(collection(db, "clientes"), where("status", "==", "fechado"));
+        // Busca TODOS os clientes independentemente do status
+        const q = query(collection(db, "clientes"));
         const snapshot = await getDocs(q);
         clientesData = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
-        exibirClientes(clientesData);
+        
+        // Na tela inicial padrão, mostra apenas os clientes "fechados"
+        const clientesFechados = clientesData.filter(c => c.status === "fechado");
+        exibirClientes(clientesFechados);
     } catch (error) {
         showToast("Erro ao carregar clientes.");
         console.error(error);
@@ -481,11 +483,16 @@ function exibirClientes(lista) {
         const card = document.createElement("div");
         card.className = "card";
         
-        let dataFechamentoStr = "Não registrada";
+        let dataFechamentoStr = "";
         if (cliente.dataFechamento) {
             const dataObj = cliente.dataFechamento.toDate ? cliente.dataFechamento.toDate() : new Date(cliente.dataFechamento);
             dataFechamentoStr = dataObj.toLocaleDateString('pt-BR');
         }
+
+        const isFechado = cliente.status === "fechado";
+        const badgeStatus = isFechado 
+            ? `<span style="background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; border: 1px solid rgba(16, 185, 129, 0.3);">Fechado</span>`
+            : `<span style="background: rgba(59, 130, 246, 0.2); color: #3b82f6; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; border: 1px solid rgba(59, 130, 246, 0.3);">Em Andamento</span>`;
 
         // INDICADOR DE DOCUMENTOS
         let docsIndicator = '';
@@ -512,14 +519,15 @@ function exibirClientes(lista) {
         }).join('');
 
         card.innerHTML = `
-            <div class="color-bar"></div>
+            <div class="color-bar ${isFechado ? '' : 'andamento'}"></div>
             <div class="card-content">
                 ${docsIndicator}
                 <div class="action-badges">
                     <div class="badge-btn badge-boleto" title="Gerar Boleto" id="btnBoleto-${cliente.id}">+</div>
                 </div>
                 <div class="card-header-info">
-                    <span class="card-date">Fechado em: ${dataFechamentoStr}</span>
+                    ${badgeStatus}
+                    ${dataFechamentoStr ? `<span class="card-date">${isFechado ? 'Fechado em:' : 'Data:'} ${dataFechamentoStr}</span>` : ''}
                 </div>
                 <h2>${cliente.nome || "Sem nome"}</h2>
                 <p><strong>CPF:</strong> ${cliente.cpf || "-"}</p>
@@ -543,7 +551,16 @@ function exibirClientes(lista) {
 
 // ================= SISTEMA DE BUSCA AVANÇADO =================
 document.getElementById('buscarCliente').addEventListener('input', (e) => {
-    const termo = e.target.value.toLowerCase();
+    const termo = e.target.value.toLowerCase().trim();
+    
+    // Se o termo estiver vazio, volta a mostrar apenas os fechados
+    if (termo === '') {
+        const clientesFechados = clientesData.filter(c => c.status === "fechado");
+        exibirClientes(clientesFechados);
+        return;
+    }
+
+    // Caso contrário, pesquisa em TODOS os clientes
     const filtrados = clientesData.filter(c => {
         const nome = (c.nome || "").toLowerCase();
         const cpf = (c.cpf || "").toLowerCase();
@@ -584,6 +601,14 @@ window.abrirModalCompleto = function(cliente) {
     
     document.getElementById('editVendedor').value = cliente.vendedor || "";
 
+    // Configura texto do botão com base no status atual
+    const btnSalvar = document.getElementById('btnSalvarDetalhes');
+    if(cliente.status === 'fechado') {
+        btnSalvar.textContent = "Salvar Detalhes";
+    } else {
+        btnSalvar.textContent = "Fechar Cliente";
+    }
+
     document.getElementById('addHonValor').value = "";
     document.getElementById('addHonParcelas').value = "";
     document.getElementById('addHonData').value = "";
@@ -599,14 +624,33 @@ window.abrirModalCompleto = function(cliente) {
 window.fecharModalCompleto = function() {
     modalClienteCompleto.style.display = "none";
     clienteAtual = null;
-    exibirClientes(clientesData); // Recarrega os cards ao fechar para atualizar os status na home
+    
+    // Quando fechar o modal, precisamos checar se estamos no meio de uma busca ou não
+    const termo = document.getElementById('buscarCliente').value.toLowerCase().trim();
+    if (termo === '') {
+        const clientesFechados = clientesData.filter(c => c.status === "fechado");
+        exibirClientes(clientesFechados);
+    } else {
+        const filtrados = clientesData.filter(c => {
+            const nome = (c.nome || "").toLowerCase();
+            const cpf = (c.cpf || "").toLowerCase();
+            const telefone = (c.numeros || "").toLowerCase();
+            const processo = (c.processo || "").toLowerCase();
+            
+            return nome.includes(termo) || 
+                   cpf.includes(termo) || 
+                   telefone.includes(termo) || 
+                   processo.includes(termo);
+        });
+        exibirClientes(filtrados);
+    }
 }
 
 modalClienteCompleto.addEventListener('click', (e) => {
     if(e.target === modalClienteCompleto) fecharModalCompleto();
 });
 
-// ================= LÓGICA DE SALVAR DETALHES DE FECHAMENTO =================
+// ================= LÓGICA DE SALVAR/FECHAR CLIENTE =================
 window.salvarDetalhesFechamento = async function() {
     if(!clienteAtual) return;
     
@@ -614,11 +658,15 @@ window.salvarDetalhesFechamento = async function() {
     const novoVendedor = document.getElementById('editVendedor').value.trim();
     
     const btn = document.getElementById('btnSalvarDetalhes');
-    btn.textContent = "Salvando...";
+    btn.textContent = "Processando...";
     btn.disabled = true;
 
     try {
-        let atualizacoes = { vendedor: novoVendedor };
+        // Agora ao salvar nesta sessão, sempre forçamos o status para "fechado"
+        let atualizacoes = { 
+            vendedor: novoVendedor,
+            status: "fechado" 
+        };
         
         if (novaDataStr) {
             const novaDataFormatada = novaDataStr + "T12:00:00"; 
@@ -630,13 +678,15 @@ window.salvarDetalhesFechamento = async function() {
         await updateDoc(docRef, atualizacoes);
         
         clienteAtual.vendedor = novoVendedor;
-        showToast("Detalhes atualizados com sucesso!");
+        clienteAtual.status = "fechado"; // Atualiza o objeto na memória
+        
+        showToast("Cliente atualizado e fechado com sucesso!");
+        btn.textContent = "Salvar Detalhes"; // Após ser fechado, altera o nome do botão para futuras edições
         
     } catch(err) {
         console.error(err);
         showToast("Erro ao atualizar os detalhes.");
     } finally {
-        btn.textContent = "Salvar";
         btn.disabled = false;
     }
 }
