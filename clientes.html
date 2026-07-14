@@ -64,12 +64,32 @@ header {
 }
 header h1 { font-size:24px; color:#fff; font-weight:800; }
 
+/* ================= RESUMO FINANCEIRO ================= */
+.resumo-container {
+    display: flex; gap: 20px; padding: 25px 30px 0 30px; flex-wrap: wrap; flex-shrink: 0;
+}
+.resumo-card {
+    flex: 1; min-width: 200px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 8px;
+    backdrop-filter: blur(10px); box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+}
+.resumo-card .title { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; }
+.resumo-card .value { font-size: 26px; font-weight: 800; }
+.resumo-pago .value { color: #10b981; }
+.resumo-aberto .value { color: #f59e0b; }
+.resumo-atraso .value { color: #ef4444; }
+.resumo-pago { border-bottom: 4px solid #10b981; }
+.resumo-aberto { border-bottom: 4px solid #f59e0b; }
+.resumo-atraso { border-bottom: 4px solid #ef4444; }
+
+
 /* ================= SEARCH ================= */
-.search-container { padding: 20px 30px 0 30px; }
+.search-container { padding: 25px 30px 0 30px; flex-shrink: 0; }
 #buscarCliente {
     padding:12px 16px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1);
     border-radius:12px; color:#fff; font-size: 14px; outline: none; transition: 0.3s;
-    backdrop-filter: blur(10px); width: 300px;
+    backdrop-filter: blur(10px); width: 380px; 
 }
 #buscarCliente:focus { background:rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.3); }
 #buscarCliente::placeholder { color: rgba(255,255,255,0.5); }
@@ -81,7 +101,7 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     display:flex; background:rgba(255,255,255,0.05); backdrop-filter:blur(15px);
     border:1px solid rgba(255,255,255,0.08); border-radius:16px; box-shadow:0 8px 30px rgba(0,0,0,0.15);
     overflow:hidden; transition:transform 0.3s, background 0.3s; 
-    flex-direction:row; position:relative; width:340px; max-height: 350px;
+    flex-direction:row; position:relative; width:340px; max-height: 380px;
     cursor: pointer;
 }
 .card:hover { transform:translateY(-5px); background:rgba(255,255,255,0.08); border-color: rgba(16, 185, 129, 0.4); }
@@ -140,6 +160,7 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 .status-select option { background: #0f172a; color: #fff; }
 .status-pago { color: #10b981; border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.1); }
 .status-aberto { color: #f59e0b; border-color: rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.1); }
+.status-atrasado { color: #ef4444; border-color: rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.1); }
 
 
 /* ================= MODAIS ================= */
@@ -222,8 +243,24 @@ input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); co
         <h1>Clientes Fechados</h1>
     </header>
 
+    <!-- Resumo Financeiro Dinâmico -->
+    <div class="resumo-container">
+        <div class="resumo-card resumo-pago">
+            <span class="title">Total Recebido</span>
+            <span class="value" id="resumoPago">R$ 0,00</span>
+        </div>
+        <div class="resumo-card resumo-aberto">
+            <span class="title">Total em Aberto</span>
+            <span class="value" id="resumoAberto">R$ 0,00</span>
+        </div>
+        <div class="resumo-card resumo-atraso">
+            <span class="title">Total em Atraso</span>
+            <span class="value" id="resumoAtraso">R$ 0,00</span>
+        </div>
+    </div>
+
     <div class="search-container">
-        <input type="text" id="buscarCliente" placeholder="Buscar cliente por nome...">
+        <input type="text" id="buscarCliente" placeholder="Buscar por nome, CPF, telefone ou processo...">
     </div>
 
     <div class="container" id="clientesContainer"></div>
@@ -365,6 +402,57 @@ function showToast(msg) {
     toastEl._t = setTimeout(() => toastEl.style.display = 'none', 3000);
 }
 
+// ================= HELPERS (LÓGICA FINANCEIRA E DATAS) =================
+function converterMoedaParaFloat(valorStr) {
+    if(!valorStr) return 0;
+    return parseFloat(valorStr.replace(/\./g, '').replace(',', '.'));
+}
+
+function formatarFloatParaMoeda(valor) {
+    return valor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
+function obterStatusEfetivo(parcela) {
+    if (parcela.status === "Pago") return "Pago";
+    
+    if (parcela.vencimento) {
+        // T23:59:59 garante que o vencimento seja até o final do dia configurado
+        const dataVencimento = new Date(parcela.vencimento + "T23:59:59");
+        const hoje = new Date();
+        
+        if (dataVencimento < hoje) {
+            return "Atrasado";
+        }
+    }
+    return "Pendente";
+}
+
+function atualizarResumoFinanceiro(listaClientes) {
+    let totalPago = 0;
+    let totalAberto = 0;
+    let totalAtraso = 0;
+
+    listaClientes.forEach(cliente => {
+        const honorarios = cliente.honorarios || [];
+        honorarios.forEach(h => {
+            const valor = converterMoedaParaFloat(h.valor);
+            const statusEfetivo = obterStatusEfetivo(h);
+
+            if (statusEfetivo === "Pago") {
+                totalPago += valor;
+            } else if (statusEfetivo === "Atrasado") {
+                totalAtraso += valor;
+            } else if (statusEfetivo === "Pendente") {
+                totalAberto += valor;
+            }
+        });
+    });
+
+    document.getElementById('resumoPago').textContent = formatarFloatParaMoeda(totalPago);
+    document.getElementById('resumoAberto').textContent = formatarFloatParaMoeda(totalAberto);
+    document.getElementById('resumoAtraso').textContent = formatarFloatParaMoeda(totalAtraso);
+}
+
 // ================= CARREGAR E RENDERIZAR CARDS =================
 async function carregarClientes() {
     container.innerHTML = "<p style='color:rgba(255,255,255,0.5);'>Carregando clientes...</p>";
@@ -380,6 +468,9 @@ async function carregarClientes() {
 }
 
 function exibirClientes(lista) {
+    // Atualiza o resumo financeiro do topo da página com a lista atual filtrada
+    atualizarResumoFinanceiro(lista);
+    
     container.innerHTML = "";
     if(lista.length === 0) {
         container.innerHTML = "<p style='color:rgba(255,255,255,0.5);'>Nenhum cliente encontrado.</p>";
@@ -402,14 +493,23 @@ function exibirClientes(lista) {
             docsIndicator = `<div class="indicator-docs"><i class="fi fi-tr-clip"></i> ${cliente.documentos.length} Doc(s)</div>`;
         }
 
-        const boletosHtml = (cliente.boletos || []).slice(0, 3).map(b => `
-            <div class="boleto-item" style="padding:6px 10px;">
+        // Mostrar Preview das parcelas (honorarios) baseadas no status em tempo real
+        const honorariosHtml = (cliente.honorarios || []).slice(0, 3).map(h => {
+            const statusEfetivo = obterStatusEfetivo(h);
+            let corBarra = "#f59e0b"; // Pendente
+            
+            if (statusEfetivo === "Pago") corBarra = "#10b981";
+            if (statusEfetivo === "Atrasado") corBarra = "#ef4444";
+
+            return `
+            <div class="boleto-item" style="padding:6px 10px; border-left: 3px solid ${corBarra};">
                 <div class="boleto-info">
-                    <span class="val" style="font-size:12px;">R$ ${b.valor}</span>
-                    <span class="date" style="font-size:10px;">Venc: ${b.vencimento.split('-').reverse().join('/')}</span>
+                    <span class="val" style="font-size:12px;">R$ ${h.valor}</span>
+                    <span class="date" style="font-size:10px;">Venc: ${h.vencimento.split('-').reverse().join('/')} - <strong style="color:${corBarra};">${statusEfetivo}</strong></span>
                 </div>
             </div>
-        `).join('');
+            `;
+        }).join('');
 
         card.innerHTML = `
             <div class="color-bar"></div>
@@ -425,18 +525,15 @@ function exibirClientes(lista) {
                 <p><strong>CPF:</strong> ${cliente.cpf || "-"}</p>
                 <p><strong>Vendedor:</strong> ${cliente.vendedor || "Não informado"}</p>
                 <div class="boletos-list">
-                    ${boletosHtml || '<p style="font-size:11px; color:rgba(255,255,255,0.4);">Sem boletos.</p>'}
-                    ${(cliente.boletos && cliente.boletos.length > 3) ? '<p style="font-size:10px; color:#10b981;">+ outros</p>' : ''}
+                    ${honorariosHtml || '<p style="font-size:11px; color:rgba(255,255,255,0.4);">Sem parcelas geradas.</p>'}
+                    ${(cliente.honorarios && cliente.honorarios.length > 3) ? '<p style="font-size:10px; color:#10b981; margin-top:5px;">+ ver mais no modal</p>' : ''}
                 </div>
             </div>
         `;
         
-        // Clicar no Card abre a visualização Completa
         card.onclick = () => abrirModalCompleto(cliente);
-        
         container.appendChild(card);
 
-        // Clicar no "+" abre apenas o modal de boleto avulso, parando a propagação do clique
         document.getElementById(`btnBoleto-${cliente.id}`).onclick = (e) => {
             e.stopPropagation();
             abrirModalBoleto(cliente);
@@ -444,9 +541,20 @@ function exibirClientes(lista) {
     });
 }
 
+// ================= SISTEMA DE BUSCA AVANÇADO =================
 document.getElementById('buscarCliente').addEventListener('input', (e) => {
     const termo = e.target.value.toLowerCase();
-    const filtrados = clientesData.filter(c => (c.nome || "").toLowerCase().includes(termo));
+    const filtrados = clientesData.filter(c => {
+        const nome = (c.nome || "").toLowerCase();
+        const cpf = (c.cpf || "").toLowerCase();
+        const telefone = (c.numeros || "").toLowerCase();
+        const processo = (c.processo || "").toLowerCase();
+        
+        return nome.includes(termo) || 
+               cpf.includes(termo) || 
+               telefone.includes(termo) || 
+               processo.includes(termo);
+    });
     exibirClientes(filtrados);
 });
 
@@ -462,11 +570,11 @@ window.abrirModalCompleto = function(cliente) {
         <p><strong>CPF/CNPJ:</strong> ${cliente.cpf || "Não informado"}</p>
         <p><strong>E-mail:</strong> ${cliente.email || "Não informado"}</p>
         <p><strong>Telefone:</strong> ${cliente.numeros || "Não informado"}</p>
+        <p><strong>Processo:</strong> ${cliente.processo || "Não informado"}</p>
         <p><strong>Endereço:</strong> ${cliente.endereco || ""}, ${cliente.cidade || ""} - ${cliente.estado || ""}</p>
         <p><strong>CEP:</strong> ${cliente.cep || "Não informado"}</p>
     `;
 
-    // Preencher Data de Fechamento se existir
     if (cliente.dataFechamento) {
         const dataObj = cliente.dataFechamento.toDate ? cliente.dataFechamento.toDate() : new Date(cliente.dataFechamento);
         document.getElementById('editDataFechamento').value = dataObj.toISOString().split('T')[0];
@@ -474,15 +582,11 @@ window.abrirModalCompleto = function(cliente) {
         document.getElementById('editDataFechamento').value = "";
     }
     
-    // Preencher Vendedor
     document.getElementById('editVendedor').value = cliente.vendedor || "";
 
-    // Limpar campos de Honorários
     document.getElementById('addHonValor').value = "";
     document.getElementById('addHonParcelas').value = "";
     document.getElementById('addHonData').value = "";
-
-    // Limpar campos de Documentos
     document.getElementById('addDocNome').value = "";
     document.getElementById('addDocFile').value = "";
 
@@ -495,13 +599,14 @@ window.abrirModalCompleto = function(cliente) {
 window.fecharModalCompleto = function() {
     modalClienteCompleto.style.display = "none";
     clienteAtual = null;
+    exibirClientes(clientesData); // Recarrega os cards ao fechar para atualizar os status na home
 }
 
 modalClienteCompleto.addEventListener('click', (e) => {
     if(e.target === modalClienteCompleto) fecharModalCompleto();
 });
 
-// ================= LÓGICA DE SALVAR DETALHES DE FECHAMENTO (Data e Vendedor) =================
+// ================= LÓGICA DE SALVAR DETALHES DE FECHAMENTO =================
 window.salvarDetalhesFechamento = async function() {
     if(!clienteAtual) return;
     
@@ -516,7 +621,6 @@ window.salvarDetalhesFechamento = async function() {
         let atualizacoes = { vendedor: novoVendedor };
         
         if (novaDataStr) {
-            // Salvamos ao meio-dia para evitar bugs de conversão de fuso horário (-03:00)
             const novaDataFormatada = novaDataStr + "T12:00:00"; 
             atualizacoes.dataFechamento = novaDataFormatada;
             clienteAtual.dataFechamento = novaDataFormatada;
@@ -525,10 +629,8 @@ window.salvarDetalhesFechamento = async function() {
         const docRef = doc(db, "clientes", clienteAtual.id);
         await updateDoc(docRef, atualizacoes);
         
-        // Atualiza a memória e recarrega os cards
         clienteAtual.vendedor = novoVendedor;
         showToast("Detalhes atualizados com sucesso!");
-        exibirClientes(clientesData);
         
     } catch(err) {
         console.error(err);
@@ -594,14 +696,15 @@ window.gerarHonorarios = async function() {
 window.atualizarStatusParcela = async function(index, novoStatus) {
     if(!clienteAtual || !clienteAtual.honorarios) return;
 
+    // Salva o valor real no banco (sempre "Pago" ou "Pendente")
     clienteAtual.honorarios[index].status = novoStatus;
 
     try {
         const docRef = doc(db, "clientes", clienteAtual.id);
         await updateDoc(docRef, { honorarios: clienteAtual.honorarios });
         
-        renderizarHonorarios(); // Atualiza a cor do botão/seletor instantaneamente
-        showToast(`Parcela alterada para ${novoStatus}!`);
+        renderizarHonorarios(); 
+        showToast(`Parcela atualizada para ${novoStatus}!`);
     } catch(err) {
         console.error(err);
         showToast("Erro ao atualizar o status da parcela.");
@@ -618,9 +721,18 @@ function renderizarHonorarios() {
     }
 
     containerHon.innerHTML = honorarios.map((h, index) => {
-        const statusAtual = h.status || "Pendente";
-        const isPago = statusAtual === "Pago";
-        const selectClass = isPago ? 'status-pago' : 'status-aberto';
+        const statusEfetivo = obterStatusEfetivo(h);
+        const isPagoNoBanco = h.status === "Pago"; // Valor puro salvo no BD
+        
+        let selectClass = 'status-aberto';
+        let textoOpcaoAberto = 'Em Aberto';
+        
+        if (statusEfetivo === 'Pago') {
+            selectClass = 'status-pago';
+        } else if (statusEfetivo === 'Atrasado') {
+            selectClass = 'status-atrasado';
+            textoOpcaoAberto = 'Em Atraso'; // Muda a nomenclatura dinamicamente
+        }
 
         return `
         <div class="boleto-item">
@@ -631,8 +743,8 @@ function renderizarHonorarios() {
             </div>
             
             <select class="status-select ${selectClass}" onchange="atualizarStatusParcela(${index}, this.value)">
-                <option value="Pendente" ${!isPago ? 'selected' : ''}>Em Aberto</option>
-                <option value="Pago" ${isPago ? 'selected' : ''}>Pago</option>
+                <option value="Pendente" ${!isPagoNoBanco ? 'selected' : ''}>${textoOpcaoAberto}</option>
+                <option value="Pago" ${isPagoNoBanco ? 'selected' : ''}>Pago</option>
             </select>
         </div>
     `}).join('');
@@ -652,7 +764,6 @@ window.anexarDocumento = async function() {
         return;
     }
     
-    // Se nenhum nome for fornecido, usa o nome do arquivo selecionado
     if(!nomeInput) {
         nomeInput = file.name;
     }
@@ -681,7 +792,6 @@ window.anexarDocumento = async function() {
         fileInput.value = "";
         
         renderizarDocumentos();
-        exibirClientes(clientesData); 
         showToast("Documento anexado com sucesso!");
 
     } catch (error) {
@@ -712,7 +822,6 @@ function renderizarDocumentos() {
         </div>
     `).join('');
 }
-
 
 // ================= LÓGICA DO MODAL BOLETO AVULSO (MANTIDA) =================
 const modalBoleto = document.getElementById('modalBoleto');
