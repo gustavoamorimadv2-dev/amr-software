@@ -333,12 +333,18 @@ document.addEventListener('DOMContentLoaded', () => {
     // Ao clicar em Filtrar
     btnFiltrar.onclick = () => aplicarFiltros();
 
-    // Puxa todos os cards do banco globalmente
+    // Puxa todos os cards do banco globalmente e já remove os com status 'fechado'
     async function carregarTodosCards() {
         containerCards.innerHTML = '<p class="empty-msg">Carregando painel de cards...</p>';
         try {
             const snap = await getDocs(collection(db, "clientes"));
-            todosClientes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            const rawClientes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            
+            // Filtra removendo permanentemente os clientes com status "fechado" da exibição
+            todosClientes = rawClientes.filter(c => {
+                const status = c.status ? String(c.status).toLowerCase().trim() : '';
+                return status !== 'fechado';
+            });
             
             // Popula os selects com dados dinâmicos
             preencherFiltrosDinamicos();
