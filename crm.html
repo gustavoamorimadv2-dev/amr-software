@@ -1783,6 +1783,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(antigo){
                     novo.criadoPor = antigo.criadoPor || "";
                     novo.fechadoPor = antigo.fechadoPor || "";
+                    if (antigo.vendedor) novo.vendedor = antigo.vendedor; // Garante que a variável para a página de clientes seja preservada
+                    if (antigo.dataFechamento) novo.dataFechamento = antigo.dataFechamento; // Garante que a variável para a página de clientes seja preservada
                     novo.dataCadastro = antigo.dataCadastro || new Date().toISOString();
                     novo.dataPipeline = antigo.dataPipeline || null; 
                     novo.dataEmNegociacao = antigo.dataEmNegociacao || null;
@@ -1893,8 +1895,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const docRef = doc(db, "clientes", draggedCard.dataset.id);
             
             const updatePayload = { 
-                status: novoStatus,
-                fechadoPor: novoStatus === 'fechado' ? (currentUser ? currentUser.email : '') : ""
+                status: novoStatus
             };
 
             // Se arrastou para Em Negociação
@@ -1905,6 +1906,14 @@ document.addEventListener('DOMContentLoaded', () => {
             // Se arrastou para Contrato Assinado
             if (novoStatus === 'contrato-assinado') {
                 updatePayload.dataContratoAssinado = new Date().toISOString();
+            }
+
+            // Se arrastou para Fechado
+            if (novoStatus === 'fechado') {
+                const emailVendedor = currentUser ? currentUser.email : '';
+                updatePayload.fechadoPor = emailVendedor;
+                updatePayload.vendedor = emailVendedor; // Para ser lido pela página de Clientes
+                updatePayload.dataFechamento = new Date().toISOString(); // Para ser lido pela página de Clientes
             }
 
             await updateDoc(docRef, updatePayload);
