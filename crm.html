@@ -1566,7 +1566,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function render(){
 
         const clientes = await getClientes();
-        todosClientesCache = clientes; // Abastece o cache para verificação de processos duplicados
+        todosClientesCache = clientes; // Abastece o cache para verificação de processos duplicados e busca interativa
 
         // Calcular quantos cards o usuário atual cadastrou hoje na Lista Fria E quantos ele chamou pro Dia 1 hoje
         let countListaFriaHoje = 0;
@@ -1644,7 +1644,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // REGRA 2: EM NEGOCIAÇÃO (Expirar para funil geral após 10 dias)
             if (cliente.status === 'em-negociacao') {
                 const diasEmNegociacao = getDiaPipeline(cliente.dataEmNegociacao || cliente.dataPipeline || cliente.dataCadastro);
-                if (diasEmNegociacao > 10) {
+                const diasDesdeCadastro = getDiaPipeline(cliente.dataCadastro);
+                
+                if (diasEmNegociacao > 10 && diasDesdeCadastro > 5) {
                     cliente.status = 'funil-geral';
                     updateDoc(doc(db, "clientes", cliente.id), { status: 'funil-geral' });
                 } else {
@@ -1656,7 +1658,9 @@ document.addEventListener('DOMContentLoaded', () => {
             // REGRA 3: CONTRATO ASSINADO (Expirar para funil geral após 30 dias)
             if (cliente.status === 'contrato-assinado') {
                 const diasContrato = getDiaPipeline(cliente.dataContratoAssinado || cliente.dataCadastro);
-                if (diasContrato > 30) {
+                const diasDesdeCadastro = getDiaPipeline(cliente.dataCadastro);
+                
+                if (diasContrato > 30 && diasDesdeCadastro > 5) {
                     cliente.status = 'funil-geral';
                     updateDoc(doc(db, "clientes", cliente.id), { status: 'funil-geral' });
                 } else {
@@ -1673,14 +1677,27 @@ document.addEventListener('DOMContentLoaded', () => {
             // REGRA 4: DIAS 1 ao 5 (Baseados no dataPipeline original)
             const dataBaseParaCalculo = cliente.dataPipeline || cliente.dataCadastro;
             const diaCalc = getDiaPipeline(dataBaseParaCalculo);
+            const diasDesdeCadastro = getDiaPipeline(cliente.dataCadastro);
 
             // Respeita o envio pro Funil Geral se passar de 5 dias na automação normal
+            // E garante que nenhum card vá pro funil geral antes de ter 5 dias do cadastro
             if (diaCalc > 5) {
-                if (cliente.status !== 'funil-geral') {
-                    cliente.status = 'funil-geral';
-                    updateDoc(doc(db, "clientes", cliente.id), { status: 'funil-geral' });
+                if (diasDesdeCadastro > 5) {
+                    if (cliente.status !== 'funil-geral') {
+                        cliente.status = 'funil-geral';
+                        updateDoc(doc(db, "clientes", cliente.id), { status: 'funil-geral' });
+                    }
+                    continue; 
+                } else {
+                    // Mantém no último dia do pipeline (dia-5) até completar os 5 dias exigidos de cadastro
+                    const statusCalc = 'dia-5';
+                    if (cliente.status !== statusCalc) {
+                        cliente.status = statusCalc;
+                        updateDoc(doc(db, "clientes", cliente.id), { status: statusCalc });
+                    }
+                    criarCard(cliente);
+                    continue;
                 }
-                continue; 
             }
 
             // Movimenta os dias sozinho do 1 ao 5
@@ -1926,8 +1943,21 @@ document.addEventListener('DOMContentLoaded', () => {
     /* ================= FILTROS ================= */
 
     function filtragemAplicada(){
-        const q = searchInput.value.toLowerCase();
+        const q = searchInput.value.toLowerCase().trim();
         const filterS = filterStatus.value;
+
+        // Implementação da busca de processo ficando vermelha
+        searchInput.style.color = '#fff'; // Reset cor para branco
+        if (q !== '') {
+            // Verifica se a string digitada contém números (sinalizando possível número de processo)
+            if (/\d/.test(q)) {
+                // Checa no cache se esse trecho pertence a um processo registrado
+                const isProcesso = todosClientesCache.some(c => (c.processo || '').toLowerCase().includes(q));
+                if (isProcesso) {
+                    searchInput.style.color = '#ef4444'; // Cor vermelha imediata
+                }
+            }
+        }
 
         Object.values(cardsMap).forEach(card => {
             // Busca expandida para os principais dados
