@@ -479,9 +479,9 @@ document.addEventListener('DOMContentLoaded', () => {
         toastEl._t = setTimeout(() => { toastEl.style.display = 'none'; }, 3000);
     }
 
-    // Função para calcular dias passados
+    // Função para calcular dias passados baseados puramente na data do banco
     function calcularDias(dataAlvo) {
-        if (!dataAlvo) return 999; 
+        if (!dataAlvo) return 0; 
         const data1 = new Date(dataAlvo);
         const data2 = new Date();
         const diffTempo = Math.abs(data2 - data1);
@@ -557,11 +557,23 @@ document.addEventListener('DOMContentLoaded', () => {
         todosClientes.forEach(cliente => {
             if (cliente.nome && !cliente.nome.toLowerCase().includes(q)) return;
 
-            const dataBase = cliente.dataUltimoResgate || cliente.dataCadastro;
-            const diasPassados = calcularDias(dataBase);
-            const disponivel = diasPassados >= 5;
+            // NOVA REGRA BLINDADA DE DISPONIBILIDADE
+            // 1. Apenas cards que O CRM marcou como 'funil-geral'
+            // 2. A data de cadastro tem que ter estourado os 5 dias de segurança
+            const diasDesdeCadastro = calcularDias(cliente.dataCadastro);
+            const disponivel = (cliente.status === 'funil-geral') && (diasDesdeCadastro > 5);
+
+            const diasUltimoResgate = calcularDias(cliente.dataUltimoResgate);
+            const diasPassados = cliente.dataUltimoResgate ? diasUltimoResgate : diasDesdeCadastro;
             
             const ehMeu = cliente.userId === currentUser.uid;
+
+            // Se o card não for meu e não estiver disponível, é tratado como "Com Outro", 
+            // mas nós vamos garantir que o status dele na verdade esteja marcando que outro pegou ele.
+            // Para não sujar a tela com cards "dia-1" de terceiros que nem foram pro funil, filtramos:
+            if (!disponivel && !ehMeu && cliente.status !== 'lista-fria') {
+                return; // Esconde da tela cards ativos que estão no funil de outras pessoas.
+            }
 
             const card = document.createElement('div');
             
@@ -576,17 +588,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 card.addEventListener('dragend', () => {
                     card.classList.remove('dragging');
                 });
-            } else if (ehMeu) {
+            } else if (ehMeu && cliente.status === 'lista-fria' && cliente.responsavel === (currentUser.email || currentUser.displayName)) {
+                // Apenas exibe meus resgates se eles foram recém resgatados (estão na minha lista-fria como meus)
                 card.className = 'card meus';
-            } else {
+            } else if (!disponivel && cliente.status === 'lista-fria' && cliente.responsavel) {
+                // Os resgatados de outros
                 card.className = 'card outros';
+            } else {
+                return; // Ignora cards que não encaixam em nenhuma das views do funil geral
             }
 
             const primeiroProcesso = cliente.processo ? cliente.processo.split(',')[0].trim() : '-';
             const primeiroNumero = cliente.numeros ? cliente.numeros.split(',')[0].trim() : '-';
 
             const responsavelTexto = cliente.responsavel || 'Sem responsável';
-            const dataTexto = dataBase ? new Date(dataBase).toLocaleDateString('pt-BR') : 'Sem registro';
+            const dataTexto = cliente.dataUltimoResgate 
+                                ? new Date(cliente.dataUltimoResgate).toLocaleDateString('pt-BR') 
+                                : (cliente.dataCadastro ? new Date(cliente.dataCadastro).toLocaleDateString('pt-BR') : 'Sem registro');
 
             let corResponsavel = "#9ca3af";
             if (!disponivel) corResponsavel = ehMeu ? "#60a5fa" : "#f87171";
