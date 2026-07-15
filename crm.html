@@ -764,7 +764,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentDocs = [];
 
     let currentUser = null;
-    let todosClientesCache = []; // Cache para validação rápida de processos duplicados
+    let todosClientesCache = []; // Cache Global para validação em todo o banco do escritório
 
     /* ================= VARIÁVEIS AGENTE WHATSAPP ================= */
     const btnAgente = document.getElementById('btnAgente');
@@ -1150,7 +1150,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             
             if(existe) {
-                avisoMsg.textContent = 'Este processo já está cadastrado no sistema!';
+                avisoMsg.textContent = 'Este processo já está cadastrado no sistema do escritório!';
                 avisoMsg.style.display = 'block';
                 input.style.borderColor = '#ef4444';
             } else {
@@ -1565,8 +1565,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function render(){
 
+        // Aqui mantemos a listagem pessoal para a tela exibir apenas os cards do usuário atual
         const clientes = await getClientes();
-        todosClientesCache = clientes; // Abastece o cache para verificação de processos duplicados e busca interativa
+        
+        // NOVO: Puxa TODOS os clientes do banco de dados do escritório para o cache global (usado na busca da barra e verificação de duplicidade)
+        const queryTodos = query(collection(db, "clientes"));
+        const snapshotTodos = await getDocs(queryTodos);
+        todosClientesCache = snapshotTodos.docs.map(docData => ({
+            id: docData.id,
+            ...docData.data()
+        }));
 
         // Calcular quantos cards o usuário atual cadastrou hoje na Lista Fria E quantos ele chamou pro Dia 1 hoje
         let countListaFriaHoje = 0;
@@ -1747,17 +1755,11 @@ document.addEventListener('DOMContentLoaded', () => {
             .filter(valor => valor);
 
             if (processos.length > 0) {
-                const queryTodos = query(collection(db, "clientes"));
-                const snapshotTodos = await getDocs(queryTodos);
-                const todosClientes = snapshotTodos.docs.map(docData => ({
-                    id: docData.id,
-                    ...docData.data()
-                }));
-
                 let processoDuplicado = null;
 
+                // Modificado para usar o novo todosClientesCache (que agora é o banco do escritório todo)
                 for (let proc of processos) {
-                    const clienteExistente = todosClientes.find(c => {
+                    const clienteExistente = todosClientesCache.find(c => {
                         if (clientForm.dataset.editId && c.id === clientForm.dataset.editId) return false;
                         return c.processo && c.processo.includes(proc);
                     });
@@ -1951,7 +1953,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (q !== '') {
             // Verifica se a string digitada contém números (sinalizando possível número de processo)
             if (/\d/.test(q)) {
-                // Checa no cache se esse trecho pertence a um processo registrado
+                // Checa no cache se esse trecho pertence a um processo registrado globalmente
                 const isProcesso = todosClientesCache.some(c => (c.processo || '').toLowerCase().includes(q));
                 if (isProcesso) {
                     searchInput.style.color = '#ef4444'; // Cor vermelha imediata
