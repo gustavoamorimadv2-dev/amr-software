@@ -309,10 +309,14 @@ input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); co
                             <input type="date" id="addHonData">
                         </div>
                     </div>
-                    <button class="btn primary" style="width: 100%;" onclick="gerarHonorarios()">Gerar Parcelas</button>
+                    
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <button class="btn primary" style="flex: 1;" onclick="gerarHonorarios()">Gerar Parcelado</button>
+                        <button class="btn ghost" style="flex: 1;" onclick="gerarAVista()">Gerar à Vista</button>
+                    </div>
                 </div>
                 
-                <div id="listaHonorariosGerados" class="boletos-list" style="max-height: 180px;">
+                <div id="listaHonorariosGerados" class="boletos-list" style="max-height: 250px;">
                 </div>
             </div>
 
@@ -615,7 +619,7 @@ window.abrirModalCompleto = function(cliente) {
 
     // Zera os campos ao abrir para evitar resquícios de outros clientes
     document.getElementById('addHonValor').value = "";
-    document.getElementById('addHonEntrada').value = ""; // Novo campo adicionado e zerado
+    document.getElementById('addHonEntrada').value = ""; 
     document.getElementById('addHonParcelas').value = "";
     document.getElementById('addHonData').value = "";
     document.getElementById('addDocNome').value = "";
@@ -699,7 +703,7 @@ window.salvarDetalhesFechamento = async function() {
 
 // ================= LÓGICA DE HONORÁRIOS E ENTRADA =================
 
-// Máscara dinâmica para Valor Total
+// Máscara dinâmica para Valores ao digitar
 document.getElementById('addHonValor').addEventListener('input', (e) => {
     let val = e.target.value.replace(/\D/g, '');
     if(val === '') { e.target.value = ''; return; }
@@ -707,13 +711,51 @@ document.getElementById('addHonValor').addEventListener('input', (e) => {
     e.target.value = val.replace('.', ',');
 });
 
-// Máscara dinâmica para a Entrada
 document.getElementById('addHonEntrada').addEventListener('input', (e) => {
     let val = e.target.value.replace(/\D/g, '');
     if(val === '') { e.target.value = ''; return; }
     val = (parseInt(val) / 100).toFixed(2);
     e.target.value = val.replace('.', ',');
 });
+
+// Lógica para Pagamento À Vista
+window.gerarAVista = async function() {
+    if(!clienteAtual) return;
+    
+    const valorTotalStr = document.getElementById('addHonValor').value;
+    if(!valorTotalStr) {
+        showToast("Preencha o Valor Total para registrar o pagamento à vista.");
+        return;
+    }
+
+    const hoje = new Date().toISOString().split('T')[0];
+    let novosHonorarios = clienteAtual.honorarios || [];
+    
+    novosHonorarios.push({
+        id_parcela: `hon_${Date.now()}_avista`,
+        parcela: `À Vista`,
+        valor: valorTotalStr,
+        vencimento: hoje,
+        status: "Pago" // Valor à vista já entra como pago
+    });
+
+    try {
+        const docRef = doc(db, "clientes", clienteAtual.id);
+        await updateDoc(docRef, { honorarios: novosHonorarios });
+        
+        clienteAtual.honorarios = novosHonorarios;
+        
+        const idxCache = clientesData.findIndex(c => c.id === clienteAtual.id);
+        if (idxCache > -1) clientesData[idxCache] = clienteAtual;
+        atualizarResumoFinanceiro(clientesData);
+        
+        renderizarHonorarios();
+        showToast("Pagamento à vista registrado com sucesso!");
+    } catch(err) {
+        console.error(err);
+        showToast("Erro ao registrar pagamento à vista.");
+    }
+};
 
 window.gerarHonorarios = async function() {
     if(!clienteAtual) return;
@@ -792,6 +834,44 @@ window.gerarHonorarios = async function() {
     }
 }
 
+// EDIÇÃO INLINE - Mascara para alteração de valor individual da parcela
+window.mascaraDinheirInline = function(input) {
+    let val = input.value.replace(/\D/g, '');
+    if(val === '') { input.value = ''; return; }
+    val = (parseInt(val) / 100).toFixed(2);
+    input.value = val.replace('.', ',');
+};
+
+// EDIÇÃO INLINE - Salvar modificações
+window.atualizarDadosParcela = async function(index, campo, valor) {
+    if(!clienteAtual || !clienteAtual.honorarios) return;
+    
+    if (campo === 'valor') {
+        let val = valor.replace(/\D/g, '');
+        if(val !== '') {
+            val = (parseInt(val) / 100).toFixed(2).replace('.', ',');
+            clienteAtual.honorarios[index][campo] = val;
+        }
+    } else {
+        clienteAtual.honorarios[index][campo] = valor;
+    }
+
+    try {
+        const docRef = doc(db, "clientes", clienteAtual.id);
+        await updateDoc(docRef, { honorarios: clienteAtual.honorarios });
+        
+        // Sincroniza a memória global e atualiza o resumo do cabeçalho automaticamente
+        const idxCache = clientesData.findIndex(c => c.id === clienteAtual.id);
+        if (idxCache > -1) clientesData[idxCache] = clienteAtual;
+        atualizarResumoFinanceiro(clientesData);
+        
+        showToast("Parcela atualizada!");
+    } catch(err) {
+        console.error(err);
+        showToast("Erro ao atualizar parcela.");
+    }
+};
+
 window.atualizarStatusParcela = async function(index, novoStatus) {
     if(!clienteAtual || !clienteAtual.honorarios) return;
 
@@ -802,6 +882,10 @@ window.atualizarStatusParcela = async function(index, novoStatus) {
         const docRef = doc(db, "clientes", clienteAtual.id);
         await updateDoc(docRef, { honorarios: clienteAtual.honorarios });
         
+        const idxCache = clientesData.findIndex(c => c.id === clienteAtual.id);
+        if (idxCache > -1) clientesData[idxCache] = clienteAtual;
+        atualizarResumoFinanceiro(clientesData);
+        
         renderizarHonorarios(); 
         showToast(`Parcela atualizada para ${novoStatus}!`);
     } catch(err) {
@@ -809,6 +893,27 @@ window.atualizarStatusParcela = async function(index, novoStatus) {
         showToast("Erro ao atualizar o status da parcela.");
     }
 }
+
+// Remover Parcela Individual
+window.removerParcela = async function(index) {
+    if(!confirm("Tem certeza que deseja remover esta parcela?")) return;
+    
+    clienteAtual.honorarios.splice(index, 1);
+    try {
+        const docRef = doc(db, "clientes", clienteAtual.id);
+        await updateDoc(docRef, { honorarios: clienteAtual.honorarios });
+        
+        const idxCache = clientesData.findIndex(c => c.id === clienteAtual.id);
+        if (idxCache > -1) clientesData[idxCache] = clienteAtual;
+        atualizarResumoFinanceiro(clientesData);
+        
+        renderizarHonorarios();
+        showToast("Parcela removida!");
+    } catch(err) {
+        console.error(err);
+        showToast("Erro ao remover parcela.");
+    }
+};
 
 function renderizarHonorarios() {
     const containerHon = document.getElementById('listaHonorariosGerados');
@@ -834,17 +939,32 @@ function renderizarHonorarios() {
         }
 
         return `
-        <div class="boleto-item">
-            <div class="boleto-info">
-                <span style="font-size:12px; font-weight:bold; color:#fff;">Parcela ${h.parcela}</span>
-                <span class="val">R$ ${h.valor}</span>
-                <span class="date">Vencimento: ${h.vencimento.split('-').reverse().join('/')}</span>
+        <div class="boleto-item" style="flex-direction: column; align-items: stretch; position: relative;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size:12px; font-weight:bold; color:#fff;">Parcela ${h.parcela}</span>
+                    <button class="btn-close" style="font-size:14px; position:relative; top:0; right:0;" title="Remover Parcela" onclick="removerParcela(${index})">✖</button>
+                </div>
+                <select class="status-select ${selectClass}" onchange="atualizarStatusParcela(${index}, this.value)">
+                    <option value="Pendente" ${!isPagoNoBanco ? 'selected' : ''}>${textoOpcaoAberto}</option>
+                    <option value="Pago" ${isPagoNoBanco ? 'selected' : ''}>Pago</option>
+                </select>
             </div>
             
-            <select class="status-select ${selectClass}" onchange="atualizarStatusParcela(${index}, this.value)">
-                <option value="Pendente" ${!isPagoNoBanco ? 'selected' : ''}>${textoOpcaoAberto}</option>
-                <option value="Pago" ${isPagoNoBanco ? 'selected' : ''}>Pago</option>
-            </select>
+            <!-- Edição Inline -->
+            <div style="display: flex; gap: 8px;">
+                <div style="flex: 1;">
+                    <label style="font-size: 10px; margin-bottom: 2px;">Valor (R$)</label>
+                    <input type="text" value="${h.valor}" style="padding: 6px; font-size: 12px; width: 100%;" 
+                           oninput="mascaraDinheirInline(this)" 
+                           onchange="atualizarDadosParcela(${index}, 'valor', this.value)">
+                </div>
+                <div style="flex: 1;">
+                    <label style="font-size: 10px; margin-bottom: 2px;">Vencimento</label>
+                    <input type="date" value="${h.vencimento}" style="padding: 6px; font-size: 12px; width: 100%;" 
+                           onchange="atualizarDadosParcela(${index}, 'vencimento', this.value)">
+                </div>
+            </div>
         </div>
     `}).join('');
 }
