@@ -130,6 +130,10 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 .badge-boleto { background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
 .badge-boleto:hover { background: #10b981; color: #fff; }
 
+/* Botão de excluir card */
+.badge-delete { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); font-size: 14px; }
+.badge-delete:hover { background: #ef4444; color: #fff; }
+
 .card h2 { font-size:18px; margin-bottom:8px; color:#fff; font-weight:700; padding-right: 40px; }
 .card p { font-size:13px; color:rgba(255,255,255,0.7); margin:2px 0; }
 .card p strong { color: #fff; font-weight: 600; }
@@ -372,7 +376,8 @@ input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); co
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-import { getFirestore, collection, query, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+// Foi adicionado o 'deleteDoc' à importação do Firestore
+import { getFirestore, collection, query, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js";
 
 const firebaseConfig = {
@@ -459,6 +464,43 @@ function atualizarResumoFinanceiro(listaClientes) {
     document.getElementById('resumoAtraso').textContent = formatarFloatParaMoeda(totalAtraso);
 }
 
+// ================= LÓGICA DE EXCLUSÃO DE CLIENTE =================
+window.deletarCliente = async function(id) {
+    if(!confirm("Tem certeza que deseja excluir este card? Esta ação não pode ser desfeita.")) return;
+    
+    try {
+        await deleteDoc(doc(db, "clientes", id));
+        
+        // Remove do cache local
+        clientesData = clientesData.filter(c => c.id !== id);
+        
+        // Mantém a lógica de busca/filtros visualmente correta ao re-renderizar
+        const termo = document.getElementById('buscarCliente').value.toLowerCase().trim();
+        if (termo === '') {
+            const clientesFechados = clientesData.filter(c => c.status === "fechado");
+            exibirClientes(clientesFechados);
+        } else {
+            const filtrados = clientesData.filter(c => {
+                const nome = (c.nome || "").toLowerCase();
+                const cpf = (c.cpf || "").toLowerCase();
+                const telefone = (c.numeros || "").toLowerCase();
+                const processo = (c.processo || "").toLowerCase();
+                
+                return nome.includes(termo) || 
+                       cpf.includes(termo) || 
+                       telefone.includes(termo) || 
+                       processo.includes(termo);
+            });
+            exibirClientes(filtrados);
+        }
+        
+        showToast("Card excluído com sucesso!");
+    } catch(err) {
+        console.error(err);
+        showToast("Erro ao excluir o card.");
+    }
+};
+
 // ================= CARREGAR E RENDERIZAR CARDS =================
 async function carregarClientes() {
     container.innerHTML = "<p style='color:rgba(255,255,255,0.5);'>Carregando clientes...</p>";
@@ -526,11 +568,13 @@ function exibirClientes(lista) {
             `;
         }).join('');
 
+        // HTML do card atualizado com o botão de excluir
         card.innerHTML = `
             <div class="color-bar ${isFechado ? '' : 'andamento'}"></div>
             <div class="card-content">
                 ${docsIndicator}
                 <div class="action-badges">
+                    <div class="badge-btn badge-delete" title="Excluir Card" id="btnDelete-${cliente.id}">🗑️</div>
                     <div class="badge-btn badge-boleto" title="Gerar Boleto" id="btnBoleto-${cliente.id}">+</div>
                 </div>
                 <div class="card-header-info">
@@ -549,6 +593,12 @@ function exibirClientes(lista) {
         
         card.onclick = () => abrirModalCompleto(cliente);
         container.appendChild(card);
+
+        // Dispara a exclusão ao clicar na lixeira (o e.stopPropagation previne que o modal abra)
+        document.getElementById(`btnDelete-${cliente.id}`).onclick = (e) => {
+            e.stopPropagation();
+            deletarCliente(cliente.id);
+        };
 
         document.getElementById(`btnBoleto-${cliente.id}`).onclick = (e) => {
             e.stopPropagation();
