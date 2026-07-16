@@ -1,4 +1,4 @@
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -308,7 +308,7 @@ select option {
 
 .card-content{
     padding:20px;
-    padding-right: 180px; /* <--- BARREIRA INVISÍVEL: Protege todo o lado direito de sobreposição */
+    padding-right: 180px; 
     flex:1;
     display:flex;
     flex-direction:column;
@@ -354,8 +354,8 @@ select option {
     top:15px;
     right:15px;
     display:flex;
-    flex-direction: column; /* Coloca um em cima do outro */
-    align-items: flex-end;  /* Alinha os botões na direita */
+    flex-direction: column; 
+    align-items: flex-end;  
     gap:8px;
 }
 
@@ -915,15 +915,22 @@ document.addEventListener('DOMContentLoaded', () => {
                     btnEnviar.style.background = '#4b5563'; 
                     btnEnviar.disabled = true;
 
-                    // Mover automaticamente para o Dia 1 e criar o dataPipeline
+                    // Mover automaticamente para o Dia 1 e manipular o DOM localmente
                     try {
                         const docRef = doc(db, "clientes", cliente.id);
                         await updateDoc(docRef, { 
                             status: 'dia-1',
                             dataPipeline: new Date().toISOString() // Inicia a contagem dos dias AQUI
                         });
-                        // Re-renderiza o Kanban para o card mudar de lugar sozinho
-                        render();
+                        
+                        // Manipulação direta do DOM (sem render() do zero)
+                        const cardNaTela = document.querySelector(`.card[data-id="${cliente.id}"]`);
+                        const colunaDia1 = document.getElementById('dia-1');
+                        if (cardNaTela && colunaDia1) {
+                            colunaDia1.appendChild(cardNaTela);
+                            cardNaTela.dataset.status = 'dia-1';
+                            cardNaTela.className = 'card dia-1'; // Atualiza a cor
+                        }
                     } catch (error) {
                         console.error("Erro ao mover para o Dia 1:", error);
                     }
@@ -1379,7 +1386,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         status: 'dia-1',
                         dataPipeline: new Date().toISOString() 
                     });
-                    render(); // Re-renderiza o quadro para o card mover imediatamente
+                    
+                    // Movimentação direta do DOM
+                    const colunaDia1 = document.getElementById('dia-1');
+                    if (colunaDia1) {
+                        colunaDia1.appendChild(card);
+                        card.dataset.status = 'dia-1';
+                        card.className = 'card dia-1'; // Atualiza a cor
+                    }
                 } catch (error) {
                     console.error("Erro ao mover para o Dia 1:", error);
                 }
@@ -1404,7 +1418,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         const docRef = doc(db, "clientes", cliente.id);
                         await deleteDoc(docRef);
                         showToast("Card excluído com sucesso!");
-                        render(); // Atualiza a tela
+                        card.remove(); // Remoção direta do DOM
                     } catch (error) {
                         console.error("Erro ao excluir o card: ", error);
                         showToast("Erro ao excluir o card!");
@@ -1439,7 +1453,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         status: 'em-negociacao',
                         dataEmNegociacao: new Date().toISOString()
                     });
-                    render(); // Re-renderiza para atualizar a posição
+                    
+                    // Movimentação direta do DOM
+                    const colunaNegociacao = document.getElementById('em-negociacao');
+                    if (colunaNegociacao) {
+                        colunaNegociacao.appendChild(card);
+                        card.dataset.status = 'em-negociacao';
+                        card.className = 'card em-negociacao'; // Atualiza a cor
+                        btnNegociacao.style.display = 'none'; // Esconde o botão após usar
+                    }
                 } catch (error) {
                     console.error("Erro ao mover para Em Negociação:", error);
                 }
@@ -1730,12 +1752,8 @@ document.addEventListener('DOMContentLoaded', () => {
             .filter(valor => valor);
 
             if (processos.length > 0) {
-                const queryTodos = query(collection(db, "clientes"));
-                const snapshotTodos = await getDocs(queryTodos);
-                const todosClientes = snapshotTodos.docs.map(docData => ({
-                    id: docData.id,
-                    ...docData.data()
-                }));
+                // UTILIZANDO O CACHE LOCAL EM VEZ DE BAIXAR O BANCO TODO:
+                const todosClientes = todosClientesCache;
 
                 let processoDuplicado = null;
 
@@ -1919,7 +1937,11 @@ document.addEventListener('DOMContentLoaded', () => {
             await updateDoc(docRef, updatePayload);
             
             showToast("Sucesso! Card movimentado e salvo.");
-            render();
+            
+            // Movimentação direta do DOM para evitar o consumo e atualizar a cor imediatamente
+            col.appendChild(draggedCard); 
+            draggedCard.dataset.status = novoStatus;
+            draggedCard.className = `card ${novoStatus}`; 
         });
     });
 
