@@ -1151,9 +1151,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 input.style.borderColor = 'rgba(255,255,255,0.1)';
                 return;
             }
+            
+            // Remove tudo que não for número
+            const cleanVal = val.replace(/\D/g, '');
+            if(cleanVal === '') return;
+
             const existe = todosClientesCache.some(c => {
                if (clientForm.dataset.editId && c.id === clientForm.dataset.editId) return false;
-               return c.processo && c.processo.includes(val);
+               if (!c.processo) return false;
+               
+               // Transforma todos os processos cadastrados do cliente em versões apenas com números
+               const processosCadastrados = c.processo.split(',').map(p => p.replace(/\D/g, ''));
+               return processosCadastrados.includes(cleanVal);
             });
             
             if(existe) {
@@ -1758,9 +1767,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 let processoDuplicado = null;
 
                 for (let proc of processos) {
+                    
+                    // Remove tudo que não for número antes de checar no momento de salvar
+                    const cleanInputProc = proc.replace(/\D/g, '');
+                    if(!cleanInputProc) continue;
+
                     const clienteExistente = todosClientes.find(c => {
                         if (clientForm.dataset.editId && c.id === clientForm.dataset.editId) return false;
-                        return c.processo && c.processo.includes(proc);
+                        if (!c.processo) return false;
+                        
+                        // Limpa os processos que vieram do banco para comparação perfeita
+                        const processosCadastrados = c.processo.split(',').map(p => p.replace(/\D/g, ''));
+                        return processosCadastrados.includes(cleanInputProc);
                     });
 
                     if (clienteExistente) {
@@ -1801,8 +1819,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 if(antigo){
                     novo.criadoPor = antigo.criadoPor || "";
                     novo.fechadoPor = antigo.fechadoPor || "";
-                    if (antigo.vendedor) novo.vendedor = antigo.vendedor; // Garante que a variável para a página de clientes seja preservada
-                    if (antigo.dataFechamento) novo.dataFechamento = antigo.dataFechamento; // Garante que a variável para a página de clientes seja preservada
+                    if (antigo.vendedor) novo.vendedor = antigo.vendedor; 
+                    if (antigo.dataFechamento) novo.dataFechamento = antigo.dataFechamento; 
                     novo.dataCadastro = antigo.dataCadastro || new Date().toISOString();
                     novo.dataPipeline = antigo.dataPipeline || null; 
                     novo.dataEmNegociacao = antigo.dataEmNegociacao || null;
@@ -1819,7 +1837,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             closeModal();
-            await render(); // Atualiza a tela após salvar
+            await render(); 
         } catch (error) {
             console.error("Erro ao salvar cliente: ", error);
             showToast("Erro inesperado ao salvar!");
