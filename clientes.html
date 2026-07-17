@@ -72,7 +72,7 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     flex: 1; min-width: 200px;
     background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
     border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 8px;
-    backdrop-filter: blur(10px); box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+    backdrop-filter: blur(10px); box-shadow: 0 8px 30px rgba(0,0,0,0.1); transition: 0.3s;
 }
 .resumo-card .title { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; }
 .resumo-card .value { font-size: 26px; font-weight: 800; }
@@ -81,24 +81,11 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 .resumo-atraso .value { color: #ef4444; }
 .resumo-pago { border-bottom: 4px solid #10b981; }
 .resumo-aberto { border-bottom: 4px solid #f59e0b; }
-.resumo-atraso { border-bottom: 4px solid #ef4444; }
-
-/* ================= ABAS (TABS) ================= */
-.tabs-container {
-    padding: 20px 30px 0 30px; display: flex; gap: 20px; flex-shrink: 0;
-    border-bottom: 1px solid rgba(255,255,255,0.08);
-}
-.tab-btn {
-    background: none; border: none; color: rgba(255,255,255,0.5);
-    font-size: 14px; font-weight: 600; padding: 10px 15px;
-    cursor: pointer; border-bottom: 3px solid transparent;
-    transition: 0.3s; margin-bottom: -1px;
-}
-.tab-btn.active { color: #10b981; border-bottom: 3px solid #10b981; }
-.tab-btn:hover:not(.active) { color: #fff; }
+.resumo-atraso { border-bottom: 4px solid #ef4444; cursor: pointer; }
+.resumo-atraso:hover { transform: translateY(-2px); background: rgba(239, 68, 68, 0.1); }
 
 /* ================= SEARCH ================= */
-.search-container { padding: 20px 30px 0 30px; flex-shrink: 0; }
+.search-container { padding: 25px 30px 0 30px; flex-shrink: 0; display: flex; gap: 15px; flex-wrap: wrap; }
 
 /* ================= CARDS ================= */
 .container { flex:1; overflow-y:auto; padding:30px; display:flex; flex-wrap:wrap; gap:25px; align-content: flex-start; }
@@ -107,14 +94,17 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     display:flex; background:rgba(255,255,255,0.05); backdrop-filter:blur(15px);
     border:1px solid rgba(255,255,255,0.08); border-radius:16px; box-shadow:0 8px 30px rgba(0,0,0,0.15);
     overflow:hidden; transition:transform 0.3s, background 0.3s; 
-    flex-direction:row; position:relative; width:340px; max-height: 440px;
+    flex-direction:row; position:relative; width:340px; max-height: 480px;
     cursor: pointer;
 }
 .card:hover { transform:translateY(-5px); background:rgba(255,255,255,0.08); border-color: rgba(16, 185, 129, 0.4); }
-.card .color-bar { width:6px; height:100%; border-radius:16px 0 0 16px; flex-shrink: 0; transition: background 0.3s;}
-.card .color-bar.fechado { background:#10b981; }
+
+/* Classe Dinâmica para Renunciar */
+.card.renunciar { border-color: rgba(168, 85, 247, 0.6) !important; background: rgba(168, 85, 247, 0.08) !important; }
+.card.renunciar .color-bar { background: #a855f7 !important; }
+
+.card .color-bar { width:6px; height:100%; border-radius:16px 0 0 16px; background:#10b981; flex-shrink: 0; transition: 0.3s;}
 .card .color-bar.andamento { background: #3b82f6; }
-.card .color-bar.finalizado { background: #8b5cf6; }
 
 .card-content { padding:20px; flex:1; display:flex; flex-direction:column; overflow:hidden; position: relative;}
 
@@ -138,7 +128,6 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 .badge-boleto { background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
 .badge-boleto:hover { background: #10b981; color: #fff; }
 
-/* Botão de excluir card */
 .badge-delete { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); font-size: 14px; }
 .badge-delete:hover { background: #ef4444; color: #fff; }
 
@@ -146,17 +135,15 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 .card p { font-size:13px; color:rgba(255,255,255,0.7); margin:2px 0; }
 .card p strong { color: #fff; font-weight: 600; }
 
-/* Novo Seletor de Situação de Cobrança */
-.select-cobranca {
-    margin-top: 10px; margin-bottom: 5px;
+/* Novo Modal/Select de Situação direto no Card */
+.situacao-card-select {
     background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-    color: #fff; padding: 6px 10px; border-radius: 8px;
-    font-size: 11px; font-weight: 600; outline: none;
-    cursor: pointer; width: 100%; transition: 0.3s;
-    appearance: none; -webkit-appearance: none;
+    color: #fff; padding: 8px 10px; border-radius: 8px; font-size: 12px; font-weight: 600;
+    outline: none; cursor: pointer; transition: 0.3s; width: 100%; margin-top: 10px; margin-bottom: 5px;
+    appearance: none; -webkit-appearance: none; text-align: center;
 }
-.select-cobranca:focus { border-color: #3b82f6; background: rgba(255,255,255,0.1); }
-.select-cobranca option { background: #0f172a; color: #fff; }
+.situacao-card-select:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3); }
+.situacao-card-select option { background: #0f172a; color: #fff; }
 
 .boletos-list { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; padding-right: 5px; flex: 1; }
 .boleto-item { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
@@ -166,19 +153,9 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 
 /* Seletor de Status da Parcela */
 .status-select {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
-    color: #fff;
-    padding: 6px 10px;
-    border-radius: 8px;
-    font-size: 11px;
-    font-weight: 600;
-    outline: none;
-    cursor: pointer;
-    transition: 0.3s;
-    appearance: none;
-    -webkit-appearance: none;
-    text-align: center;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    color: #fff; padding: 6px 10px; border-radius: 8px; font-size: 11px; font-weight: 600;
+    outline: none; cursor: pointer; transition: 0.3s; appearance: none; -webkit-appearance: none; text-align: center;
 }
 .status-select option { background: #0f172a; color: #fff; }
 .status-pago { color: #10b981; border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.1); }
@@ -195,22 +172,18 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 .btn-close { background: transparent; border: none; color: rgba(255,255,255,0.5); font-size: 20px; cursor: pointer; transition: 0.3s; }
 .btn-close:hover { color: #ef4444; }
 
-/* Grid Modal Info Completa */
 .grid-completa { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
 @media(max-width: 768px) { .grid-completa { grid-template-columns: 1fr; } }
 
 .section-title { font-size: 14px; font-weight: 700; color: #10b981; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
 
-/* Lista de Infos Pessoais */
 .info-pessoal { display: flex; flex-direction: column; gap: 10px; background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); }
 .info-pessoal p { font-size: 13px; color: rgba(255,255,255,0.7); }
 .info-pessoal strong { color: #fff; }
 
-/* Form Honorarios */
 .honorarios-box { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px; }
 .form-inline { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
 
-/* Lista Docs */
 .doc-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); padding: 12px 16px; border-radius: 12px; margin-bottom: 8px; transition: 0.2s; }
 .doc-item:hover { background: rgba(255,255,255,0.08); border-color: rgba(59, 130, 246, 0.3); }
 .doc-info { display: flex; align-items: center; gap: 12px; overflow: hidden; }
@@ -219,10 +192,8 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 .btn-view-doc { background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: none; transition: 0.2s; }
 .btn-view-doc:hover { background: #3b82f6; color: #fff; }
 
-/* Inputs Base */
 label { display:block; margin-bottom:6px; font-size:12px; font-weight:600; color:rgba(255,255,255,0.7); }
 input { width:100%; padding:10px 14px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:#fff; font-size:13px; outline:none; transition:0.3s; }
-input[type="checkbox"] { width: auto; display: inline-block; }
 input:focus { background:rgba(255,255,255,0.1); border-color: #10b981; }
 input[type="file"] { padding: 8px; font-size: 12px; }
 input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; margin-right: 10px; }
@@ -238,7 +209,6 @@ input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); co
 .btn.ghost { background:rgba(255,255,255,0.1); color:#fff; }
 .btn.ghost:hover { background:rgba(255,255,255,0.2); }
 
-/* Toast */
 .toast {
     position:fixed; right:30px; bottom:30px; background:rgba(255,255,255,0.1);
     backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); color:#fff;
@@ -266,7 +236,6 @@ input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); co
         <h1>Clientes</h1>
     </header>
 
-    <!-- Resumo Financeiro Dinâmico -->
     <div class="resumo-container">
         <div class="resumo-card resumo-pago">
             <span class="title">Total Recebido</span>
@@ -276,28 +245,24 @@ input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); co
             <span class="title">Total em Aberto</span>
             <span class="value" id="resumoAberto">R$ 0,00</span>
         </div>
-        <!-- Card clicável para acionar a aba de atrasados -->
-        <div class="resumo-card resumo-atraso" style="cursor: pointer; transition: 0.3s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'" onclick="setAba('atrasados')" title="Clique para ver clientes em atraso">
+        <div class="resumo-card resumo-atraso" onclick="toggleFiltroAtrasados()" title="Clique para filtrar apenas devedores">
             <span class="title">Total em Atraso</span>
             <span class="value" id="resumoAtraso">R$ 0,00</span>
         </div>
     </div>
 
-    <!-- Sistema de Abas Adicionado -->
-    <div class="tabs-container">
-        <button id="tab-todos" class="tab-btn active" onclick="setAba('todos')">Todos os Clientes</button>
-        <button id="tab-atrasados" class="tab-btn" onclick="setAba('atrasados')">Atrasados</button>
-        <button id="tab-finalizados" class="tab-btn" onclick="setAba('finalizados')">Finalizados Judicialmente</button>
-    </div>
-
-    <div class="search-container" style="display: flex; gap: 15px; flex-wrap: wrap;">
+    <div class="search-container">
         <input type="text" id="buscarCliente" placeholder="Buscar por nome, CPF, telefone ou processo..." style="flex: 1; min-width: 250px;">
         
         <select id="filtroPeriodo" style="padding:12px 16px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); border-radius:12px; color:#fff; font-size: 14px; outline: none; transition: 0.3s; backdrop-filter: blur(10px); cursor: pointer; min-width: 180px;">
-            <option value="todos" style="background: #0f172a; color: #fff;">Período (Fechados)</option>
+            <option value="todos" style="background: #0f172a; color: #fff;">Todos os Fechados</option>
+            <option value="hoje" style="background: #0f172a; color: #fff;">Fechados Hoje</option>
             <option value="semana" style="background: #0f172a; color: #fff;">Fechados esta Semana</option>
             <option value="mes" style="background: #0f172a; color: #fff;">Fechados este Mês</option>
+            <option value="data" style="background: #0f172a; color: #fff;">Data Específica</option>
         </select>
+
+        <input type="date" id="filtroDataEspecifica" style="display: none; padding:12px 16px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); border-radius:12px; color:#fff; font-size: 14px; outline: none; backdrop-filter: blur(10px);">
     </div>
 
     <div class="container" id="clientesContainer"></div>
@@ -325,14 +290,7 @@ input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); co
                         <label>Vendedor</label>
                         <input type="text" id="editVendedor" placeholder="Nome do vendedor">
                     </div>
-                    
-                    <!-- Adicionado Checkbox para Aba Judicial -->
-                    <div style="flex: 1; min-width: 100%; display: flex; align-items: center; gap: 10px; margin-top: 10px;">
-                        <input type="checkbox" id="editFinalizadoJudicialmente" style="width: 16px; height: 16px; margin: 0; cursor: pointer;">
-                        <label style="margin: 0; cursor: pointer; font-size: 13px;" for="editFinalizadoJudicialmente">Cliente Finalizado Judicialmente</label>
-                    </div>
-
-                    <button class="btn primary" style="width: 100%; margin-top: 5px;" onclick="salvarDetalhesFechamento()" id="btnSalvarDetalhes">Salvar / Fechar Cliente</button>
+                    <button class="btn primary" onclick="salvarDetalhesFechamento()" id="btnSalvarDetalhes">Fechar Cliente</button>
                 </div>
 
                 <h4 class="section-title" style="margin-top: 25px;">Honorários e Parcelas</h4>
@@ -372,10 +330,8 @@ input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); co
                 <div class="honorarios-box">
                     <label>Nome do Documento</label>
                     <input type="text" id="addDocNome" placeholder="Opcional (Usa nome do arquivo se vazio)" style="margin-bottom:10px;">
-                    
                     <label>Arquivo</label>
                     <input type="file" id="addDocFile" style="margin-bottom:10px;">
-                    
                     <button class="btn blue" style="width: 100%;" onclick="anexarDocumento()" id="btnAnexarDoc">Anexar Documento</button>
                 </div>
 
@@ -441,13 +397,11 @@ const toastEl = document.getElementById("toast");
 
 let clienteAtual = null;
 let clientesData = [];
-let abaAtual = 'todos'; // Controle global do sistema de abas
+let filtroAtrasadosAtivo = false;
 
-// Hover Sidebar
 sidebar.addEventListener('mouseenter', () => { sidebar.classList.add('expanded'); mainContent.classList.add('blur'); });
 sidebar.addEventListener('mouseleave', () => { sidebar.classList.remove('expanded'); mainContent.classList.remove('blur'); });
 
-// Toast
 function showToast(msg) {
     toastEl.textContent = msg;
     toastEl.style.display = 'block';
@@ -508,6 +462,27 @@ function atualizarResumoFinanceiro(listaClientes) {
 // ================= SISTEMA DE BUSCA E FILTROS UNIFICADO =================
 const inputBusca = document.getElementById('buscarCliente');
 const selectPeriodo = document.getElementById('filtroPeriodo');
+const inputDataEspecifica = document.getElementById('filtroDataEspecifica');
+
+window.toggleFiltroAtrasados = function() {
+    filtroAtrasadosAtivo = !filtroAtrasadosAtivo;
+    const cardAtraso = document.querySelector('.resumo-atraso');
+    if (filtroAtrasadosAtivo) {
+        cardAtraso.style.background = 'rgba(239, 68, 68, 0.2)';
+        cardAtraso.style.borderColor = '#ef4444';
+    } else {
+        cardAtraso.style.background = '';
+        cardAtraso.style.borderColor = '';
+    }
+    aplicarFiltros();
+}
+
+function isToday(dateString) {
+    if (!dateString) return false;
+    const date = new Date(dateString);
+    const now = new Date();
+    return date.getDate() === now.getDate() && date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+}
 
 function isThisWeek(dateString) {
     if (!dateString) return false;
@@ -532,38 +507,37 @@ function isThisMonth(dateString) {
     return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
 }
 
-window.setAba = function(aba) {
-    abaAtual = aba;
-    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-    document.getElementById('tab-' + aba).classList.add('active');
-    aplicarFiltros();
+function isSpecificDate(dateString, targetDateStr) {
+    if (!dateString || !targetDateStr) return false;
+    const date = new Date(dateString);
+    const iso = date.toISOString().split('T')[0];
+    return iso === targetDateStr;
 }
 
 window.aplicarFiltros = function() {
     const termo = inputBusca.value.toLowerCase().trim();
     const periodo = selectPeriodo.value;
+    const targetDate = inputDataEspecifica.value;
     
     let filtrados = clientesData;
 
-    // 1. Filtro da Aba Selecionada Principal
-    if (abaAtual === 'finalizados') {
-        filtrados = filtrados.filter(c => c.finalizado_judicialmente === true);
+    if (termo !== '' && periodo === "todos") {
+        filtrados = clientesData.filter(c => {
+            const nome = (c.nome || "").toLowerCase();
+            const cpf = (c.cpf || "").toLowerCase();
+            const telefone = (c.numeros || "").toLowerCase();
+            const processo = (c.processo || "").toLowerCase();
+            return nome.includes(termo) || cpf.includes(termo) || telefone.includes(termo) || processo.includes(termo);
+        });
     } else {
-        // Remove finalizados judicialmente das outras listas
-        filtrados = filtrados.filter(c => c.finalizado_judicialmente !== true);
+        filtrados = clientesData.filter(c => c.status === "fechado");
 
-        if (abaAtual === 'atrasados') {
+        if (periodo === "hoje") {
             filtrados = filtrados.filter(c => {
-                const honorarios = c.honorarios || [];
-                return honorarios.some(h => obterStatusEfetivo(h) === 'Atrasado');
+                const dataObj = c.dataFechamento?.toDate ? c.dataFechamento.toDate() : c.dataFechamento;
+                return isToday(dataObj);
             });
-        }
-    }
-
-    // 2. Filtro de Período (Não aplicamos na aba atrasados para não ocultar resultados indevidos)
-    if (periodo !== "todos" && abaAtual !== 'atrasados' && abaAtual !== 'finalizados') {
-        filtrados = filtrados.filter(c => c.status === "fechado");
-        if (periodo === "semana") {
+        } else if (periodo === "semana") {
             filtrados = filtrados.filter(c => {
                 const dataObj = c.dataFechamento?.toDate ? c.dataFechamento.toDate() : c.dataFechamento;
                 return isThisWeek(dataObj);
@@ -573,18 +547,29 @@ window.aplicarFiltros = function() {
                 const dataObj = c.dataFechamento?.toDate ? c.dataFechamento.toDate() : c.dataFechamento;
                 return isThisMonth(dataObj);
             });
+        } else if (periodo === "data" && targetDate) {
+            filtrados = filtrados.filter(c => {
+                const dataObj = c.dataFechamento?.toDate ? c.dataFechamento.toDate() : c.dataFechamento;
+                return isSpecificDate(dataObj, targetDate);
+            });
+        }
+
+        if (termo !== '') {
+            filtrados = filtrados.filter(c => {
+                const nome = (c.nome || "").toLowerCase();
+                const cpf = (c.cpf || "").toLowerCase();
+                const telefone = (c.numeros || "").toLowerCase();
+                const processo = (c.processo || "").toLowerCase();
+                return nome.includes(termo) || cpf.includes(termo) || telefone.includes(termo) || processo.includes(termo);
+            });
         }
     }
 
-    // 3. Filtro de Busca de Texto
-    if (termo !== '') {
+    // Aplica o filtro de atrasados se estiver ativo
+    if (filtroAtrasadosAtivo) {
         filtrados = filtrados.filter(c => {
-            const nome = (c.nome || "").toLowerCase();
-            const cpf = (c.cpf || "").toLowerCase();
-            const telefone = (c.numeros || "").toLowerCase();
-            const processo = (c.processo || "").toLowerCase();
-            
-            return nome.includes(termo) || cpf.includes(termo) || telefone.includes(termo) || processo.includes(termo);
+            const honorarios = c.honorarios || [];
+            return honorarios.some(h => obterStatusEfetivo(h) === "Atrasado");
         });
     }
 
@@ -592,13 +577,20 @@ window.aplicarFiltros = function() {
 }
 
 inputBusca.addEventListener('input', aplicarFiltros);
-selectPeriodo.addEventListener('change', aplicarFiltros);
+inputDataEspecifica.addEventListener('change', aplicarFiltros);
 
+selectPeriodo.addEventListener('change', (e) => {
+    if (e.target.value === 'data') {
+        inputDataEspecifica.style.display = 'block';
+    } else {
+        inputDataEspecifica.style.display = 'none';
+    }
+    aplicarFiltros();
+});
 
 // ================= LÓGICA DE EXCLUSÃO DE CLIENTE =================
 window.deletarCliente = async function(id) {
     if(!confirm("Tem certeza que deseja excluir este card? Esta ação não pode ser desfeita.")) return;
-    
     try {
         await deleteDoc(doc(db, "clientes", id));
         clientesData = clientesData.filter(c => c.id !== id);
@@ -610,23 +602,33 @@ window.deletarCliente = async function(id) {
     }
 };
 
-// ================= ATUALIZAR STATUS DE COBRANÇA DIRETO DO CARD =================
-window.atualizarSituacaoCobranca = async function(clienteId, novoStatus) {
-    try {
-        const docRef = doc(db, "clientes", clienteId);
-        await updateDoc(docRef, { situacao_cobranca: novoStatus });
-        
-        // Atualiza cache local
-        const idx = clientesData.findIndex(c => c.id === clienteId);
-        if(idx > -1) {
-            clientesData[idx].situacao_cobranca = novoStatus;
+// ================= LÓGICA DE ATUALIZAR SITUAÇÃO =================
+window.atualizarSituacao = async function(clienteId, novaSituacao) {
+    // Altera a cor do Card Imediatamente antes do banco para UX suave
+    const cardEl = document.getElementById(`card-cliente-${clienteId}`);
+    if (cardEl) {
+        if (novaSituacao === 'Renunciar') {
+            cardEl.classList.add('renunciar');
+        } else {
+            cardEl.classList.remove('renunciar');
         }
-        showToast("Status de cobrança atualizado!");
+    }
+
+    try {
+        const clienteRef = doc(db, "clientes", clienteId);
+        await updateDoc(clienteRef, { situacao: novaSituacao });
+        
+        const idx = clientesData.findIndex(c => c.id === clienteId);
+        if (idx > -1) {
+            clientesData[idx].situacao = novaSituacao;
+        }
+        
+        showToast("Situação da cobrança atualizada!");
     } catch(err) {
         console.error(err);
-        showToast("Erro ao atualizar status de cobrança.");
+        showToast("Erro ao atualizar situação.");
     }
-}
+};
 
 // ================= CARREGAR E RENDERIZAR CARDS =================
 async function carregarClientes() {
@@ -635,7 +637,6 @@ async function carregarClientes() {
         const q = query(collection(db, "clientes"));
         const snapshot = await getDocs(q);
         clientesData = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
-        
         aplicarFiltros();
     } catch (error) {
         showToast("Erro ao carregar clientes.");
@@ -644,17 +645,20 @@ async function carregarClientes() {
 }
 
 function exibirClientes(lista) {
-    atualizarResumoFinanceiro(clientesData); // Mantém o resumo geral sempre atualizado em relação aos dados globais
+    atualizarResumoFinanceiro(lista);
     
     container.innerHTML = "";
     if(lista.length === 0) {
-        container.innerHTML = "<p style='color:rgba(255,255,255,0.5);'>Nenhum cliente encontrado nesta visão.</p>";
+        container.innerHTML = "<p style='color:rgba(255,255,255,0.5);'>Nenhum cliente encontrado.</p>";
         return;
     }
     
     lista.forEach(cliente => {
         const card = document.createElement("div");
-        card.className = "card";
+        const isRenunciar = cliente.situacao === "Renunciar";
+        
+        card.className = `card ${isRenunciar ? 'renunciar' : ''}`;
+        card.id = `card-cliente-${cliente.id}`;
         
         let dataFechamentoStr = "";
         if (cliente.dataFechamento) {
@@ -663,18 +667,9 @@ function exibirClientes(lista) {
         }
 
         const isFechado = cliente.status === "fechado";
-        const isFinalizado = cliente.finalizado_judicialmente === true;
-        
-        // Define a cor da barra do card
-        let colorClass = 'andamento';
-        if (isFinalizado) colorClass = 'finalizado';
-        else if (isFechado) colorClass = 'fechado';
-
-        const badgeStatus = isFinalizado 
-            ? `<span style="background: rgba(139, 92, 246, 0.2); color: #8b5cf6; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; border: 1px solid rgba(139, 92, 246, 0.3);">Finalizado Judic.</span>`
-            : (isFechado 
-                ? `<span style="background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; border: 1px solid rgba(16, 185, 129, 0.3);">Fechado</span>`
-                : `<span style="background: rgba(59, 130, 246, 0.2); color: #3b82f6; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; border: 1px solid rgba(59, 130, 246, 0.3);">Em Andamento</span>`);
+        const badgeStatus = isFechado 
+            ? `<span style="background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; border: 1px solid rgba(16, 185, 129, 0.3);">Fechado</span>`
+            : `<span style="background: rgba(59, 130, 246, 0.2); color: #3b82f6; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; border: 1px solid rgba(59, 130, 246, 0.3);">Em Andamento</span>`;
 
         let docsIndicator = '';
         if (cliente.documentos && cliente.documentos.length > 0) {
@@ -684,7 +679,6 @@ function exibirClientes(lista) {
         const honorariosHtml = (cliente.honorarios || []).slice(0, 3).map(h => {
             const statusEfetivo = obterStatusEfetivo(h);
             let corBarra = "#f59e0b"; 
-            
             if (statusEfetivo === "Pago") corBarra = "#10b981";
             if (statusEfetivo === "Atrasado") corBarra = "#ef4444";
 
@@ -699,7 +693,7 @@ function exibirClientes(lista) {
         }).join('');
 
         card.innerHTML = `
-            <div class="color-bar ${colorClass}"></div>
+            <div class="color-bar ${isFechado ? '' : 'andamento'}"></div>
             <div class="card-content">
                 ${docsIndicator}
                 <div class="action-badges">
@@ -714,13 +708,12 @@ function exibirClientes(lista) {
                 <p><strong>CPF:</strong> ${cliente.cpf || "-"}</p>
                 <p><strong>Vendedor:</strong> ${cliente.vendedor || "Não informado"}</p>
                 
-                <!-- Nova Opção de Situação de Cobrança Interna -->
-                <select class="select-cobranca" onclick="event.stopPropagation()" onchange="atualizarSituacaoCobranca('${cliente.id}', this.value)">
-                    <option value="">Status da Cobrança...</option>
-                    <option value="Cobrança Realizada" ${cliente.situacao_cobranca === 'Cobrança Realizada' ? 'selected' : ''}>Cobrança Realizada</option>
-                    <option value="Renegociação" ${cliente.situacao_cobranca === 'Renegociação' ? 'selected' : ''}>Renegociação</option>
-                    <option value="Sem Retorno" ${cliente.situacao_cobranca === 'Sem Retorno' ? 'selected' : ''}>Sem Retorno</option>
-                    <option value="Renunciar Processo" ${cliente.situacao_cobranca === 'Renunciar Processo' ? 'selected' : ''}>Renunciar Processo</option>
+                <select class="situacao-card-select" onclick="event.stopPropagation()" onchange="atualizarSituacao('${cliente.id}', this.value)">
+                    <option value="" ${!cliente.situacao ? 'selected' : ''}>Situação da Cobrança...</option>
+                    <option value="Cobrança realizada" ${cliente.situacao === 'Cobrança realizada' ? 'selected' : ''}>Cobrança realizada</option>
+                    <option value="Renegociação" ${cliente.situacao === 'Renegociação' ? 'selected' : ''}>Renegociação</option>
+                    <option value="Sem retorno" ${cliente.situacao === 'Sem retorno' ? 'selected' : ''}>Sem retorno</option>
+                    <option value="Renunciar" ${cliente.situacao === 'Renunciar' ? 'selected' : ''}>Renunciar</option>
                 </select>
 
                 <div class="boletos-list">
@@ -769,10 +762,9 @@ window.abrirModalCompleto = function(cliente) {
     }
     
     document.getElementById('editVendedor').value = cliente.vendedor || "";
-    document.getElementById('editFinalizadoJudicialmente').checked = cliente.finalizado_judicialmente || false;
 
     const btnSalvar = document.getElementById('btnSalvarDetalhes');
-    if(cliente.status === 'fechado' || cliente.finalizado_judicialmente) {
+    if(cliente.status === 'fechado') {
         btnSalvar.textContent = "Salvar Detalhes";
     } else {
         btnSalvar.textContent = "Fechar Cliente";
@@ -807,7 +799,6 @@ window.salvarDetalhesFechamento = async function() {
     
     const novaDataStr = document.getElementById('editDataFechamento').value;
     const novoVendedor = document.getElementById('editVendedor').value.trim();
-    const isFinalizado = document.getElementById('editFinalizadoJudicialmente').checked;
     
     const btn = document.getElementById('btnSalvarDetalhes');
     btn.textContent = "Processando...";
@@ -816,8 +807,7 @@ window.salvarDetalhesFechamento = async function() {
     try {
         let atualizacoes = { 
             vendedor: novoVendedor,
-            status: "fechado",
-            finalizado_judicialmente: isFinalizado
+            status: "fechado" 
         };
         
         if (novaDataStr) {
@@ -831,16 +821,14 @@ window.salvarDetalhesFechamento = async function() {
         
         clienteAtual.vendedor = novoVendedor;
         clienteAtual.status = "fechado"; 
-        clienteAtual.finalizado_judicialmente = isFinalizado;
         
-        showToast("Detalhes atualizados com sucesso!");
-        fecharModalCompleto(); 
+        showToast("Cliente atualizado e fechado com sucesso!");
+        btn.textContent = "Salvar Detalhes"; 
         
     } catch(err) {
         console.error(err);
         showToast("Erro ao atualizar os detalhes.");
     } finally {
-        btn.textContent = "Salvar / Fechar Cliente";
         btn.disabled = false;
     }
 }
@@ -888,6 +876,7 @@ window.gerarAVista = async function() {
         
         const idxCache = clientesData.findIndex(c => c.id === clienteAtual.id);
         if (idxCache > -1) clientesData[idxCache] = clienteAtual;
+        atualizarResumoFinanceiro(clientesData);
         
         renderizarHonorarios();
         showToast("Pagamento à vista registrado com sucesso!");
@@ -997,6 +986,7 @@ window.atualizarDadosParcela = async function(index, campo, valor) {
         
         const idxCache = clientesData.findIndex(c => c.id === clienteAtual.id);
         if (idxCache > -1) clientesData[idxCache] = clienteAtual;
+        atualizarResumoFinanceiro(clientesData);
         
         showToast("Parcela atualizada!");
     } catch(err) {
@@ -1016,6 +1006,7 @@ window.atualizarStatusParcela = async function(index, novoStatus) {
         
         const idxCache = clientesData.findIndex(c => c.id === clienteAtual.id);
         if (idxCache > -1) clientesData[idxCache] = clienteAtual;
+        atualizarResumoFinanceiro(clientesData);
         
         renderizarHonorarios(); 
         showToast(`Parcela atualizada para ${novoStatus}!`);
@@ -1035,6 +1026,7 @@ window.removerParcela = async function(index) {
         
         const idxCache = clientesData.findIndex(c => c.id === clienteAtual.id);
         if (idxCache > -1) clientesData[idxCache] = clienteAtual;
+        atualizarResumoFinanceiro(clientesData);
         
         renderizarHonorarios();
         showToast("Parcela removida!");
