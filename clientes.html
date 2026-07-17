@@ -83,8 +83,22 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 .resumo-aberto { border-bottom: 4px solid #f59e0b; }
 .resumo-atraso { border-bottom: 4px solid #ef4444; }
 
+/* ================= ABAS (TABS) ================= */
+.tabs-container {
+    padding: 20px 30px 0 30px; display: flex; gap: 20px; flex-shrink: 0;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.tab-btn {
+    background: none; border: none; color: rgba(255,255,255,0.5);
+    font-size: 14px; font-weight: 600; padding: 10px 15px;
+    cursor: pointer; border-bottom: 3px solid transparent;
+    transition: 0.3s; margin-bottom: -1px;
+}
+.tab-btn.active { color: #10b981; border-bottom: 3px solid #10b981; }
+.tab-btn:hover:not(.active) { color: #fff; }
+
 /* ================= SEARCH ================= */
-.search-container { padding: 25px 30px 0 30px; flex-shrink: 0; }
+.search-container { padding: 20px 30px 0 30px; flex-shrink: 0; }
 
 /* ================= CARDS ================= */
 .container { flex:1; overflow-y:auto; padding:30px; display:flex; flex-wrap:wrap; gap:25px; align-content: flex-start; }
@@ -93,12 +107,14 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     display:flex; background:rgba(255,255,255,0.05); backdrop-filter:blur(15px);
     border:1px solid rgba(255,255,255,0.08); border-radius:16px; box-shadow:0 8px 30px rgba(0,0,0,0.15);
     overflow:hidden; transition:transform 0.3s, background 0.3s; 
-    flex-direction:row; position:relative; width:340px; max-height: 380px;
+    flex-direction:row; position:relative; width:340px; max-height: 440px;
     cursor: pointer;
 }
 .card:hover { transform:translateY(-5px); background:rgba(255,255,255,0.08); border-color: rgba(16, 185, 129, 0.4); }
-.card .color-bar { width:6px; height:100%; border-radius:16px 0 0 16px; background:#10b981; flex-shrink: 0;}
+.card .color-bar { width:6px; height:100%; border-radius:16px 0 0 16px; flex-shrink: 0; transition: background 0.3s;}
+.card .color-bar.fechado { background:#10b981; }
 .card .color-bar.andamento { background: #3b82f6; }
+.card .color-bar.finalizado { background: #8b5cf6; }
 
 .card-content { padding:20px; flex:1; display:flex; flex-direction:column; overflow:hidden; position: relative;}
 
@@ -130,7 +146,19 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 .card p { font-size:13px; color:rgba(255,255,255,0.7); margin:2px 0; }
 .card p strong { color: #fff; font-weight: 600; }
 
-.boletos-list { margin-top: 15px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; padding-right: 5px; flex: 1; }
+/* Novo Seletor de Situação de Cobrança */
+.select-cobranca {
+    margin-top: 10px; margin-bottom: 5px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    color: #fff; padding: 6px 10px; border-radius: 8px;
+    font-size: 11px; font-weight: 600; outline: none;
+    cursor: pointer; width: 100%; transition: 0.3s;
+    appearance: none; -webkit-appearance: none;
+}
+.select-cobranca:focus { border-color: #3b82f6; background: rgba(255,255,255,0.1); }
+.select-cobranca option { background: #0f172a; color: #fff; }
+
+.boletos-list { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; padding-right: 5px; flex: 1; }
 .boleto-item { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .boleto-info { display: flex; flex-direction: column; gap: 4px; flex: 1; }
 .boleto-info .val { font-size: 14px; font-weight: 700; color: #10b981; }
@@ -194,6 +222,7 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 /* Inputs Base */
 label { display:block; margin-bottom:6px; font-size:12px; font-weight:600; color:rgba(255,255,255,0.7); }
 input { width:100%; padding:10px 14px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:#fff; font-size:13px; outline:none; transition:0.3s; }
+input[type="checkbox"] { width: auto; display: inline-block; }
 input:focus { background:rgba(255,255,255,0.1); border-color: #10b981; }
 input[type="file"] { padding: 8px; font-size: 12px; }
 input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; margin-right: 10px; }
@@ -247,17 +276,25 @@ input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); co
             <span class="title">Total em Aberto</span>
             <span class="value" id="resumoAberto">R$ 0,00</span>
         </div>
-        <div class="resumo-card resumo-atraso">
+        <!-- Card clicável para acionar a aba de atrasados -->
+        <div class="resumo-card resumo-atraso" style="cursor: pointer; transition: 0.3s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform='translateY(0)'" onclick="setAba('atrasados')" title="Clique para ver clientes em atraso">
             <span class="title">Total em Atraso</span>
             <span class="value" id="resumoAtraso">R$ 0,00</span>
         </div>
+    </div>
+
+    <!-- Sistema de Abas Adicionado -->
+    <div class="tabs-container">
+        <button id="tab-todos" class="tab-btn active" onclick="setAba('todos')">Todos os Clientes</button>
+        <button id="tab-atrasados" class="tab-btn" onclick="setAba('atrasados')">Atrasados</button>
+        <button id="tab-finalizados" class="tab-btn" onclick="setAba('finalizados')">Finalizados Judicialmente</button>
     </div>
 
     <div class="search-container" style="display: flex; gap: 15px; flex-wrap: wrap;">
         <input type="text" id="buscarCliente" placeholder="Buscar por nome, CPF, telefone ou processo..." style="flex: 1; min-width: 250px;">
         
         <select id="filtroPeriodo" style="padding:12px 16px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); border-radius:12px; color:#fff; font-size: 14px; outline: none; transition: 0.3s; backdrop-filter: blur(10px); cursor: pointer; min-width: 180px;">
-            <option value="todos" style="background: #0f172a; color: #fff;">Todos os Fechados</option>
+            <option value="todos" style="background: #0f172a; color: #fff;">Período (Fechados)</option>
             <option value="semana" style="background: #0f172a; color: #fff;">Fechados esta Semana</option>
             <option value="mes" style="background: #0f172a; color: #fff;">Fechados este Mês</option>
         </select>
@@ -288,7 +325,14 @@ input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); co
                         <label>Vendedor</label>
                         <input type="text" id="editVendedor" placeholder="Nome do vendedor">
                     </div>
-                    <button class="btn primary" onclick="salvarDetalhesFechamento()" id="btnSalvarDetalhes">Fechar Cliente</button>
+                    
+                    <!-- Adicionado Checkbox para Aba Judicial -->
+                    <div style="flex: 1; min-width: 100%; display: flex; align-items: center; gap: 10px; margin-top: 10px;">
+                        <input type="checkbox" id="editFinalizadoJudicialmente" style="width: 16px; height: 16px; margin: 0; cursor: pointer;">
+                        <label style="margin: 0; cursor: pointer; font-size: 13px;" for="editFinalizadoJudicialmente">Cliente Finalizado Judicialmente</label>
+                    </div>
+
+                    <button class="btn primary" style="width: 100%; margin-top: 5px;" onclick="salvarDetalhesFechamento()" id="btnSalvarDetalhes">Salvar / Fechar Cliente</button>
                 </div>
 
                 <h4 class="section-title" style="margin-top: 25px;">Honorários e Parcelas</h4>
@@ -397,6 +441,7 @@ const toastEl = document.getElementById("toast");
 
 let clienteAtual = null;
 let clientesData = [];
+let abaAtual = 'todos'; // Controle global do sistema de abas
 
 // Hover Sidebar
 sidebar.addEventListener('mouseenter', () => { sidebar.classList.add('expanded'); mainContent.classList.add('blur'); });
@@ -469,12 +514,10 @@ function isThisWeek(dateString) {
     const date = new Date(dateString);
     const now = new Date();
     
-    // Calcula o início da semana (Domingo)
     const startOfWeek = new Date(now);
     startOfWeek.setDate(now.getDate() - now.getDay()); 
     startOfWeek.setHours(0,0,0,0);
     
-    // Calcula o final da semana (Sábado)
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(startOfWeek.getDate() + 6); 
     endOfWeek.setHours(23,59,59,999);
@@ -489,24 +532,37 @@ function isThisMonth(dateString) {
     return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
 }
 
+window.setAba = function(aba) {
+    abaAtual = aba;
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    document.getElementById('tab-' + aba).classList.add('active');
+    aplicarFiltros();
+}
+
 window.aplicarFiltros = function() {
     const termo = inputBusca.value.toLowerCase().trim();
     const periodo = selectPeriodo.value;
     
     let filtrados = clientesData;
 
-    if (termo !== '' && periodo === "todos") {
-        filtrados = clientesData.filter(c => {
-            const nome = (c.nome || "").toLowerCase();
-            const cpf = (c.cpf || "").toLowerCase();
-            const telefone = (c.numeros || "").toLowerCase();
-            const processo = (c.processo || "").toLowerCase();
-            
-            return nome.includes(termo) || cpf.includes(termo) || telefone.includes(termo) || processo.includes(termo);
-        });
+    // 1. Filtro da Aba Selecionada Principal
+    if (abaAtual === 'finalizados') {
+        filtrados = filtrados.filter(c => c.finalizado_judicialmente === true);
     } else {
-        filtrados = clientesData.filter(c => c.status === "fechado");
+        // Remove finalizados judicialmente das outras listas
+        filtrados = filtrados.filter(c => c.finalizado_judicialmente !== true);
 
+        if (abaAtual === 'atrasados') {
+            filtrados = filtrados.filter(c => {
+                const honorarios = c.honorarios || [];
+                return honorarios.some(h => obterStatusEfetivo(h) === 'Atrasado');
+            });
+        }
+    }
+
+    // 2. Filtro de Período (Não aplicamos na aba atrasados para não ocultar resultados indevidos)
+    if (periodo !== "todos" && abaAtual !== 'atrasados' && abaAtual !== 'finalizados') {
+        filtrados = filtrados.filter(c => c.status === "fechado");
         if (periodo === "semana") {
             filtrados = filtrados.filter(c => {
                 const dataObj = c.dataFechamento?.toDate ? c.dataFechamento.toDate() : c.dataFechamento;
@@ -518,17 +574,18 @@ window.aplicarFiltros = function() {
                 return isThisMonth(dataObj);
             });
         }
+    }
 
-        if (termo !== '') {
-            filtrados = filtrados.filter(c => {
-                const nome = (c.nome || "").toLowerCase();
-                const cpf = (c.cpf || "").toLowerCase();
-                const telefone = (c.numeros || "").toLowerCase();
-                const processo = (c.processo || "").toLowerCase();
-                
-                return nome.includes(termo) || cpf.includes(termo) || telefone.includes(termo) || processo.includes(termo);
-            });
-        }
+    // 3. Filtro de Busca de Texto
+    if (termo !== '') {
+        filtrados = filtrados.filter(c => {
+            const nome = (c.nome || "").toLowerCase();
+            const cpf = (c.cpf || "").toLowerCase();
+            const telefone = (c.numeros || "").toLowerCase();
+            const processo = (c.processo || "").toLowerCase();
+            
+            return nome.includes(termo) || cpf.includes(termo) || telefone.includes(termo) || processo.includes(termo);
+        });
     }
 
     exibirClientes(filtrados);
@@ -544,19 +601,32 @@ window.deletarCliente = async function(id) {
     
     try {
         await deleteDoc(doc(db, "clientes", id));
-        
-        // Remove do cache local
         clientesData = clientesData.filter(c => c.id !== id);
-        
-        // Chama a função unificada
         aplicarFiltros();
-        
         showToast("Card excluído com sucesso!");
     } catch(err) {
         console.error(err);
         showToast("Erro ao excluir o card.");
     }
 };
+
+// ================= ATUALIZAR STATUS DE COBRANÇA DIRETO DO CARD =================
+window.atualizarSituacaoCobranca = async function(clienteId, novoStatus) {
+    try {
+        const docRef = doc(db, "clientes", clienteId);
+        await updateDoc(docRef, { situacao_cobranca: novoStatus });
+        
+        // Atualiza cache local
+        const idx = clientesData.findIndex(c => c.id === clienteId);
+        if(idx > -1) {
+            clientesData[idx].situacao_cobranca = novoStatus;
+        }
+        showToast("Status de cobrança atualizado!");
+    } catch(err) {
+        console.error(err);
+        showToast("Erro ao atualizar status de cobrança.");
+    }
+}
 
 // ================= CARREGAR E RENDERIZAR CARDS =================
 async function carregarClientes() {
@@ -566,7 +636,6 @@ async function carregarClientes() {
         const snapshot = await getDocs(q);
         clientesData = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
         
-        // Renderiza com base no select inicial
         aplicarFiltros();
     } catch (error) {
         showToast("Erro ao carregar clientes.");
@@ -575,11 +644,11 @@ async function carregarClientes() {
 }
 
 function exibirClientes(lista) {
-    atualizarResumoFinanceiro(lista);
+    atualizarResumoFinanceiro(clientesData); // Mantém o resumo geral sempre atualizado em relação aos dados globais
     
     container.innerHTML = "";
     if(lista.length === 0) {
-        container.innerHTML = "<p style='color:rgba(255,255,255,0.5);'>Nenhum cliente encontrado.</p>";
+        container.innerHTML = "<p style='color:rgba(255,255,255,0.5);'>Nenhum cliente encontrado nesta visão.</p>";
         return;
     }
     
@@ -594,9 +663,18 @@ function exibirClientes(lista) {
         }
 
         const isFechado = cliente.status === "fechado";
-        const badgeStatus = isFechado 
-            ? `<span style="background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; border: 1px solid rgba(16, 185, 129, 0.3);">Fechado</span>`
-            : `<span style="background: rgba(59, 130, 246, 0.2); color: #3b82f6; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; border: 1px solid rgba(59, 130, 246, 0.3);">Em Andamento</span>`;
+        const isFinalizado = cliente.finalizado_judicialmente === true;
+        
+        // Define a cor da barra do card
+        let colorClass = 'andamento';
+        if (isFinalizado) colorClass = 'finalizado';
+        else if (isFechado) colorClass = 'fechado';
+
+        const badgeStatus = isFinalizado 
+            ? `<span style="background: rgba(139, 92, 246, 0.2); color: #8b5cf6; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; border: 1px solid rgba(139, 92, 246, 0.3);">Finalizado Judic.</span>`
+            : (isFechado 
+                ? `<span style="background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; border: 1px solid rgba(16, 185, 129, 0.3);">Fechado</span>`
+                : `<span style="background: rgba(59, 130, 246, 0.2); color: #3b82f6; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; border: 1px solid rgba(59, 130, 246, 0.3);">Em Andamento</span>`);
 
         let docsIndicator = '';
         if (cliente.documentos && cliente.documentos.length > 0) {
@@ -621,7 +699,7 @@ function exibirClientes(lista) {
         }).join('');
 
         card.innerHTML = `
-            <div class="color-bar ${isFechado ? '' : 'andamento'}"></div>
+            <div class="color-bar ${colorClass}"></div>
             <div class="card-content">
                 ${docsIndicator}
                 <div class="action-badges">
@@ -635,6 +713,16 @@ function exibirClientes(lista) {
                 <h2>${cliente.nome || "Sem nome"}</h2>
                 <p><strong>CPF:</strong> ${cliente.cpf || "-"}</p>
                 <p><strong>Vendedor:</strong> ${cliente.vendedor || "Não informado"}</p>
+                
+                <!-- Nova Opção de Situação de Cobrança Interna -->
+                <select class="select-cobranca" onclick="event.stopPropagation()" onchange="atualizarSituacaoCobranca('${cliente.id}', this.value)">
+                    <option value="">Status da Cobrança...</option>
+                    <option value="Cobrança Realizada" ${cliente.situacao_cobranca === 'Cobrança Realizada' ? 'selected' : ''}>Cobrança Realizada</option>
+                    <option value="Renegociação" ${cliente.situacao_cobranca === 'Renegociação' ? 'selected' : ''}>Renegociação</option>
+                    <option value="Sem Retorno" ${cliente.situacao_cobranca === 'Sem Retorno' ? 'selected' : ''}>Sem Retorno</option>
+                    <option value="Renunciar Processo" ${cliente.situacao_cobranca === 'Renunciar Processo' ? 'selected' : ''}>Renunciar Processo</option>
+                </select>
+
                 <div class="boletos-list">
                     ${honorariosHtml || '<p style="font-size:11px; color:rgba(255,255,255,0.4);">Sem parcelas geradas.</p>'}
                     ${(cliente.honorarios && cliente.honorarios.length > 3) ? '<p style="font-size:10px; color:#10b981; margin-top:5px;">+ ver mais no modal</p>' : ''}
@@ -681,9 +769,10 @@ window.abrirModalCompleto = function(cliente) {
     }
     
     document.getElementById('editVendedor').value = cliente.vendedor || "";
+    document.getElementById('editFinalizadoJudicialmente').checked = cliente.finalizado_judicialmente || false;
 
     const btnSalvar = document.getElementById('btnSalvarDetalhes');
-    if(cliente.status === 'fechado') {
+    if(cliente.status === 'fechado' || cliente.finalizado_judicialmente) {
         btnSalvar.textContent = "Salvar Detalhes";
     } else {
         btnSalvar.textContent = "Fechar Cliente";
@@ -705,7 +794,6 @@ window.abrirModalCompleto = function(cliente) {
 window.fecharModalCompleto = function() {
     modalClienteCompleto.style.display = "none";
     clienteAtual = null;
-    
     aplicarFiltros();
 }
 
@@ -719,6 +807,7 @@ window.salvarDetalhesFechamento = async function() {
     
     const novaDataStr = document.getElementById('editDataFechamento').value;
     const novoVendedor = document.getElementById('editVendedor').value.trim();
+    const isFinalizado = document.getElementById('editFinalizadoJudicialmente').checked;
     
     const btn = document.getElementById('btnSalvarDetalhes');
     btn.textContent = "Processando...";
@@ -727,7 +816,8 @@ window.salvarDetalhesFechamento = async function() {
     try {
         let atualizacoes = { 
             vendedor: novoVendedor,
-            status: "fechado" 
+            status: "fechado",
+            finalizado_judicialmente: isFinalizado
         };
         
         if (novaDataStr) {
@@ -741,14 +831,16 @@ window.salvarDetalhesFechamento = async function() {
         
         clienteAtual.vendedor = novoVendedor;
         clienteAtual.status = "fechado"; 
+        clienteAtual.finalizado_judicialmente = isFinalizado;
         
-        showToast("Cliente atualizado e fechado com sucesso!");
-        btn.textContent = "Salvar Detalhes"; 
+        showToast("Detalhes atualizados com sucesso!");
+        fecharModalCompleto(); 
         
     } catch(err) {
         console.error(err);
         showToast("Erro ao atualizar os detalhes.");
     } finally {
+        btn.textContent = "Salvar / Fechar Cliente";
         btn.disabled = false;
     }
 }
@@ -796,7 +888,6 @@ window.gerarAVista = async function() {
         
         const idxCache = clientesData.findIndex(c => c.id === clienteAtual.id);
         if (idxCache > -1) clientesData[idxCache] = clienteAtual;
-        atualizarResumoFinanceiro(clientesData);
         
         renderizarHonorarios();
         showToast("Pagamento à vista registrado com sucesso!");
@@ -906,7 +997,6 @@ window.atualizarDadosParcela = async function(index, campo, valor) {
         
         const idxCache = clientesData.findIndex(c => c.id === clienteAtual.id);
         if (idxCache > -1) clientesData[idxCache] = clienteAtual;
-        atualizarResumoFinanceiro(clientesData);
         
         showToast("Parcela atualizada!");
     } catch(err) {
@@ -926,7 +1016,6 @@ window.atualizarStatusParcela = async function(index, novoStatus) {
         
         const idxCache = clientesData.findIndex(c => c.id === clienteAtual.id);
         if (idxCache > -1) clientesData[idxCache] = clienteAtual;
-        atualizarResumoFinanceiro(clientesData);
         
         renderizarHonorarios(); 
         showToast(`Parcela atualizada para ${novoStatus}!`);
@@ -946,7 +1035,6 @@ window.removerParcela = async function(index) {
         
         const idxCache = clientesData.findIndex(c => c.id === clienteAtual.id);
         if (idxCache > -1) clientesData[idxCache] = clienteAtual;
-        atualizarResumoFinanceiro(clientesData);
         
         renderizarHonorarios();
         showToast("Parcela removida!");
