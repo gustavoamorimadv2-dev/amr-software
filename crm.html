@@ -655,12 +655,22 @@ import {
 /* ================= CONFIGURAÇÃO DE DOCUMENTOS DO CLIENTE ================= */
 // Você pode alterar os nomes aqui. O 'obrigatorio: true' bloqueia a coluna 'Fechado'
 const DOCUMENTOS_CONFIG = [
+    // Obrigatórios
     { id: 'procuracao', label: 'Procuração', obrigatorio: true },
-    { id: 'identidade', label: 'Identidade (RG/CNH)', obrigatorio: true },
-    { id: 'contrato', label: 'Contrato de Honorários', obrigatorio: true },
-    { id: 'comprovante_residencia', label: 'Comprovante de Residência', obrigatorio: false },
-    { id: 'comprovante_renda', label: 'Comprovante de Renda', obrigatorio: false },
-    { id: 'outros', label: 'Outros Documentos', obrigatorio: false }
+    { id: 'declaracao_hipossuficiencia', label: 'Declaração de hipossuficiência', obrigatorio: true },
+    { id: 'contrato', label: 'Contrato de honorários', obrigatorio: true },
+    { id: 'identidade', label: 'Documento de identificação', obrigatorio: true },
+    { id: 'comprovante_residencia', label: 'Comprovante de residência', obrigatorio: true },
+    { id: 'extratos_bancarios', label: 'Últimos 3 extratos bancários', obrigatorio: true },
+    { id: 'comprovante_renda', label: 'Últimos 3 comprovantes de renda', obrigatorio: true },
+    { id: 'imposto_renda', label: 'Última Declaração de Imposto de Renda e recibo de entrega', obrigatorio: true },
+    
+    // Complementares
+    { id: 'despesas_mensais', label: 'Comprovantes de despesas mensais', obrigatorio: false },
+    { id: 'faturas_cartao', label: 'Últimas 3 faturas do cartão de crédito', obrigatorio: false },
+    { id: 'peticao_inicial', label: 'Petição Inicial', obrigatorio: false },
+    { id: 'contrato_financiamento', label: 'Contrato de Financiamento', obrigatorio: false },
+    { id: 'outros', label: 'Outros', obrigatorio: false }
 ];
 /* ========================================================================= */
 
@@ -1787,10 +1797,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </head>
 
-<!-- ... TODO O RESTO DO BODY MANTIDO IGUAL ... -->
 <body>
-<!-- Restante do conteúdo do Body (Sidebar, Main, Modais...) se mantém o mesmo da sua versão fornecida, 
-     com a única diferença do nome do <input> no modal, que já alterei lá em cima -->
 <div class="sidebar">
 
     <h2 onclick="window.location.href='dashboard.html'">
@@ -1949,7 +1956,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </select>
             </div>
 
-            <!-- NOVA SEÇÃO DE DOCUMENTOS (MODIFICADA) -->
+            <!-- NOVA SEÇÃO DE DOCUMENTOS -->
             <div class="docs-section">
                 <h4>Documentos do Cliente</h4>
                 <div id="docsListContainer"></div>
