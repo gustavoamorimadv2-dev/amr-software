@@ -8,7 +8,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 <style>
-
 *{
     margin:0;
     padding:0;
@@ -337,15 +336,15 @@ select option {
 }
 
 /* CORES DOS CARDS */
-.lista-fria .color-bar{ background:#3b82f6; } /* Azul */
-.dia-1 .color-bar{ background:#06b6d4; } /* Ciano */
-.dia-2 .color-bar{ background:#10b981; } /* Verde claro */
-.dia-3 .color-bar{ background:#f59e0b; } /* Amarelo */
-.dia-4 .color-bar{ background:#8b5cf6; } /* Roxo */
-.dia-5 .color-bar{ background:#ef4444; } /* Vermelho */
-.em-negociacao .color-bar{ background:#eab308; } /* Amarelo Especial */
-.contrato-assinado .color-bar{ background:#0284c7; } /* Azul escuro */
-.fechado .color-bar{ background:#16a34a; } /* Verde escuro */
+.lista-fria .color-bar{ background:#3b82f6; } 
+.dia-1 .color-bar{ background:#06b6d4; } 
+.dia-2 .color-bar{ background:#10b981; } 
+.dia-3 .color-bar{ background:#f59e0b; } 
+.dia-4 .color-bar{ background:#8b5cf6; } 
+.dia-5 .color-bar{ background:#ef4444; } 
+.em-negociacao .color-bar{ background:#eab308; } 
+.contrato-assinado .color-bar{ background:#0284c7; } 
+.fechado .color-bar{ background:#16a34a; } 
 
 /* ================= AÇÕES DOS CARDS (BOTÕES) ================= */
 
@@ -520,7 +519,7 @@ select option {
     border-radius:12px;
     box-shadow:0 10px 30px rgba(0,0,0,.4);
     display:none;
-    z-index:60;
+    z-index:9999;
     font-weight: 500;
 }
 
@@ -534,7 +533,7 @@ select option {
 }
 .docs-section h4 {
     font-size: 14px;
-    margin-bottom: 12px;
+    margin-bottom: 5px;
     color: #fff;
 }
 .doc-item {
@@ -542,9 +541,9 @@ select option {
     justify-content: space-between;
     align-items: center;
     background: rgba(255,255,255,0.08);
-    padding: 10px;
-    border-radius: 8px;
-    margin-bottom: 8px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    margin-top: 6px;
     font-size: 13px;
 }
 .doc-item a {
@@ -562,7 +561,7 @@ select option {
     color: #ef4444;
     cursor: pointer;
     font-weight: bold;
-    padding: 4px 8px;
+    padding: 2px 8px;
     border-radius: 4px;
     transition: 0.2s;
     margin-left: 10px;
@@ -652,6 +651,20 @@ import {
     getDownloadURL
 } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js";
 
+
+/* ================= CONFIGURAÇÃO DE DOCUMENTOS DO CLIENTE ================= */
+// Você pode alterar os nomes aqui. O 'obrigatorio: true' bloqueia a coluna 'Fechado'
+const DOCUMENTOS_CONFIG = [
+    { id: 'procuracao', label: 'Procuração', obrigatorio: true },
+    { id: 'identidade', label: 'Identidade (RG/CNH)', obrigatorio: true },
+    { id: 'contrato', label: 'Contrato de Honorários', obrigatorio: true },
+    { id: 'comprovante_residencia', label: 'Comprovante de Residência', obrigatorio: false },
+    { id: 'comprovante_renda', label: 'Comprovante de Renda', obrigatorio: false },
+    { id: 'outros', label: 'Outros Documentos', obrigatorio: false }
+];
+/* ========================================================================= */
+
+
 /* ================= FIREBASE ================= */
 
 const firebaseConfig = {
@@ -695,7 +708,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Colunas Ajustadas com EM NEGOCIAÇÃO
     const STATUS = [
         'lista-fria',
         'dia-1',
@@ -757,14 +769,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnAddTelefone = document.getElementById('btnAddTelefone');
 
     /* ================= VARIÁVEIS DOCUMENTOS ================= */
-    const inputFile = document.getElementById('inputFile');
-    const btnTriggerFile = document.getElementById('btnTriggerFile');
-    const docsList = document.getElementById('docsList');
+    const inputFile = document.getElementById('inputSpecificFile');
+    const docsListContainer = document.getElementById('docsListContainer');
     const uploadProgress = document.getElementById('uploadProgress');
-    let currentDocs = [];
+    
+    // Agora currentDocs é um Objeto mapeado por categorias: { 'procuracao': [{name, url}], 'outros': [...] }
+    let currentDocs = {}; 
+    window.currentUploadDocId = null; // Guarda o id do documento clicado no momento
 
     let currentUser = null;
-    let todosClientesCache = []; // Cache para validação rápida de processos duplicados
+    let todosClientesCache = []; 
 
     /* ================= VARIÁVEIS AGENTE WHATSAPP ================= */
     const btnAgente = document.getElementById('btnAgente');
@@ -783,10 +797,10 @@ document.addEventListener('DOMContentLoaded', () => {
         clearTimeout(toastEl._t);
         toastEl._t = setTimeout(() => {
             toastEl.style.display = 'none';
-        },3000);
+        },4500); // Aumentado para dar tempo de ler os nomes dos documentos faltantes
     }
 
-    /* ================= FORÇAR DOWNLOAD DE DOCUMENTO ================= */
+    /* ================= FORÇAR DOWNLOAD ================= */
     window.forceDownload = async function(url, filename, event) {
         if(event) {
             event.preventDefault();
@@ -845,8 +859,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    /* ================= LÓGICA DO AGENTE BOT ================= */
-    
+    /* ================= AGENTE ================= */
     if (btnAgente) {
         btnAgente.onclick = () => {
             modalAgenteBackdrop.style.display = 'flex';
@@ -854,17 +867,14 @@ document.addEventListener('DOMContentLoaded', () => {
             agenteLista.innerHTML = '';
         };
     }
-
     if (btnFecharAgente) {
         btnFecharAgente.onclick = () => {
             modalAgenteBackdrop.style.display = 'none';
         };
     }
-
     if (btnCarregarFila) {
         btnCarregarFila.onclick = async () => {
             const template = agenteMensagem.value.trim();
-            
             if (!template) {
                 showToast("Por favor, digite uma mensagem padrão.");
                 return;
@@ -872,7 +882,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             btnCarregarFila.innerText = "Carregando...";
             const clientes = await getClientes();
-            
             const listaFria = clientes.filter(c => c.status === 'lista-fria' && c.numeros);
 
             btnCarregarFila.innerText = "Carregar Lista Fria";
@@ -905,31 +914,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 btnEnviar.onclick = async () => {
                     const mensagemFinal = template.replace(/{nome}/g, cliente.nome);
-                    
                     numerosLimpos.forEach(num => {
-                        const waUrl = `https://wa.me/55${num}?text=${encodeURIComponent(mensagemFinal)}`;
-                        window.open(waUrl, '_blank');
+                        window.open(`https://wa.me/55${num}?text=${encodeURIComponent(mensagemFinal)}`, '_blank');
                     });
 
                     btnEnviar.innerHTML = '✓ Enviados';
                     btnEnviar.style.background = '#4b5563'; 
                     btnEnviar.disabled = true;
 
-                    // Mover automaticamente para o Dia 1 e manipular o DOM localmente
                     try {
                         const docRef = doc(db, "clientes", cliente.id);
                         await updateDoc(docRef, { 
                             status: 'dia-1',
-                            dataPipeline: new Date().toISOString() // Inicia a contagem dos dias AQUI
+                            dataPipeline: new Date().toISOString()
                         });
-                        
-                        // Manipulação direta do DOM (sem render() do zero)
                         const cardNaTela = document.querySelector(`.card[data-id="${cliente.id}"]`);
                         const colunaDia1 = document.getElementById('dia-1');
                         if (cardNaTela && colunaDia1) {
                             colunaDia1.appendChild(cardNaTela);
                             cardNaTela.dataset.status = 'dia-1';
-                            cardNaTela.className = 'card dia-1'; // Atualiza a cor
+                            cardNaTela.className = 'card dia-1'; 
                         }
                     } catch (error) {
                         console.error("Erro ao mover para o Dia 1:", error);
@@ -945,38 +949,81 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    /* ================= UPLOAD DE DOCUMENTOS ================= */
+    /* ================= UPLOAD ESPECÍFICO ================= */
 
     function renderDocsList() {
-        docsList.innerHTML = '';
-        if (currentDocs.length === 0) {
-            docsList.innerHTML = '<span style="color:rgba(255,255,255,0.5); font-size:12px;">Nenhum documento anexado.</span>';
-            return;
-        }
-
-        currentDocs.forEach((arquivo, index) => {
-            const div = document.createElement('div');
-            div.className = 'doc-item';
+        if (!docsListContainer) return;
+        docsListContainer.innerHTML = '';
+        
+        const reqDiv = document.createElement('div');
+        reqDiv.innerHTML = '<h5 style="color:#ef4444; margin: 10px 0 6px 0; font-size:12px;">Obrigatórios (Impedem Fechamento)</h5>';
+        
+        const compDiv = document.createElement('div');
+        compDiv.innerHTML = '<h5 style="color:#10b981; margin: 20px 0 6px 0; font-size:12px;">Complementares</h5>';
+        
+        DOCUMENTOS_CONFIG.forEach(docConf => {
+            const rowWrapper = document.createElement('div');
+            rowWrapper.style.cssText = 'background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; margin-bottom:8px;';
             
-            div.innerHTML = `<a href="javascript:void(0)" onclick="window.forceDownload('${arquivo.url}', '${arquivo.name}', event)" title="Baixar documento">📄 ${arquivo.name} <span style="font-size:10px; color:#9ca3af; margin-left: 5px;">(Baixar)</span></a>`;
+            const headerRow = document.createElement('div');
+            headerRow.style.cssText = 'display:flex; justify-content:space-between; align-items:center;';
             
-            const btnRemove = document.createElement('button');
-            btnRemove.type = 'button';
-            btnRemove.innerText = 'X';
-            btnRemove.title = "Remover documento";
-            btnRemove.onclick = () => {
-                currentDocs.splice(index, 1);
-                renderDocsList();
+            const label = document.createElement('span');
+            label.style.fontSize = '13px';
+            label.style.fontWeight = '500';
+            label.innerText = docConf.label;
+            if (docConf.obrigatorio) label.innerHTML += ' <span style="color:#ef4444">*</span>';
+            
+            const btnAnexar = document.createElement('button');
+            btnAnexar.type = 'button';
+            btnAnexar.innerText = 'Anexar';
+            btnAnexar.className = 'btn ghost';
+            btnAnexar.style.padding = '4px 10px';
+            btnAnexar.style.fontSize = '11px';
+            
+            btnAnexar.onclick = () => {
+                window.currentUploadDocId = docConf.id;
+                inputFile.click();
             };
-
-            div.appendChild(btnRemove);
-            docsList.appendChild(div);
+            
+            headerRow.appendChild(label);
+            headerRow.appendChild(btnAnexar);
+            rowWrapper.appendChild(headerRow);
+            
+            // Listar os arquivos upados nesta categoria
+            const files = currentDocs[docConf.id] || [];
+            if (files.length > 0) {
+                const filesContainer = document.createElement('div');
+                filesContainer.style.marginTop = '8px';
+                
+                files.forEach((f, idx) => {
+                    const fRow = document.createElement('div');
+                    fRow.className = 'doc-item';
+                    fRow.innerHTML = `<a href="javascript:void(0)" onclick="window.forceDownload('${f.url}', '${f.name}', event)" title="Baixar">📄 ${f.name}</a>`;
+                    
+                    const btnRem = document.createElement('button');
+                    btnRem.type = 'button';
+                    btnRem.innerText = 'X';
+                    btnRem.onclick = () => {
+                        currentDocs[docConf.id].splice(idx, 1);
+                        renderDocsList();
+                    };
+                    fRow.appendChild(btnRem);
+                    filesContainer.appendChild(fRow);
+                });
+                rowWrapper.appendChild(filesContainer);
+            }
+            
+            if (docConf.obrigatorio) {
+                reqDiv.appendChild(rowWrapper);
+            } else {
+                compDiv.appendChild(rowWrapper);
+            }
         });
+        
+        docsListContainer.appendChild(reqDiv);
+        docsListContainer.appendChild(compDiv);
     }
-
-    btnTriggerFile.onclick = () => {
-        inputFile.click();
-    };
 
     inputFile.onchange = async (e) => {
         if (!storage) {
@@ -1000,9 +1047,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     const storageRef = ref(storage, `documentos/${currentUser.uid}/${uniqueName}`);
                     await uploadBytes(storageRef, file);
                     const url = await getDownloadURL(storageRef);
-                    currentDocs.push({ name: file.name, url: url });
+                    
+                    const docId = window.currentUploadDocId || 'outros';
+                    if (!currentDocs[docId]) currentDocs[docId] = [];
+                    currentDocs[docId].push({ name: file.name, url: url });
+
                 } catch (error) {
-                    console.error("Erro no upload do arquivo:", error);
+                    console.error("Erro no upload:", error);
                     errorOccurred = true;
                     showToast("Erro ao enviar: " + file.name);
                 }
@@ -1010,7 +1061,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             if (errorOccurred) {
                 uploadProgress.style.color = '#ef4444';
-                uploadProgress.innerText = 'Erro de permissão no Firebase. Arquivo não salvo.';
+                uploadProgress.innerText = 'Erro ao salvar. Verifique permissões.';
                 setTimeout(() => { uploadProgress.style.display = 'none'; }, 5000);
             } else {
                 uploadProgress.style.color = '#10b981';
@@ -1022,8 +1073,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    /* ================= CÁLCULO DO DIA DO PIPELINE ================= */
-    
     function getDiaPipeline(dataBaseIso) {
         if (!dataBaseIso) return 1;
         const created = new Date(dataBaseIso);
@@ -1033,22 +1082,17 @@ document.addEventListener('DOMContentLoaded', () => {
         return diffDays + 1;
     }
 
-    /* ================= MODAL DE CLIENTES ================= */
+    /* ================= MODAL ================= */
 
     function openModal(edit = false, data = null){
-
         modalBackdrop.style.display = 'flex';
-
-        document.getElementById('modalTitle').innerText =
-            edit ? "Editar Cliente" : "Novo Cliente";
-
+        document.getElementById('modalTitle').innerText = edit ? "Editar Cliente" : "Novo Cliente";
         processosContainer.innerHTML = '';
         telefonesContainer.innerHTML = '';
 
         const infoExtra = document.getElementById('infoExtra');
 
         if(edit && data){
-
             inputNome.value = data.nome || "";
             inputCPF.value = data.cpf || "";
             inputObs.value = data.obs || "";
@@ -1056,26 +1100,23 @@ document.addEventListener('DOMContentLoaded', () => {
             inputValor.value = data.valor || "";
             inputEstado.value = data.estado || "São Paulo";
 
-            const processos = data.processo
-                ? data.processo.split(',').map(p => p.trim())
-                : [''];
-
+            const processos = data.processo ? data.processo.split(',').map(p => p.trim()) : [''];
             processos.forEach(p => addProcessoField(p));
 
-            const telefones = data.numeros
-                ? data.numeros.split(',').map(t => t.trim())
-                : [''];
-
+            const telefones = data.numeros ? data.numeros.split(',').map(t => t.trim()) : [''];
             telefones.forEach(t => addTelefoneField(t));
 
-            currentDocs = Array.isArray(data.documentos) ? [...data.documentos] : [];
+            // Compatibilidade com os clientes antigos que tinham documentos em Array 
+            if (Array.isArray(data.documentos)) {
+                currentDocs = { outros: [...data.documentos] };
+            } else {
+                currentDocs = data.documentos ? JSON.parse(JSON.stringify(data.documentos)) : {};
+            }
 
             clientForm.dataset.editId = data.id;
 
             infoExtra.style.display = 'block';
             const dataCadStr = data.dataCadastro ? new Date(data.dataCadastro).toLocaleString('pt-BR') : 'Desconhecida';
-            
-            // Usa a dataPipeline para o modal se já tiver sido ativado, senão usa data de cadastro
             const dataBaseParaCalculo = data.dataPipeline || data.dataCadastro;
             const diaCalc = getDiaPipeline(dataBaseParaCalculo);
             let statusTexto = data.status === 'lista-fria' ? 'Aguardando Disparo' : (diaCalc > 5 ? '5+ (Funil Geral)' : diaCalc);
@@ -1090,9 +1131,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p><strong>Criado por:</strong> ${data.criadoPor || '-'}</p>
                 ${data.fechadoPor ? `<p><strong>Fechado por:</strong> ${data.fechadoPor}</p>` : ''}
             `;
-
         }else{
-
             addProcessoField();
             addTelefoneField();
 
@@ -1103,10 +1142,9 @@ document.addEventListener('DOMContentLoaded', () => {
             inputValor.value = "";
             inputEstado.value = "São Paulo";
 
-            currentDocs = [];
+            currentDocs = {};
 
             delete clientForm.dataset.editId;
-            
             infoExtra.style.display = 'none';
         }
 
@@ -1119,12 +1157,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /* ================= PROCESSOS ================= */
-
     function addProcessoField(value = ""){
-
         const row = document.createElement('div');
         row.className = 'processo-row';
-        row.style.alignItems = 'flex-start'; // Alinha os botões ao topo caso a mensagem de erro apareça
+        row.style.alignItems = 'flex-start'; 
 
         const wrapper = document.createElement('div');
         wrapper.style.flex = '1';
@@ -1136,7 +1172,6 @@ document.addEventListener('DOMContentLoaded', () => {
         input.placeholder = '0000000-00.0000.0.00.0000';
         input.value = value;
 
-        // Aviso dinâmico de processo duplicado
         const avisoMsg = document.createElement('span');
         avisoMsg.style.color = '#ef4444';
         avisoMsg.style.fontSize = '12px';
@@ -1152,15 +1187,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             
-            // Remove tudo que não for número
             const cleanVal = val.replace(/\D/g, '');
             if(cleanVal === '') return;
 
             const existe = todosClientesCache.some(c => {
                if (clientForm.dataset.editId && c.id === clientForm.dataset.editId) return false;
                if (!c.processo) return false;
-               
-               // Transforma todos os processos cadastrados do cliente em versões apenas com números
                const processosCadastrados = c.processo.split(',').map(p => p.replace(/\D/g, ''));
                return processosCadastrados.includes(cleanVal);
             });
@@ -1176,7 +1208,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         input.addEventListener('input', checkDuplicidade);
-
         wrapper.appendChild(input);
         wrapper.appendChild(avisoMsg);
 
@@ -1184,11 +1215,9 @@ document.addEventListener('DOMContentLoaded', () => {
         btnAdd.type = 'button';
         btnAdd.className = 'btn ghost';
         btnAdd.textContent = '+';
-        btnAdd.style.height = '42px'; // Mantém alinhado com a altura padrão do input
+        btnAdd.style.height = '42px'; 
 
-        btnAdd.onclick = () => {
-            addProcessoField();
-        };
+        btnAdd.onclick = () => { addProcessoField(); };
 
         const btnRemove = document.createElement('button');
         btnRemove.type = 'button';
@@ -1196,26 +1225,19 @@ document.addEventListener('DOMContentLoaded', () => {
         btnRemove.textContent = '-';
         btnRemove.style.height = '42px';
 
-        btnRemove.onclick = () => {
-            row.remove();
-        };
+        btnRemove.onclick = () => { row.remove(); };
 
         row.appendChild(wrapper);
         row.appendChild(btnAdd);
         row.appendChild(btnRemove);
-
         processosContainer.appendChild(row);
 
-        // Se houver valor inicial (ex: na edição), faz a checagem ao abrir o modal
         if (value) {
             setTimeout(checkDuplicidade, 100);
         }
     }
 
-    /* ================= TELEFONES ================= */
-
     function addTelefoneField(value = ""){
-
         const row = document.createElement('div');
         row.className = 'processo-row';
 
@@ -1228,45 +1250,30 @@ document.addEventListener('DOMContentLoaded', () => {
         btnAdd.type = 'button';
         btnAdd.className = 'btn ghost';
         btnAdd.textContent = '+';
-
-        btnAdd.onclick = () => {
-            addTelefoneField();
-        };
+        btnAdd.onclick = () => { addTelefoneField(); };
 
         const btnRemove = document.createElement('button');
         btnRemove.type = 'button';
         btnRemove.className = 'btn ghost';
         btnRemove.textContent = '-';
-
-        btnRemove.onclick = () => {
-            row.remove();
-        };
+        btnRemove.onclick = () => { row.remove(); };
 
         row.appendChild(input);
         row.appendChild(btnAdd);
         row.appendChild(btnRemove);
-
         telefonesContainer.appendChild(row);
     }
 
-    btnAddTelefone.onclick = () => {
-        addTelefoneField();
-    };
+    btnAddTelefone.onclick = () => { addTelefoneField(); };
 
-    /* ================= GERAÇÃO DE CONTRATO DINÂMICO ================= */
-
+    /* ================= GERAR CONTRATO ================= */
     async function gerarContrato(cliente) {
         showToast("Gerando contrato...");
-
         try {
-            // 1. Busca o arquivo HTML na raiz do projeto (como mostrado no repositório)
             const response = await fetch('./contrato-template.html');
-            if (!response.ok) {
-                throw new Error("Não foi possível carregar o template. Verifique se o arquivo 'contrato-template.html' está na mesma pasta.");
-            }
+            if (!response.ok) throw new Error("Template não encontrado.");
             let template = await response.text();
 
-            // 2. Prepara os dados do cliente
             const dataAtual = new Date().toLocaleDateString('pt-BR');
             const processoStr = cliente.processo ? cliente.processo.split(',')[0].trim() : "Não informado";
             
@@ -1279,25 +1286,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            const cpfStr = cliente.cpf || '___________';
-            const estadoStr = cliente.estado || '___________';
-            const classeStr = cliente.classe || '___________';
-
-            // 3. Substitui as tags {{tag}} pelos dados reais usando Expressões Regulares
             template = template.replace(/{{nome}}/g, cliente.nome);
-            template = template.replace(/{{cpf}}/g, cpfStr);
-            template = template.replace(/{{estado}}/g, estadoStr);
-            template = template.replace(/{{classe}}/g, classeStr);
+            template = template.replace(/{{cpf}}/g, cliente.cpf || '___________');
+            template = template.replace(/{{estado}}/g, cliente.estado || '___________');
+            template = template.replace(/{{classe}}/g, cliente.classe || '___________');
             template = template.replace(/{{processo}}/g, processoStr);
             template = template.replace(/{{valor}}/g, valorFormatado);
             template = template.replace(/{{dataAtual}}/g, dataAtual);
 
-            // 4. Cria o Blob (arquivo) do Word com os dados atualizados
-            const blob = new Blob(['\ufeff', template], {
-                type: 'application/msword'
-            });
-            
-            // 5. Força o download
+            const blob = new Blob(['\ufeff', template], { type: 'application/msword' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -1306,7 +1303,6 @@ document.addEventListener('DOMContentLoaded', () => {
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
-            
             showToast("Contrato gerado com sucesso!");
 
         } catch (error) {
@@ -1318,104 +1314,81 @@ document.addEventListener('DOMContentLoaded', () => {
     /* ================= CARDS ================= */
 
     function criarCard(cliente){
-
         const status = cliente.status || 'lista-fria';
-
         const col = document.getElementById(status);
 
-        if(!col){
-            return;
-        }
+        if(!col) return;
 
         const card = document.createElement('div');
-
         card.className = `card ${status}`;
-
         card.dataset.id = cliente.id;
         card.dataset.status = status;
-        // Adicionando dados para filtragem ampla (Nome, CPF e Processo)
         card.dataset.nome = cliente.nome.toLowerCase();
         card.dataset.cpf = (cliente.cpf || '').toLowerCase();
         card.dataset.processo = (cliente.processo || '').toLowerCase();
         
-        // Verifica na renderização se o card possui documento anexado para liberação do arraste
-        card.dataset.hasDocs = (Array.isArray(cliente.documentos) && cliente.documentos.length > 0) ? 'true' : 'false';
+        // Verifica se há documentos para flag generalizada
+        let totalDocsLength = 0;
+        if (Array.isArray(cliente.documentos)) {
+            totalDocsLength = cliente.documentos.length;
+        } else if (cliente.documentos) {
+            Object.values(cliente.documentos).forEach(arr => totalDocsLength += arr.length);
+        }
+        card.dataset.hasDocs = totalDocsLength > 0 ? 'true' : 'false';
 
         card.draggable = true;
 
         const colorBar = document.createElement('div');
         colorBar.className = 'color-bar';
-
         card.appendChild(colorBar);
 
-        /* ================= ACTIONS ================= */
-
+        /* ACTIONS */
         const actionsDiv = document.createElement('div');
         actionsDiv.className = 'card-actions';
         
-        // Container dos ícones (Documento, Ligar, WhatsApp, Excluir)
         const iconActions = document.createElement('div');
         iconActions.className = 'icon-actions';
 
-        // BOTÃO GERAR CONTRATO
         const btnContrato = document.createElement('button');
         btnContrato.title = "Baixar Contrato (Word)";
-        btnContrato.onclick = (e) => {
-            e.stopPropagation();
-            gerarContrato(cliente);
-        };
+        btnContrato.onclick = (e) => { e.stopPropagation(); gerarContrato(cliente); };
         btnContrato.innerHTML = '<img src="https://img.icons8.com/ios-glyphs/30/000000/document.png"/>';
 
         const btnCall = document.createElement('button');
         btnCall.title = "Ligar";
         btnCall.onclick = (e) => {
             e.stopPropagation();
-            const numero = cliente.numeros
-                ? cliente.numeros.split(',')[0].trim()
-                : '';
-            ligar(numero);
+            const num = cliente.numeros ? cliente.numeros.split(',')[0].trim() : '';
+            if(num) window.open(`tel:${num.replace(/\D/g,'')}`);
         };
         btnCall.innerHTML = '<img src="https://img.icons8.com/ios-glyphs/30/000000/phone.png"/>';
 
-        // BOTÃO WHATSAPP - PULA PARA O DIA 1 SE TIVER NA LISTA FRIA
         const btnWa = document.createElement('button');
         btnWa.title = "WhatsApp";
         btnWa.onclick = async (e) => {
             e.stopPropagation();
-            const numero = cliente.numeros
-                ? cliente.numeros.split(',')[0].trim()
-                : '';
-            whatsapp(numero);
+            const num = cliente.numeros ? cliente.numeros.split(',')[0].trim() : '';
+            if(num) window.open(`https://wa.me/55${num.replace(/\D/g,'')}`,'_blank');
 
-            // Se o card ainda estiver na lista fria, pula para o Dia 1 e salva a hora
             if (cliente.status === 'lista-fria') {
                 try {
                     const docRef = doc(db, "clientes", cliente.id);
-                    await updateDoc(docRef, { 
-                        status: 'dia-1',
-                        dataPipeline: new Date().toISOString() 
-                    });
-                    
-                    // Movimentação direta do DOM
+                    await updateDoc(docRef, { status: 'dia-1', dataPipeline: new Date().toISOString() });
                     const colunaDia1 = document.getElementById('dia-1');
                     if (colunaDia1) {
                         colunaDia1.appendChild(card);
                         card.dataset.status = 'dia-1';
-                        card.className = 'card dia-1'; // Atualiza a cor
+                        card.className = 'card dia-1'; 
                     }
-                } catch (error) {
-                    console.error("Erro ao mover para o Dia 1:", error);
-                }
+                } catch (error) {}
             }
         };
         btnWa.innerHTML = '<img src="https://img.icons8.com/ios-glyphs/30/000000/whatsapp.png"/>';
 
-        // Anexando os ícones na fileira de ícones
         iconActions.appendChild(btnContrato);
         iconActions.appendChild(btnCall);
         iconActions.appendChild(btnWa);
 
-        // BOTÃO DE EXCLUIR (Apenas para Lista Fria)
         if (status === 'lista-fria') {
             const btnExcluir = document.createElement('button');
             btnExcluir.title = "Excluir Card";
@@ -1424,104 +1397,62 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.stopPropagation();
                 if (window.confirm("Tem certeza que deseja excluir o card?")) {
                     try {
-                        const docRef = doc(db, "clientes", cliente.id);
-                        await deleteDoc(docRef);
-                        showToast("Card excluído com sucesso!");
-                        card.remove(); // Remoção direta do DOM
-                    } catch (error) {
-                        console.error("Erro ao excluir o card: ", error);
-                        showToast("Erro ao excluir o card!");
-                    }
+                        await deleteDoc(doc(db, "clientes", cliente.id));
+                        showToast("Card excluído!");
+                        card.remove(); 
+                    } catch (error) {}
                 }
             };
             iconActions.appendChild(btnExcluir);
         }
-
-        // Adiciona a fileira de ícones na Div principal de ações
         actionsDiv.appendChild(iconActions);
 
-        // BOTÃO EM NEGOCIAÇÃO (AMARELO) - Fica logo abaixo da fileira de ícones
         if (status !== 'em-negociacao' && status !== 'contrato-assinado' && status !== 'fechado') {
             const btnNegociacao = document.createElement('button');
             btnNegociacao.title = "Mover para Em Negociação";
-            btnNegociacao.style.background = '#facc15'; /* Amarelo */
-            btnNegociacao.style.color = '#422006';
-            btnNegociacao.style.fontWeight = 'bold';
-            btnNegociacao.style.fontSize = '11px';
-            btnNegociacao.style.padding = '6px 12px';
-            btnNegociacao.style.border = 'none';
-            btnNegociacao.style.borderRadius = '6px';
-            btnNegociacao.style.cursor = 'pointer';
+            btnNegociacao.style.cssText = 'background:#facc15; color:#422006; font-weight:bold; font-size:11px; padding:6px 12px; border:none; border-radius:6px; cursor:pointer;';
             btnNegociacao.innerText = 'Em Negociação';
             
             btnNegociacao.onclick = async (e) => {
                 e.stopPropagation();
                 try {
-                    const docRef = doc(db, "clientes", cliente.id);
-                    await updateDoc(docRef, { 
-                        status: 'em-negociacao',
-                        dataEmNegociacao: new Date().toISOString()
+                    await updateDoc(doc(db, "clientes", cliente.id), { 
+                        status: 'em-negociacao', dataEmNegociacao: new Date().toISOString()
                     });
-                    
-                    // Movimentação direta do DOM
-                    const colunaNegociacao = document.getElementById('em-negociacao');
-                    if (colunaNegociacao) {
-                        colunaNegociacao.appendChild(card);
+                    const coluna = document.getElementById('em-negociacao');
+                    if (coluna) {
+                        coluna.appendChild(card);
                         card.dataset.status = 'em-negociacao';
-                        card.className = 'card em-negociacao'; // Atualiza a cor
-                        btnNegociacao.style.display = 'none'; // Esconde o botão após usar
+                        card.className = 'card em-negociacao'; 
+                        btnNegociacao.style.display = 'none'; 
                     }
-                } catch (error) {
-                    console.error("Erro ao mover para Em Negociação:", error);
-                }
+                } catch (error) {}
             };
             actionsDiv.appendChild(btnNegociacao);
         }
-
         card.appendChild(actionsDiv);
 
-        /* ================= CONTENT ================= */
-
+        /* CONTENT */
         const contentDiv = document.createElement('div');
         contentDiv.className = 'card-content';
-
-        const processosArray = cliente.processo
-            ? cliente.processo.split(',').map(p => p.trim())
-            : [];
-
-        const primeiroProcesso = processosArray.length > 0
-            ? processosArray[0]
-            : '-';
-
-        const dataBaseParaCalculo = cliente.dataPipeline || cliente.dataCadastro;
-        const diaCalc = getDiaPipeline(dataBaseParaCalculo);
+        const primeiroProcesso = cliente.processo ? cliente.processo.split(',')[0].trim() : '-';
+        const diaCalc = getDiaPipeline(cliente.dataPipeline || cliente.dataCadastro);
         
         let textoPipeline = '';
-        if(cliente.status === 'lista-fria') {
-            textoPipeline = 'Aguardando disparo';
-        } else if (cliente.status === 'em-negociacao') {
-            const diasEmNegociacao = getDiaPipeline(cliente.dataEmNegociacao || cliente.dataPipeline || cliente.dataCadastro);
-            textoPipeline = `Negociação (Dia ${diasEmNegociacao})`;
-        } else if (cliente.status === 'contrato-assinado') {
-            const diasContrato = getDiaPipeline(cliente.dataContratoAssinado || cliente.dataCadastro);
-            textoPipeline = `Contrato (Dia ${diasContrato})`;
-        } else {
-            textoPipeline = `Dia ${diaCalc}`;
-        }
+        if(cliente.status === 'lista-fria') textoPipeline = 'Aguardando disparo';
+        else if (cliente.status === 'em-negociacao') textoPipeline = `Negociação (Dia ${getDiaPipeline(cliente.dataEmNegociacao || cliente.dataPipeline || cliente.dataCadastro)})`;
+        else if (cliente.status === 'contrato-assinado') textoPipeline = `Contrato (Dia ${getDiaPipeline(cliente.dataContratoAssinado || cliente.dataCadastro)})`;
+        else textoPipeline = `Dia ${diaCalc}`;
 
-        // Permite que o card exiba exatamente o valor digitado no formato do tribunal
         let valorCardFormatado = "0,00";
         if (cliente.valor) {
             if (!isNaN(cliente.valor) && !cliente.valor.toString().includes(',')) {
                 valorCardFormatado = parseFloat(cliente.valor).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            } else {
-                valorCardFormatado = cliente.valor;
-            }
+            } else valorCardFormatado = cliente.valor;
         }
 
         contentDiv.innerHTML = `
             <h3>${cliente.nome}</h3>
-
             <p><strong>CPF:</strong> ${cliente.cpf || '-'}</p>
             <p><strong>Classe:</strong> ${cliente.classe || '-'}</p>
             <p><strong>Estado:</strong> ${cliente.estado || '-'}</p>
@@ -1530,191 +1461,124 @@ document.addEventListener('DOMContentLoaded', () => {
             <p><strong>Pipeline:</strong> ${textoPipeline}</p>
         `;
 
-        if (Array.isArray(cliente.documentos) && cliente.documentos.length > 0) {
+        // Renderiza os documentos upados mostrando a qual grupo eles pertencem
+        let arrayParaDisplay = [];
+        if (Array.isArray(cliente.documentos)) {
+            arrayParaDisplay = cliente.documentos.map(d => ({...d, label: 'Outros'}));
+        } else if (cliente.documentos) {
+            Object.keys(cliente.documentos).forEach(docId => {
+                const conf = DOCUMENTOS_CONFIG.find(c => c.id === docId);
+                const labelName = conf ? conf.label : 'Doc';
+                cliente.documentos[docId].forEach(d => {
+                    arrayParaDisplay.push({...d, label: labelName});
+                });
+            });
+        }
+
+        if (arrayParaDisplay.length > 0) {
             const docsDiv = document.createElement('div');
             docsDiv.style.marginTop = "12px";
             docsDiv.innerHTML = `<p style="font-weight: 600; color: #fff; margin-bottom: 5px;">Documentos Anexos:</p>`;
             
-            cliente.documentos.forEach(arquivo => {
+            arrayParaDisplay.forEach(arquivo => {
                 const link = document.createElement('a');
                 link.href = "javascript:void(0)";
+                link.style.cssText = "display:block; font-size:13px; color:#60a5fa; text-decoration:none; margin:4px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;";
                 
-                link.style.display = "block";
-                link.style.fontSize = "13px";
-                link.style.color = "#60a5fa"; 
-                link.style.textDecoration = "none";
-                link.style.margin = "4px 0";
-                link.style.whiteSpace = "nowrap";      
-                link.style.overflow = "hidden";        
-                link.style.textOverflow = "ellipsis";  
+                link.innerHTML = `<span style="color:#9ca3af; font-size:10px;">[${arquivo.label}]</span> 📄 ${arquivo.name}`;
                 
-                link.innerHTML = `📄 ${arquivo.name} <span style="font-size:10px; color:#9ca3af; margin-left: 5px;">(Baixar)</span>`;
-                
-                link.onclick = (e) => {
-                    e.stopPropagation();
-                    window.forceDownload(arquivo.url, arquivo.name, e);
-                };
-                
+                link.onclick = (e) => { e.stopPropagation(); window.forceDownload(arquivo.url, arquivo.name, e); };
                 docsDiv.appendChild(link);
             });
             contentDiv.appendChild(docsDiv);
         }
 
         card.appendChild(contentDiv);
-
-        card.onclick = () => {
-            openModal(true, cliente);
-        };
-
+        card.onclick = () => { openModal(true, cliente); };
         addDragEvents(card);
-
         col.appendChild(card);
-
         cardsMap[cliente.id] = card;
     }
 
-    /* ================= TELEFONE ================= */
-
-    function ligar(numero){
-        if(!numero){
-            showToast("Número não informado");
-            return;
-        }
-        window.open(`tel:${numero.replace(/\D/g,'')}`);
-    }
-
-    function whatsapp(numero){
-        if(!numero){
-            showToast("Número não informado");
-            return;
-        }
-        const num = numero.replace(/\D/g,'');
-        window.open(`https://wa.me/55${num}`,'_blank');
-    }
 
     /* ================= RENDER ================= */
-
     async function render(){
-
         const clientes = await getClientes();
-        todosClientesCache = clientes; // Abastece o cache para verificação de processos duplicados
+        todosClientesCache = clientes; 
 
-        // Calcular quantos cards o usuário atual cadastrou hoje na Lista Fria E quantos ele chamou pro Dia 1 hoje
         let countListaFriaHoje = 0;
         let countDia1Hoje = 0;
-        
         const hojeStr = new Date().toLocaleDateString('pt-BR');
         
         if (currentUser) {
             countListaFriaHoje = clientes.filter(c => {
                 if (!c.dataCadastro || c.status !== 'lista-fria') return false;
-                const cardDateStr = new Date(c.dataCadastro).toLocaleDateString('pt-BR');
-                return cardDateStr === hojeStr && c.criadoPor === currentUser.email;
+                return new Date(c.dataCadastro).toLocaleDateString('pt-BR') === hojeStr && c.criadoPor === currentUser.email;
             }).length;
 
             countDia1Hoje = clientes.filter(c => {
                 if (!c.dataPipeline || c.status !== 'dia-1') return false;
-                const pipelineDateStr = new Date(c.dataPipeline).toLocaleDateString('pt-BR');
-                return pipelineDateStr === hojeStr && c.criadoPor === currentUser.email;
+                return new Date(c.dataPipeline).toLocaleDateString('pt-BR') === hojeStr && c.criadoPor === currentUser.email;
             }).length;
         }
 
         STATUS.forEach(status => {
             const col = document.getElementById(status);
-            
             if (status === 'lista-fria') {
                 col.innerHTML = `
                     <div class="col-header-actions">
                         <div style="display:flex; flex-direction:column;">
                             <h2 style="margin-bottom:2px;">LISTA FRIA</h2>
-                            <span style="font-size: 11px; font-weight: normal; color: rgba(255,255,255,0.6);">
-                                Cadastrados hoje: <strong style="color:#fff;">${countListaFriaHoje}</strong>
-                            </span>
+                            <span style="font-size: 11px; font-weight: normal; color: rgba(255,255,255,0.6);">Cadastrados hoje: <strong style="color:#fff;">${countListaFriaHoje}</strong></span>
                         </div>
                         <button class="btn-robot" title="Ativar Robô" onclick="document.getElementById('btnAgente').click()">
                             <img src="https://img.icons8.com/ios-glyphs/30/000000/bot.png" alt="Robô"/>
                         </button>
-                    </div>
-                `;
+                    </div>`;
             } else if (status === 'dia-1') {
                 col.innerHTML = `
                     <div class="col-header-actions">
                         <div style="display:flex; flex-direction:column;">
                             <h2 style="margin-bottom:2px;">EM NEGOCIAÇÃO (DIA 1)</h2>
-                            <span style="font-size: 11px; font-weight: normal; color: rgba(255,255,255,0.6);">
-                                Chamados hoje: <strong style="color:#fff;">${countDia1Hoje}</strong>
-                            </span>
+                            <span style="font-size: 11px; font-weight: normal; color: rgba(255,255,255,0.6);">Chamados hoje: <strong style="color:#fff;">${countDia1Hoje}</strong></span>
                         </div>
-                    </div>
-                `;
-            } else if (status === 'dia-2') {
-                col.innerHTML = `<h2>EM NEGOCIAÇÃO (DIA 2)</h2>`;
-            } else if (status === 'em-negociacao') {
-                col.innerHTML = `<h2>EM NEGOCIAÇÃO</h2>`;
-            } else {
-                col.innerHTML = `<h2>${status.replace('-', ' ').toUpperCase()}</h2>`;
-            }
+                    </div>`;
+            } else if (status === 'dia-2') { col.innerHTML = `<h2>EM NEGOCIAÇÃO (DIA 2)</h2>`;
+            } else if (status === 'em-negociacao') { col.innerHTML = `<h2>EM NEGOCIAÇÃO</h2>`;
+            } else { col.innerHTML = `<h2>${status.replace('-', ' ').toUpperCase()}</h2>`; }
         });
 
-        for(const k in cardsMap){
-            delete cardsMap[k];
-        }
+        for(const k in cardsMap){ delete cardsMap[k]; }
 
         for(const cliente of clientes){
-            
-            if (!cliente.dataCadastro) {
-                cliente.dataCadastro = new Date().toISOString();
-            }
+            if (!cliente.dataCadastro) cliente.dataCadastro = new Date().toISOString();
 
-            // REGRA 1: LISTA FRIA (nunca avança sozinho)
-            if (cliente.status === 'lista-fria') {
-                criarCard(cliente);
-                continue; 
-            }
-
-            // REGRA 2: EM NEGOCIAÇÃO (Expirar para funil geral após 10 dias)
+            if (cliente.status === 'lista-fria') { criarCard(cliente); continue; }
             if (cliente.status === 'em-negociacao') {
-                const diasEmNegociacao = getDiaPipeline(cliente.dataEmNegociacao || cliente.dataPipeline || cliente.dataCadastro);
-                if (diasEmNegociacao > 10) {
-                    cliente.status = 'funil-geral';
-                    updateDoc(doc(db, "clientes", cliente.id), { status: 'funil-geral' });
-                } else {
-                    criarCard(cliente);
-                }
+                if (getDiaPipeline(cliente.dataEmNegociacao || cliente.dataPipeline || cliente.dataCadastro) > 10) {
+                    cliente.status = 'funil-geral'; updateDoc(doc(db, "clientes", cliente.id), { status: 'funil-geral' });
+                } else criarCard(cliente);
                 continue; 
             }
-
-            // REGRA 3: CONTRATO ASSINADO (Expirar para funil geral após 30 dias)
             if (cliente.status === 'contrato-assinado') {
-                const diasContrato = getDiaPipeline(cliente.dataContratoAssinado || cliente.dataCadastro);
-                if (diasContrato > 30) {
-                    cliente.status = 'funil-geral';
-                    updateDoc(doc(db, "clientes", cliente.id), { status: 'funil-geral' });
-                } else {
-                    criarCard(cliente);
-                }
+                if (getDiaPipeline(cliente.dataContratoAssinado || cliente.dataCadastro) > 30) {
+                    cliente.status = 'funil-geral'; updateDoc(doc(db, "clientes", cliente.id), { status: 'funil-geral' });
+                } else criarCard(cliente);
                 continue; 
             }
-
             if (cliente.status === 'fechado' || cliente.status === 'funil-geral') {
                 if (cliente.status !== 'funil-geral') criarCard(cliente);
                 continue; 
             }
 
-            // REGRA 4: DIAS 1 ao 5 (Baseados no dataPipeline original)
-            const dataBaseParaCalculo = cliente.dataPipeline || cliente.dataCadastro;
-            const diaCalc = getDiaPipeline(dataBaseParaCalculo);
-
-            // Respeita o envio pro Funil Geral se passar de 5 dias na automação normal
+            const diaCalc = getDiaPipeline(cliente.dataPipeline || cliente.dataCadastro);
             if (diaCalc > 5) {
                 if (cliente.status !== 'funil-geral') {
-                    cliente.status = 'funil-geral';
-                    updateDoc(doc(db, "clientes", cliente.id), { status: 'funil-geral' });
+                    cliente.status = 'funil-geral'; updateDoc(doc(db, "clientes", cliente.id), { status: 'funil-geral' });
                 }
                 continue; 
             }
 
-            // Movimenta os dias sozinho do 1 ao 5
             let statusCalc = 'dia-1';
             if (diaCalc === 2) statusCalc = 'dia-2';
             else if (diaCalc === 3) statusCalc = 'dia-3';
@@ -1725,79 +1589,43 @@ document.addEventListener('DOMContentLoaded', () => {
                 cliente.status = statusCalc;
                 updateDoc(doc(db, "clientes", cliente.id), { status: statusCalc });
             }
-
             criarCard(cliente);
         }
-
         filtragemAplicada();
     }
 
    /* ================= FORM ================= */
-
     clientForm.onsubmit = async function(e){
-
         e.preventDefault();
-
-        // 1. Pegamos o botão de submit do formulário
         const submitBtn = clientForm.querySelector('button[type="submit"]');
-        
-        // 2. Guardamos o texto original e desativamos o botão temporariamente
         const originalBtnText = submitBtn.innerText;
         submitBtn.disabled = true;
         submitBtn.innerText = "Salvando...";
 
         try {
             const nome = inputNome.value.trim();
+            if(!nome){ showToast("Nome obrigatório"); return; }
 
-            if(!nome){
-                showToast("Nome obrigatório");
-                return;
-            }
-
-            const processos = Array.from(
-                document.querySelectorAll('.inputProcesso')
-            )
-            .map(input => input.value.trim())
-            .filter(valor => valor);
-
+            const processos = Array.from(document.querySelectorAll('.inputProcesso')).map(i => i.value.trim()).filter(v => v);
             if (processos.length > 0) {
-                // UTILIZANDO O CACHE LOCAL EM VEZ DE BAIXAR O BANCO TODO:
-                const todosClientes = todosClientesCache;
-
                 let processoDuplicado = null;
-
                 for (let proc of processos) {
-                    
-                    // Remove tudo que não for número antes de checar no momento de salvar
                     const cleanInputProc = proc.replace(/\D/g, '');
                     if(!cleanInputProc) continue;
-
-                    const clienteExistente = todosClientes.find(c => {
+                    const clienteExistente = todosClientesCache.find(c => {
                         if (clientForm.dataset.editId && c.id === clientForm.dataset.editId) return false;
                         if (!c.processo) return false;
-                        
-                        // Limpa os processos que vieram do banco para comparação perfeita
-                        const processosCadastrados = c.processo.split(',').map(p => p.replace(/\D/g, ''));
-                        return processosCadastrados.includes(cleanInputProc);
+                        return c.processo.split(',').map(p => p.replace(/\D/g, '')).includes(cleanInputProc);
                     });
-
-                    if (clienteExistente) {
-                        processoDuplicado = proc;
-                        break; 
-                    }
+                    if (clienteExistente) { processoDuplicado = proc; break; }
                 }
-
                 if (processoDuplicado) {
-                    showToast(`Erro: O processo ${processoDuplicado} já está cadastrado no sistema!`);
+                    showToast(`Erro: O processo ${processoDuplicado} já está cadastrado!`);
                     return; 
                 }
             }
 
-            const telefones = Array.from(
-                document.querySelectorAll('.inputTelefone')
-            )
-            .map(input => input.value.trim())
-            .filter(valor => valor);
+            const telefones = Array.from(document.querySelectorAll('.inputTelefone')).map(i => i.value.trim()).filter(v => v);
 
             const novo = {
                 nome: nome,
@@ -1808,7 +1636,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 classe: inputClasse.value,
                 valor: inputValor.value,
                 estado: inputEstado.value,
-                documentos: currentDocs,
+                documentos: currentDocs, // Salvando o objeto de categorias
                 criadoPor: currentUser ? (currentUser.email || "") : "",
                 fechadoPor: ""
             };
@@ -1835,128 +1663,92 @@ document.addEventListener('DOMContentLoaded', () => {
                 await saveCliente(novo);
                 showToast("Cliente adicionado!");
             }
-
             closeModal();
             await render(); 
         } catch (error) {
-            console.error("Erro ao salvar cliente: ", error);
             showToast("Erro inesperado ao salvar!");
         } finally {
-            // 3. Independentemente de sucesso ou falha, o botão volta ao normal
             submitBtn.disabled = false;
             submitBtn.innerText = originalBtnText;
         }
     };
 
     /* ================= DRAG AND DROP ================= */
-
     let draggedCard = null;
 
     function addDragEvents(card){
-        card.addEventListener('dragstart', () => {
-            draggedCard = card;
-            setTimeout(() => card.classList.add('dragging'), 0);
-        });
-
+        card.addEventListener('dragstart', () => { draggedCard = card; setTimeout(() => card.classList.add('dragging'), 0); });
         card.addEventListener('dragend', () => {
             draggedCard = null;
             card.classList.remove('dragging');
-            
-            document.querySelectorAll('.column').forEach(c => {
-                c.classList.remove('drag-over');
-            });
+            document.querySelectorAll('.column').forEach(c => c.classList.remove('drag-over'));
         });
     }
 
     document.querySelectorAll('.column').forEach(col => {
+        col.addEventListener('dragenter', e => { e.preventDefault(); if (draggedCard) col.classList.add('drag-over'); });
+        col.addEventListener('dragover', e => { e.preventDefault(); });
+        col.addEventListener('dragleave', e => { col.classList.remove('drag-over'); });
         
-        col.addEventListener('dragenter', e => {
-            e.preventDefault();
-            if (draggedCard) {
-                col.classList.add('drag-over');
-            }
-        });
-
-        col.addEventListener('dragover', e => {
-            e.preventDefault(); 
-        });
-
-        col.addEventListener('dragleave', e => {
-            col.classList.remove('drag-over');
-        });
-
         col.addEventListener('drop', async () => {
             col.classList.remove('drag-over');
-
-            if(!draggedCard){
-                return;
-            }
+            if(!draggedCard) return;
 
             const novoStatus = col.id;
             const currentStatus = draggedCard.dataset.status;
             const hasDocs = draggedCard.dataset.hasDocs === 'true';
 
-            // Mesma coluna
             if (novoStatus === currentStatus) return;
 
-            // Regra: Fechado não pode ser retrocedido
-            if (currentStatus === 'fechado') {
-                showToast("Negado: Um contrato 'Fechado' não pode retroceder no funil.");
-                return;
-            }
+            if (currentStatus === 'fechado') { showToast("Negado: Um contrato 'Fechado' não pode retroceder."); return; }
 
-            // Regra: Funcionário só arrasta para contrato-assinado, fechado ou em-negociacao.
             if (novoStatus !== 'contrato-assinado' && novoStatus !== 'fechado' && novoStatus !== 'em-negociacao') {
-                showToast("Avanço automático! Você só tem permissão para arrastar manualmente para 'Em Negociação', 'Contrato Assinado' ou 'Fechado'.");
-                return;
+                showToast("Avanço automático! Movimente apenas para 'Em Negociação', 'Contrato Assinado' ou 'Fechado'."); return;
             }
 
-            // Regra: Contrato Assinado EXIGE documento
-            if (novoStatus === 'contrato-assinado') {
-                if (!hasDocs) {
-                    showToast("Bloqueado: Para mover para 'Contrato Assinado', você deve anexar o documento do cliente no card.");
-                    return;
-                }
+            if (novoStatus === 'contrato-assinado' && !hasDocs) {
+                showToast("Bloqueado: Para mover para 'Contrato Assinado', anexe documentos no card."); return;
             }
 
-            // Regra: Fechado EXIGE vir de contrato-assinado
             if (novoStatus === 'fechado') {
                 if (currentStatus !== 'contrato-assinado') {
-                    showToast("Bloqueado: O card precisa passar primeiro por 'Contrato Assinado' antes de ser finalizado.");
-                    return;
+                    showToast("Bloqueado: O card precisa passar por 'Contrato Assinado' primeiro."); return;
+                }
+
+                // ========================================================
+                // VALIDAÇÃO: DOCUMENTOS OBRIGATÓRIOS PARA FECHAR
+                // ========================================================
+                const clienteDragged = todosClientesCache.find(c => c.id === draggedCard.dataset.id);
+                if (clienteDragged) {
+                    const docsDoCliente = clienteDragged.documentos || {};
+                    let pendentes = [];
+                    
+                    DOCUMENTOS_CONFIG.forEach(docConf => {
+                        if (docConf.obrigatorio) {
+                            if (!docsDoCliente[docConf.id] || docsDoCliente[docConf.id].length === 0) {
+                                pendentes.push(docConf.label);
+                            }
+                        }
+                    });
+
+                    if (pendentes.length > 0) {
+                        showToast(`Bloqueado! Faltam os seguintes documentos obrigatórios: ${pendentes.join(', ')}`);
+                        return; // Cancela o arraste
+                    }
                 }
             }
 
-            // Se passou em todas as regras de bloqueio, atualiza
-            const docRef = doc(db, "clientes", draggedCard.dataset.id);
-            
-            const updatePayload = { 
-                status: novoStatus
-            };
-
-            // Se arrastou para Em Negociação
-            if (novoStatus === 'em-negociacao') {
-                updatePayload.dataEmNegociacao = new Date().toISOString();
-            }
-
-            // Se arrastou para Contrato Assinado
-            if (novoStatus === 'contrato-assinado') {
-                updatePayload.dataContratoAssinado = new Date().toISOString();
-            }
-
-            // Se arrastou para Fechado
+            const updatePayload = { status: novoStatus };
+            if (novoStatus === 'em-negociacao') updatePayload.dataEmNegociacao = new Date().toISOString();
+            if (novoStatus === 'contrato-assinado') updatePayload.dataContratoAssinado = new Date().toISOString();
             if (novoStatus === 'fechado') {
-                const emailVendedor = currentUser ? currentUser.email : '';
-                updatePayload.fechadoPor = emailVendedor;
-                updatePayload.vendedor = emailVendedor; // Para ser lido pela página de Clientes
-                updatePayload.dataFechamento = new Date().toISOString(); // Para ser lido pela página de Clientes
+                updatePayload.fechadoPor = currentUser ? currentUser.email : '';
+                updatePayload.vendedor = updatePayload.fechadoPor;
+                updatePayload.dataFechamento = new Date().toISOString(); 
             }
 
-            await updateDoc(docRef, updatePayload);
-            
+            await updateDoc(doc(db, "clientes", draggedCard.dataset.id), updatePayload);
             showToast("Sucesso! Card movimentado e salvo.");
-            
-            // Movimentação direta do DOM para evitar o consumo e atualizar a cor imediatamente
             col.appendChild(draggedCard); 
             draggedCard.dataset.status = novoStatus;
             draggedCard.className = `card ${novoStatus}`; 
@@ -1964,24 +1756,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     /* ================= FILTROS ================= */
-
     function filtragemAplicada(){
         const q = searchInput.value.toLowerCase();
         const filterS = filterStatus.value;
-
         Object.values(cardsMap).forEach(card => {
-            // Busca expandida para os principais dados
-            const matchNome = (card.dataset.nome || '').includes(q);
-            const matchCpf = (card.dataset.cpf || '').includes(q);
-            const matchProc = (card.dataset.processo || '').includes(q);
-            
-            const matchSearch = matchNome || matchCpf || matchProc;
+            const matchSearch = (card.dataset.nome || '').includes(q) || (card.dataset.cpf || '').includes(q) || (card.dataset.processo || '').includes(q);
             const matchStatus = !filterS || card.dataset.status === filterS;
-
-            card.style.display =
-                (matchSearch && matchStatus)
-                ? 'flex'
-                : 'none';
+            card.style.display = (matchSearch && matchStatus) ? 'flex' : 'none';
         });
     }
 
@@ -1989,16 +1770,11 @@ document.addEventListener('DOMContentLoaded', () => {
     filterStatus.onchange = filtragemAplicada;
 
     /* ================= LOGIN ================= */
-
     onAuthStateChanged(auth, user => {
         if(user){
             currentUser = user;
-            
             const emailDisplay = document.getElementById('userEmailDisplay');
-            if (emailDisplay) {
-                emailDisplay.innerHTML = `👤 ${user.email}`;
-            }
-
+            if (emailDisplay) emailDisplay.innerHTML = `👤 ${user.email}`;
             render();
         }else{
             window.location.href = "login.html";
@@ -2011,8 +1787,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </head>
 
+<!-- ... TODO O RESTO DO BODY MANTIDO IGUAL ... -->
 <body>
-
+<!-- Restante do conteúdo do Body (Sidebar, Main, Modais...) se mantém o mesmo da sua versão fornecida, 
+     com a única diferença do nome do <input> no modal, que já alterei lá em cima -->
 <div class="sidebar">
 
     <h2 onclick="window.location.href='dashboard.html'">
@@ -2077,12 +1855,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </header>
 
 <div class="search-bar">
-
-    <input
-        id="searchInput"
-        placeholder="Buscar por Nome, Processo ou CPF..."
-    />
-
+    <input id="searchInput" placeholder="Buscar por Nome, Processo ou CPF..." />
     <select id="filterStatus">
         <option value="">Todos os status</option>
         <option value="lista-fria">Lista Fria</option>
@@ -2095,52 +1868,28 @@ document.addEventListener('DOMContentLoaded', () => {
         <option value="contrato-assinado">Contrato Assinado</option>
         <option value="fechado">Fechado</option>
     </select>
-
 </div>
 
 <div class="kanban-container">
-
 <main class="kanban" id="kanban">
-
-    <div class="column" id="lista-fria">
-        </div>
-
-    <div class="column" id="dia-1">
-        </div>
-
-    <div class="column" id="dia-2">
-        </div>
-
-    <div class="column" id="dia-3">
-        </div>
-
-    <div class="column" id="dia-4">
-        </div>
-
-    <div class="column" id="dia-5">
-        </div>
-
-    <div class="column" id="em-negociacao">
-        </div>
-
-    <div class="column" id="contrato-assinado">
-        </div>
-
-    <div class="column" id="fechado">
-        </div>
-
+    <div class="column" id="lista-fria"></div>
+    <div class="column" id="dia-1"></div>
+    <div class="column" id="dia-2"></div>
+    <div class="column" id="dia-3"></div>
+    <div class="column" id="dia-4"></div>
+    <div class="column" id="dia-5"></div>
+    <div class="column" id="em-negociacao"></div>
+    <div class="column" id="contrato-assinado"></div>
+    <div class="column" id="fechado"></div>
 </main>
-
 </div>
-
 </div>
 
 <div class="modal-backdrop" id="modalBackdrop">
     <div class="modal">
         <h3 id="modalTitle">Novo Cliente</h3>
         <form id="clientForm">
-            <div id="infoExtra" class="row" style="display:none; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; font-size: 13px; line-height: 1.6;">
-            </div>
+            <div id="infoExtra" class="row" style="display:none; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; font-size: 13px; line-height: 1.6;"></div>
             
             <div class="row">
                 <input id="inputNome" placeholder="Nome do cliente" required />
@@ -2199,13 +1948,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     <option value="Tocantins">Tocantins</option>
                 </select>
             </div>
+
+            <!-- NOVA SEÇÃO DE DOCUMENTOS (MODIFICADA) -->
             <div class="docs-section">
                 <h4>Documentos do Cliente</h4>
-                <div id="docsList"></div>
-                <input type="file" id="inputFile" style="display: none;" multiple />
-                <button type="button" class="btn ghost" id="btnTriggerFile" style="margin-top: 8px;">📁 Anexar Arquivos</button>
+                <div id="docsListContainer"></div>
+                <!-- Input genérico oculto reutilizado por cada botão de anexar -->
+                <input type="file" id="inputSpecificFile" style="display: none;" multiple />
                 <div id="uploadProgress" style="font-size: 12px; color: #10b981; margin-top: 5px; display: none;"></div>
             </div>
+
             <div class="row">
                 <textarea id="inputObs" maxlength="300" placeholder="Observações (máx. 300 caracteres)"></textarea>
             </div>
@@ -2242,8 +1994,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <div id="agenteFilaContainer" style="margin-top: 25px; display: none;">
             <h4 style="margin-bottom: 12px; font-size: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;">Fila de Disparo</h4>
-            <div id="agenteLista" style="max-height: 250px; overflow-y: auto; padding-right: 5px;">
-                </div>
+            <div id="agenteLista" style="max-height: 250px; overflow-y: auto; padding-right: 5px;"></div>
         </div>
     </div>
 </div>
