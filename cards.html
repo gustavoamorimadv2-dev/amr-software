@@ -239,7 +239,7 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     white-space: nowrap;
 }
 
-/* Botão de Copiar Telefone e Nome */
+/* Botão de Copiar Telefone e Mensagem */
 .btn-copy {
     background: rgba(59, 130, 246, 0.2);
     color: #60a5fa;
@@ -491,28 +491,31 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // --- Lógica para o Botão Copiar Nome ---
+        // --- Lógica para o Botão Copiar Mensagem ---
         let nomeParaExibir = (cliente.nome || 'Sem Nome').trim();
-        let nomeParaCopiar = nomeParaExibir;
+        let textoParaCopiar = "";
 
-        // Se não for PJ, copiamos apenas o primeiro nome formatado (Ex: "Joao")
-        if (tipoPessoa !== 'PJ') {
+        if (tipoPessoa === 'PJ') {
+            textoParaCopiar = `Boa tarde, falo com o representante da empresa "${nomeParaExibir}"?`;
+        } else {
             const partesNome = nomeParaExibir.split(' ');
             const primeiroNome = partesNome[0];
+            let nomeFormatado = primeiroNome;
             if (primeiroNome) {
-                nomeParaCopiar = primeiroNome.charAt(0).toUpperCase() + primeiroNome.slice(1).toLowerCase();
+                nomeFormatado = primeiroNome.charAt(0).toUpperCase() + primeiroNome.slice(1).toLowerCase();
             }
+            textoParaCopiar = `Boa tarde ${nomeFormatado}`;
         }
         
-        // Protege contra aspas simples no nome para não quebrar o HTML do onclick
-        const nomeEscapado = nomeParaCopiar.replace(/'/g, "\\'");
-        // ---------------------------------------
+        // Protege contra aspas simples e duplas para não quebrar o HTML do onclick
+        const textoEscapado = textoParaCopiar.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        // -------------------------------------------
 
         div.innerHTML = `
             <div>
                 <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px;">
                     <h3>${nomeParaExibir}</h3>
-                    <button class="btn-copy" style="margin-left: 10px;" onclick="navigator.clipboard.writeText('${nomeEscapado}'); this.innerText='Copiado!'; setTimeout(() => this.innerText='Copiar Nome', 2000);" title="Copiar nome">Copiar Nome</button>
+                    <button class="btn-copy" style="margin-left: 10px;" onclick="navigator.clipboard.writeText('${textoEscapado}'); this.innerText='Copiada!'; setTimeout(() => this.innerText='Copiar Mensagem', 2000);" title="Copiar mensagem inicial">Copiar Mensagem</button>
                 </div>
                 <p><strong>Ação:</strong> ${acao}</p>
                 <p><strong>CPF/CNPJ:</strong> ${documentoStr} ${tipoPessoa !== 'N/A' ? `<span class="badge-tipo ${badgeClass}">${tipoPessoa}</span>` : ''}</p>
