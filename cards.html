@@ -512,50 +512,28 @@ document.addEventListener('DOMContentLoaded', () => {
         return div;
     }
 
-    // Função de Baixar CSV Padrão WhatsApp Business
+    // Função de Baixar CSV Atualizada
     btnBaixarCsv.onclick = () => {
         if (clientesExibidos.length === 0) {
             alert("A lista atual está vazia. Filtre e exiba clientes antes de baixar o CSV.");
             return;
         }
 
-        // Adicionada a coluna "Type" no cabeçalho do CSV
-        let csvContent = "Name,Phone,Type\n";
+        // Novo cabeçalho do CSV com as informações solicitadas
+        let csvContent = "Nome,Número de Processo,Valor de Causa,Estado,Telefones\n";
 
         clientesExibidos.forEach(c => {
-            // Remove vírgulas do nome para não quebrar a coluna do CSV
-            const nome = c.nome ? c.nome.replace(/,/g, '') : 'Sem Nome'; 
+            // Tratamento de campos para evitar quebra do CSV (escapando aspas duplas)
+            const nome = c.nome ? c.nome.replace(/"/g, '""') : 'Sem Nome';
+            const processo = c.processo ? c.processo.replace(/"/g, '""') : '-';
+            const valor = c.valor ? String(c.valor).replace(/"/g, '""') : '0';
+            const estado = (c.estado || c.uf || '-').toUpperCase();
             
-            // Verifica o tipo de pessoa para incluir na planilha
-            let tipoPessoaCsv = 'PF'; // Padrão
-            if (c.cpf) {
-                const docLimpo = c.cpf.replace(/\D/g, '');
-                if (docLimpo.length > 11) {
-                    tipoPessoaCsv = 'PJ';
-                }
-            }
-            
-            // Verifica se existem números cadastrados
-            if (c.numeros) {
-                // Transforma a string de números em um array
-                const arrayNumeros = c.numeros.split(',');
-                
-                // Faz um loop para CADA número que o cliente possuir
-                arrayNumeros.forEach(numeroRaw => {
-                    const numeroLimpo = numeroRaw.replace(/\D/g, ''); 
+            // Telefones: mantendo todos agrupados na mesma célula
+            const telefones = c.numeros ? c.numeros.replace(/"/g, '""') : '-';
 
-                    // Só adiciona a linha se o número for válido após a limpeza
-                    if (numeroLimpo) {
-                        let wppNumero = numeroLimpo;
-                        // Força código do Brasil (55) caso não tenha
-                        if (!wppNumero.startsWith('55') && wppNumero.length >= 10) {
-                            wppNumero = '55' + wppNumero;
-                        }
-                        // Adiciona uma linha no CSV com as 3 colunas: Nome, Telefone, Tipo (PF/PJ)
-                        csvContent += `${nome},${wppNumero},${tipoPessoaCsv}\n`;
-                    }
-                });
-            }
+            // Envolvendo cada campo em aspas duplas permite ter vírgulas internamente no conteúdo
+            csvContent += `"${nome}","${processo}","${valor}","${estado}","${telefones}"\n`;
         });
 
         // Gera o arquivo incluindo \ufeff para garantir formatação UTF-8 e ler acentos no Excel
@@ -566,7 +544,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Nomeia o arquivo com a data de hoje para organização
         const hoje = new Date().toISOString().split('T')[0];
-        link.setAttribute("download", `Transmissao_Comercial_${hoje}.csv`);
+        link.setAttribute("download", `Relatorio_Clientes_${hoje}.csv`);
         
         document.body.appendChild(link);
         link.click();
