@@ -1151,15 +1151,40 @@ function renderizarDocumentos() {
         return;
     }
 
-    containerDocs.innerHTML = documentos.map(doc => `
-        <div class="doc-item">
-            <div class="doc-info">
-                <i class="fi fi-tr-document"></i>
-                <span title="${doc.nome}">${doc.nome}</span>
+    containerDocs.innerHTML = documentos.map(doc => {
+        // Valida o nome salvo no banco de dados
+        let nomeDoArquivo = doc.nome;
+        
+        // Se o nome não existir ou for a string 'undefined', recupere da URL
+        if (!nomeDoArquivo || nomeDoArquivo === 'undefined') {
+            try {
+                // Remove os parâmetros da URL e decodifica caracteres especiais (ex: %20)
+                const urlDecodificada = decodeURIComponent(doc.url.split('?')[0]);
+                
+                // Pega a última parte do caminho da URL (ex: 1700000000_contrato.pdf)
+                const nomeComTimestamp = urlDecodificada.split('/').pop();
+                
+                // Remove os números do Date.now()_ mantendo só o nome original
+                const indexUnderline = nomeComTimestamp.indexOf('_');
+                nomeDoArquivo = indexUnderline !== -1 
+                    ? nomeComTimestamp.substring(indexUnderline + 1) 
+                    : nomeComTimestamp;
+            } catch (e) {
+                // Fallback seguro caso a URL esteja num formato inesperado
+                nomeDoArquivo = 'Documento'; 
+            }
+        }
+
+        return `
+            <div class="doc-item">
+                <div class="doc-info">
+                    <i class="fi fi-tr-document"></i>
+                    <span title="${nomeDoArquivo}">${nomeDoArquivo}</span>
+                </div>
+                <a href="${doc.url}" target="_blank" class="btn-view-doc">Visualizar</a>
             </div>
-            <a href="${doc.url}" target="_blank" class="btn-view-doc">Visualizar</a>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 // ================= LÓGICA DO MODAL BOLETO AVULSO =================
