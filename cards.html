@@ -185,6 +185,26 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     box-shadow: 0 5px 15px rgba(16, 185, 129, 0.3);
 }
 
+.btn-blue {
+    padding: 10px 20px;
+    border-radius: 12px;
+    border: none;
+    background: #6366f1;
+    color: #fff;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    transition: 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.btn-blue:hover {
+    background: #4f46e5;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(99, 102, 241, 0.3);
+}
+
 /* Area de Conteúdo dos Cards */
 .content-area {
     flex:1;
@@ -328,6 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('searchInput');
     const btnFiltrar = document.getElementById('btnFiltrar');
     const btnBaixarCsv = document.getElementById('btnBaixarCsv');
+    const btnBaixarCsvCompleto = document.getElementById('btnBaixarCsvCompleto');
     const containerCards = document.getElementById('containerCards');
 
     // Ao clicar em Filtrar
@@ -512,28 +533,50 @@ document.addEventListener('DOMContentLoaded', () => {
         return div;
     }
 
-    // Função de Baixar CSV Atualizada
+    // Função de Baixar CSV Padrão WhatsApp Business
     btnBaixarCsv.onclick = () => {
         if (clientesExibidos.length === 0) {
             alert("A lista atual está vazia. Filtre e exiba clientes antes de baixar o CSV.");
             return;
         }
 
-        // Novo cabeçalho do CSV com as informações solicitadas
-        let csvContent = "Nome,Número de Processo,Valor de Causa,Estado,Telefones\n";
+        // Adicionada a coluna "Type" no cabeçalho do CSV
+        let csvContent = "Name,Phone,Type\n";
 
         clientesExibidos.forEach(c => {
-            // Tratamento de campos para evitar quebra do CSV (escapando aspas duplas)
-            const nome = c.nome ? c.nome.replace(/"/g, '""') : 'Sem Nome';
-            const processo = c.processo ? c.processo.replace(/"/g, '""') : '-';
-            const valor = c.valor ? String(c.valor).replace(/"/g, '""') : '0';
-            const estado = (c.estado || c.uf || '-').toUpperCase();
+            // Remove vírgulas do nome para não quebrar a coluna do CSV
+            const nome = c.nome ? c.nome.replace(/,/g, '') : 'Sem Nome'; 
             
-            // Telefones: mantendo todos agrupados na mesma célula
-            const telefones = c.numeros ? c.numeros.replace(/"/g, '""') : '-';
+            // Verifica o tipo de pessoa para incluir na planilha
+            let tipoPessoaCsv = 'PF'; // Padrão
+            if (c.cpf) {
+                const docLimpo = c.cpf.replace(/\D/g, '');
+                if (docLimpo.length > 11) {
+                    tipoPessoaCsv = 'PJ';
+                }
+            }
+            
+            // Verifica se existem números cadastrados
+            if (c.numeros) {
+                // Transforma a string de números em um array
+                const arrayNumeros = c.numeros.split(',');
+                
+                // Faz um loop para CADA número que o cliente possuir
+                arrayNumeros.forEach(numeroRaw => {
+                    const numeroLimpo = numeroRaw.replace(/\D/g, ''); 
 
-            // Envolvendo cada campo em aspas duplas permite ter vírgulas internamente no conteúdo
-            csvContent += `"${nome}","${processo}","${valor}","${estado}","${telefones}"\n`;
+                    // Só adiciona a linha se o número for válido após a limpeza
+                    if (numeroLimpo) {
+                        let wppNumero = numeroLimpo;
+                        // Força código do Brasil (55) caso não tenha
+                        if (!wppNumero.startsWith('55') && wppNumero.length >= 10) {
+                            wppNumero = '55' + wppNumero;
+                        }
+                        // Adiciona uma linha no CSV com as 3 colunas: Nome, Telefone, Tipo (PF/PJ)
+                        csvContent += `${nome},${wppNumero},${tipoPessoaCsv}\n`;
+                    }
+                });
+            }
         });
 
         // Gera o arquivo incluindo \ufeff para garantir formatação UTF-8 e ler acentos no Excel
@@ -544,7 +587,53 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Nomeia o arquivo com a data de hoje para organização
         const hoje = new Date().toISOString().split('T')[0];
-        link.setAttribute("download", `Relatorio_Clientes_${hoje}.csv`);
+        link.setAttribute("download", `Transmissao_Comercial_${hoje}.csv`);
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    // Função de Baixar CSV Completo com todas as informações
+    btnBaixarCsvCompleto.onclick = () => {
+        if (clientesExibidos.length === 0) {
+            alert("A lista atual está vazia. Filtre e exiba clientes antes de exportar o CSV Completo.");
+            return;
+        }
+
+        // Função interna para formatar os campos (adiciona aspas duplas para evitar quebra com vírgulas internas)
+        const formatCSVField = (text) => {
+            if (text === null || text === undefined) return '""';
+            const str = String(text).replace(/"/g, '""');
+            return `"${str}"`;
+        };
+
+        // Cabeçalho
+        let csvContent = "Nome,CPF/CNPJ,Telefones,Ação/Classe,Número do Processo,Estado,Valor da Causa,Cadastrado Por,Data de Cadastro\n";
+
+        clientesExibidos.forEach(c => {
+            const nome = formatCSVField(c.nome);
+            const cpfCnpj = formatCSVField(c.cpf);
+            const telefones = formatCSVField(c.numeros);
+            const acao = formatCSVField(c.classe || c.acao || c.tipoAcao);
+            const processo = formatCSVField(c.processo);
+            const estado = formatCSVField(c.estado || c.uf);
+            const valor = formatCSVField(c.valor || '0');
+            const responsavel = formatCSVField(c.responsavel || c.criadoPor || 'Não Definido');
+            const dataCadastro = formatCSVField(c.dataCadastro);
+
+            csvContent += `${nome},${cpfCnpj},${telefones},${acao},${processo},${estado},${valor},${responsavel},${dataCadastro}\n`;
+        });
+
+        // Gera o arquivo incluindo \ufeff para garantir formatação UTF-8 e ler acentos no Excel
+        const blob = new Blob(['\ufeff', csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.setAttribute("href", url);
+        
+        // Nomeia o arquivo com a data de hoje para organização
+        const hoje = new Date().toISOString().split('T')[0];
+        link.setAttribute("download", `Relatorio_Completo_Cards_${hoje}.csv`);
         
         document.body.appendChild(link);
         link.click();
@@ -610,9 +699,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <button class="btn-primary" id="btnFiltrar">Filtrar</button>
 
+        <!-- Botão antigo mantido, com nome um pouco mais descritivo e ícone padrão -->
         <button class="btn-green" id="btnBaixarCsv">
             <img src="https://img.icons8.com/ios-filled/20/ffffff/download.png" style="width: 16px; height: 16px;">
-            Baixar Lista
+            Baixar Lista Padrão
+        </button>
+
+        <!-- NOVO BOTÃO ADICIONADO -->
+        <button class="btn-blue" id="btnBaixarCsvCompleto">
+            <img src="https://img.icons8.com/ios-filled/20/ffffff/csv.png" style="width: 16px; height: 16px;">
+            CSV Completo
         </button>
 
     </div>
