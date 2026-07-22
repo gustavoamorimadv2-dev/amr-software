@@ -234,7 +234,6 @@ input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); co
 <div class="main">
     <header>
         <h1>Clientes</h1>
-        <!-- NOVO BOTÃO ADICIONADO AQUI -->
         <button class="btn primary" onclick="abrirModalNovoCliente()">+ Adicionar Cliente Antigo</button>
     </header>
 
@@ -436,7 +435,6 @@ input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); co
 <div class="toast" id="toast"></div>
 
 <script type="module">
-// IMPORT ADICIONADO: addDoc
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
 import { getFirestore, collection, query, getDocs, doc, updateDoc, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js";
@@ -503,7 +501,8 @@ function atualizarResumoFinanceiro(listaClientes) {
     let totalAtraso = 0;
 
     listaClientes.forEach(cliente => {
-        const honorarios = cliente.honorarios || [];
+        // Blindagem contra bases antigas onde honorarios não era um Array
+        const honorarios = Array.isArray(cliente.honorarios) ? cliente.honorarios : [];
         honorarios.forEach(h => {
             const valor = converterMoedaParaFloat(h.valor);
             const statusEfetivo = obterStatusEfetivo(h);
@@ -629,10 +628,9 @@ window.aplicarFiltros = function() {
         }
     }
 
-    // Aplica o filtro de atrasados se estiver ativo
     if (filtroAtrasadosAtivo) {
         filtrados = filtrados.filter(c => {
-            const honorarios = c.honorarios || [];
+            const honorarios = Array.isArray(c.honorarios) ? c.honorarios : [];
             return honorarios.some(h => obterStatusEfetivo(h) === "Atrasado");
         });
     }
@@ -668,7 +666,6 @@ window.deletarCliente = async function(id) {
 
 // ================= LÓGICA DE ATUALIZAR SITUAÇÃO =================
 window.atualizarSituacao = async function(clienteId, novaSituacao) {
-    // Altera a cor do Card Imediatamente antes do banco para UX suave
     const cardEl = document.getElementById(`card-cliente-${clienteId}`);
     if (cardEl) {
         if (novaSituacao === 'Renunciar') {
@@ -725,29 +722,39 @@ function exibirClientes(lista) {
         card.id = `card-cliente-${cliente.id}`;
         
         let dataFechamentoStr = "";
-        if (cliente.dataFechamento) {
-            const dataObj = cliente.dataFechamento.toDate ? cliente.dataFechamento.toDate() : new Date(cliente.dataFechamento);
-            dataFechamentoStr = dataObj.toLocaleDateString('pt-BR');
-        }
+        
+        // BLINDAGEM CONTRA DATAS QUEBRADAS (Não vai mais travar renderização)
+        try {
+            if (cliente.dataFechamento) {
+                const dataObj = cliente.dataFechamento.toDate ? cliente.dataFechamento.toDate() : new Date(cliente.dataFechamento);
+                if (!isNaN(dataObj)) {
+                    dataFechamentoStr = dataObj.toLocaleDateString('pt-BR');
+                }
+            }
+        } catch(e) {}
 
         const isFechado = cliente.status === "fechado";
         const badgeStatus = isFechado 
             ? `<span style="background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; border: 1px solid rgba(16, 185, 129, 0.3);">Fechado</span>`
             : `<span style="background: rgba(59, 130, 246, 0.2); color: #3b82f6; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; border: 1px solid rgba(59, 130, 246, 0.3);">Em Andamento</span>`;
 
+        // BLINDAGEM DE ARRAYS (Para clientes antigos que não tem array salvo)
+        const documentosArr = Array.isArray(cliente.documentos) ? cliente.documentos : [];
+        const honorariosArr = Array.isArray(cliente.honorarios) ? cliente.honorarios : [];
+
         let docsIndicator = '';
-        if (cliente.documentos && cliente.documentos.length > 0) {
-            docsIndicator = `<div class="indicator-docs"><i class="fi fi-tr-clip"></i> ${cliente.documentos.length} Doc(s)</div>`;
+        if (documentosArr.length > 0) {
+            docsIndicator = `<div class="indicator-docs"><i class="fi fi-tr-clip"></i> ${documentosArr.length} Doc(s)</div>`;
         }
 
-        const honorariosHtml = (cliente.honorarios || []).slice(0, 3).map(h => {
+        const honorariosHtml = honorariosArr.slice(0, 3).map(h => {
             const statusEfetivo = obterStatusEfetivo(h);
             let corBarra = "#f59e0b"; 
             if (statusEfetivo === "Pago") corBarra = "#10b981";
             if (statusEfetivo === "Atrasado") corBarra = "#ef4444";
 
             return `
-            <div class="boleto-item" style="padding:6px 10px; border-left: 3px solid ${corBarra};">
+            <div class="boleto-item" style="padding:6px 10px; border-left: 3px solid ${corBarra}; pointer-events: none;">
                 <div class="boleto-info">
                     <span class="val" style="font-size:12px;">R$ ${h.valor}</span>
                     <span class="date" style="font-size:10px;">Venc: ${h.vencimento.split('-').reverse().join('/')} - <strong style="color:${corBarra};">${statusEfetivo}</strong></span>
@@ -781,8 +788,8 @@ function exibirClientes(lista) {
                 </select>
 
                 <div class="boletos-list">
-                    ${honorariosHtml || '<p style="font-size:11px; color:rgba(255,255,255,0.4);">Sem parcelas geradas.</p>'}
-                    ${(cliente.honorarios && cliente.honorarios.length > 3) ? '<p style="font-size:10px; color:#10b981; margin-top:5px;">+ ver mais no modal</p>' : ''}
+                    ${honorariosHtml || '<p style="font-size:11px; color:rgba(255,255,255,0.4); pointer-events: none;">Sem parcelas geradas.</p>'}
+                    ${(honorariosArr.length > 3) ? '<p style="font-size:10px; color:#10b981; margin-top:5px; pointer-events: none;">+ ver mais no modal</p>' : ''}
                 </div>
             </div>
         `;
@@ -802,7 +809,7 @@ function exibirClientes(lista) {
     });
 }
 
-// ================= MODAL NOVO CLIENTE (LÓGICA ADICIONADA) =================
+// ================= MODAL NOVO CLIENTE =================
 const modalNovoCliente = document.getElementById('modalNovoCliente');
 
 window.abrirModalNovoCliente = function() {
@@ -871,7 +878,6 @@ window.salvarNovoCliente = async function() {
         fecharModalNovoCliente();
         showToast("Cliente salvo! Adicione os honorários e documentos.");
         
-        // Abre o modal completo automaticamente usando a rotina existente que vc ja tinha
         abrirModalCompleto(novoCliente);
         
     } catch(err) {
@@ -899,10 +905,20 @@ window.abrirModalCompleto = function(cliente) {
         <p><strong>CEP:</strong> ${cliente.cep || "Não informado"}</p>
     `;
 
-    if (cliente.dataFechamento) {
-        const dataObj = cliente.dataFechamento.toDate ? cliente.dataFechamento.toDate() : new Date(cliente.dataFechamento);
-        document.getElementById('editDataFechamento').value = dataObj.toISOString().split('T')[0];
-    } else {
+    // BLINDAGEM MÁXIMA DE ERRO DE CLICK DO CARD
+    // Antes isso crashava o modal invisivelmente se o cliente antigo tivesse data quebrada.
+    try {
+        if (cliente.dataFechamento) {
+            const dataObj = cliente.dataFechamento.toDate ? cliente.dataFechamento.toDate() : new Date(cliente.dataFechamento);
+            if (!isNaN(dataObj)) {
+                document.getElementById('editDataFechamento').value = dataObj.toISOString().split('T')[0];
+            } else {
+                document.getElementById('editDataFechamento').value = "";
+            }
+        } else {
+            document.getElementById('editDataFechamento').value = "";
+        }
+    } catch (err) {
         document.getElementById('editDataFechamento').value = "";
     }
     
@@ -1003,7 +1019,7 @@ window.gerarAVista = async function() {
     }
 
     const hoje = new Date().toISOString().split('T')[0];
-    let novosHonorarios = clienteAtual.honorarios || [];
+    let novosHonorarios = Array.isArray(clienteAtual.honorarios) ? clienteAtual.honorarios : [];
     
     novosHonorarios.push({
         id_parcela: `hon_${Date.now()}_avista`,
@@ -1057,7 +1073,7 @@ window.gerarHonorarios = async function() {
         return;
     }
 
-    let novosHonorarios = clienteAtual.honorarios || [];
+    let novosHonorarios = Array.isArray(clienteAtual.honorarios) ? clienteAtual.honorarios : [];
     
     if (entradaFloat > 0) {
         const hoje = new Date().toISOString().split('T')[0];
@@ -1183,7 +1199,8 @@ window.removerParcela = async function(index) {
 
 function renderizarHonorarios() {
     const containerHon = document.getElementById('listaHonorariosGerados');
-    const honorarios = clienteAtual.honorarios || [];
+    // BLINDAGEM DE ARRAYS AQUI TBM
+    const honorarios = Array.isArray(clienteAtual.honorarios) ? clienteAtual.honorarios : [];
     
     if(honorarios.length === 0) {
         containerHon.innerHTML = '<p style="font-size:12px; color:rgba(255,255,255,0.4);">Nenhum honorário registrado.</p>';
@@ -1260,7 +1277,7 @@ window.anexarDocumento = async function() {
         const uploadTask = await uploadBytesResumable(storageRef, file);
         const downloadURL = await getDownloadURL(uploadTask.ref);
 
-        let documentos = clienteAtual.documentos || [];
+        let documentos = Array.isArray(clienteAtual.documentos) ? clienteAtual.documentos : [];
         documentos.push({
             nome: nomeInput,
             url: downloadURL,
@@ -1289,7 +1306,8 @@ window.anexarDocumento = async function() {
 
 function renderizarDocumentos() {
     const containerDocs = document.getElementById('listaDocsContainer');
-    const documentos = clienteAtual.documentos || [];
+    // BLINDAGEM MÁXIMA PARA DOCUMENTOS
+    const documentos = Array.isArray(clienteAtual.documentos) ? clienteAtual.documentos : [];
 
     if (documentos.length === 0) {
         containerDocs.innerHTML = '<p style="font-size:12px; color:rgba(255,255,255,0.4);">Nenhum documento anexado.</p>';
@@ -1297,25 +1315,16 @@ function renderizarDocumentos() {
     }
 
     containerDocs.innerHTML = documentos.map(doc => {
-        // Valida o nome salvo no banco de dados
         let nomeDoArquivo = doc.nome;
-        
-        // Se o nome não existir ou for a string 'undefined', recupere da URL
         if (!nomeDoArquivo || nomeDoArquivo === 'undefined') {
             try {
-                // Remove os parâmetros da URL e decodifica caracteres especiais (ex: %20)
                 const urlDecodificada = decodeURIComponent(doc.url.split('?')[0]);
-                
-                // Pega a última parte do caminho da URL (ex: 1700000000_contrato.pdf)
                 const nomeComTimestamp = urlDecodificada.split('/').pop();
-                
-                // Remove os números do Date.now()_ mantendo só o nome original
                 const indexUnderline = nomeComTimestamp.indexOf('_');
                 nomeDoArquivo = indexUnderline !== -1 
                     ? nomeComTimestamp.substring(indexUnderline + 1) 
                     : nomeComTimestamp;
             } catch (e) {
-                // Fallback seguro caso a URL esteja num formato inesperado
                 nomeDoArquivo = 'Documento'; 
             }
         }
