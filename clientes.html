@@ -234,6 +234,8 @@ input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); co
 <div class="main">
     <header>
         <h1>Clientes</h1>
+        <!-- NOVO BOTÃO ADICIONADO AQUI -->
+        <button class="btn primary" onclick="abrirModalNovoCliente()">+ Adicionar Cliente Antigo</button>
     </header>
 
     <div class="resumo-container">
@@ -267,6 +269,67 @@ input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); co
 
     <div class="container" id="clientesContainer"></div>
 </div>
+
+<!-- ================= NOVO MODAL: ADICIONAR CLIENTE ANTIGO ================= -->
+<div id="modalNovoCliente" class="modal-backdrop">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Adicionar Cliente Antigo</h3>
+            <button class="btn-close" onclick="fecharModalNovoCliente()">✖</button>
+        </div>
+        <div class="form-grid">
+            <div class="full-width">
+                <label>Nome Completo *</label>
+                <input type="text" id="novoNome" placeholder="Nome do cliente">
+            </div>
+            <div>
+                <label>CPF/CNPJ</label>
+                <input type="text" id="novoCpf" placeholder="000.000.000-00">
+            </div>
+            <div>
+                <label>Telefone</label>
+                <input type="text" id="novoTelefone" placeholder="(00) 00000-0000">
+            </div>
+            <div class="full-width">
+                <label>E-mail</label>
+                <input type="email" id="novoEmail" placeholder="email@exemplo.com">
+            </div>
+            <div class="full-width">
+                <label>Número do Processo</label>
+                <input type="text" id="novoProcesso" placeholder="0000000-00.0000.0.00.0000">
+            </div>
+            <div class="full-width">
+                <label>Endereço</label>
+                <input type="text" id="novoEndereco" placeholder="Rua, Número, Bairro">
+            </div>
+            <div>
+                <label>Cidade</label>
+                <input type="text" id="novaCidade" placeholder="Cidade">
+            </div>
+            <div>
+                <label>Estado</label>
+                <input type="text" id="novoEstado" placeholder="UF">
+            </div>
+            <div>
+                <label>CEP</label>
+                <input type="text" id="novoCep" placeholder="00000-000">
+            </div>
+            <div>
+                <label>Vendedor</label>
+                <input type="text" id="novoVendedor" placeholder="Nome do vendedor">
+            </div>
+            <div class="full-width">
+                <label>Data de Fechamento</label>
+                <input type="date" id="novaDataFechamento">
+            </div>
+        </div>
+        <div class="actions" style="margin-top: 20px;">
+            <button class="btn ghost" onclick="fecharModalNovoCliente()">Cancelar</button>
+            <button class="btn primary" id="btnSalvarNovoCliente" onclick="salvarNovoCliente()">Salvar e Adicionar Detalhes</button>
+        </div>
+    </div>
+</div>
+<!-- ================= FIM DO NOVO MODAL ================= -->
 
 <div id="modalClienteCompleto" class="modal-backdrop">
     <div class="modal modal-large">
@@ -373,8 +436,9 @@ input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); co
 <div class="toast" id="toast"></div>
 
 <script type="module">
+// IMPORT ADICIONADO: addDoc
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-import { getFirestore, collection, query, getDocs, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+import { getFirestore, collection, query, getDocs, doc, updateDoc, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js";
 
 const firebaseConfig = {
@@ -736,6 +800,87 @@ function exibirClientes(lista) {
             abrirModalBoleto(cliente);
         };
     });
+}
+
+// ================= MODAL NOVO CLIENTE (LÓGICA ADICIONADA) =================
+const modalNovoCliente = document.getElementById('modalNovoCliente');
+
+window.abrirModalNovoCliente = function() {
+    document.getElementById('novoNome').value = "";
+    document.getElementById('novoCpf').value = "";
+    document.getElementById('novoTelefone').value = "";
+    document.getElementById('novoEmail').value = "";
+    document.getElementById('novoProcesso').value = "";
+    document.getElementById('novoEndereco').value = "";
+    document.getElementById('novaCidade').value = "";
+    document.getElementById('novoEstado').value = "";
+    document.getElementById('novoCep').value = "";
+    document.getElementById('novoVendedor').value = "";
+    document.getElementById('novaDataFechamento').value = new Date().toISOString().split('T')[0];
+    
+    modalNovoCliente.style.display = "flex";
+}
+
+window.fecharModalNovoCliente = function() {
+    modalNovoCliente.style.display = "none";
+}
+
+modalNovoCliente.addEventListener('click', (e) => {
+    if(e.target === modalNovoCliente) fecharModalNovoCliente();
+});
+
+window.salvarNovoCliente = async function() {
+    const nome = document.getElementById('novoNome').value.trim();
+    if(!nome) {
+        showToast("O nome do cliente é obrigatório.");
+        return;
+    }
+
+    const btn = document.getElementById('btnSalvarNovoCliente');
+    btn.textContent = "Salvando...";
+    btn.disabled = true;
+
+    const dataFechamentoStr = document.getElementById('novaDataFechamento').value;
+    const dataFechamentoFormatada = dataFechamentoStr ? dataFechamentoStr + "T12:00:00" : null;
+
+    const novoCliente = {
+        nome: nome,
+        cpf: document.getElementById('novoCpf').value.trim(),
+        numeros: document.getElementById('novoTelefone').value.trim(),
+        email: document.getElementById('novoEmail').value.trim(),
+        processo: document.getElementById('novoProcesso').value.trim(),
+        endereco: document.getElementById('novoEndereco').value.trim(),
+        cidade: document.getElementById('novaCidade').value.trim(),
+        estado: document.getElementById('novoEstado').value.trim(),
+        cep: document.getElementById('novoCep').value.trim(),
+        vendedor: document.getElementById('novoVendedor').value.trim(),
+        dataFechamento: dataFechamentoFormatada,
+        status: "fechado",
+        situacao: "",
+        honorarios: [],
+        documentos: []
+    };
+
+    try {
+        const docRef = await addDoc(collection(db, "clientes"), novoCliente);
+        novoCliente.id = docRef.id;
+        
+        clientesData.push(novoCliente);
+        aplicarFiltros();
+        
+        fecharModalNovoCliente();
+        showToast("Cliente salvo! Adicione os honorários e documentos.");
+        
+        // Abre o modal completo automaticamente usando a rotina existente que vc ja tinha
+        abrirModalCompleto(novoCliente);
+        
+    } catch(err) {
+        console.error(err);
+        showToast("Erro ao salvar o cliente.");
+    } finally {
+        btn.textContent = "Salvar e Adicionar Detalhes";
+        btn.disabled = false;
+    }
 }
 
 // ================= MODAL DE INFORMAÇÃO COMPLETA =================
