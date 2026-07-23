@@ -1565,7 +1565,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (cliente.status === 'lista-fria') { criarCard(cliente); continue; }
             if (cliente.status === 'em-negociacao') {
-                if (getDiaPipeline(cliente.dataEmNegociacao || cliente.dataPipeline || cliente.dataCadastro) > 10) {
+                
+                // CORREÇÃO: Garante que cards em negociação tenham sempre a data de entrada estabelecida
+                if (!cliente.dataEmNegociacao) {
+                    cliente.dataEmNegociacao = new Date().toISOString();
+                    updateDoc(doc(db, "clientes", cliente.id), { dataEmNegociacao: cliente.dataEmNegociacao });
+                }
+                
+                if (getDiaPipeline(cliente.dataEmNegociacao) > 10) {
                     cliente.status = 'funil-geral'; updateDoc(doc(db, "clientes", cliente.id), { status: 'funil-geral' });
                 } else criarCard(cliente);
                 continue; 
