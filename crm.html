@@ -1049,13 +1049,35 @@ document.addEventListener('DOMContentLoaded', () => {
         uploadProgress.innerText = `Enviando ${files.length} arquivo(s)... Aguarde.`;
         
         let errorOccurred = false;
+        let errorMsgDetalhada = "Verifique regras do Storage";
 
         try {
             for (let file of files) {
                 try {
-                    const uniqueName = Date.now() + "_" + file.name;
-                    const storageRef = ref(storage, `documentos/${currentUser.uid}/${uniqueName}`);
-                    await uploadBytes(storageRef, file);
+                    // Substitui apenas para evitar quebrar caminhos do Firebase
+                    const safeFileName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+                    const uniqueName = Date.now() + "_" + safeFileName;
+                    
+                    let storageRef;
+                    
+                    try {
+                        // TENTATIVA 1: O caminho exato do index.html (com UID)
+                        storageRef = ref(storage, `documentos/${currentUser.uid}/${uniqueName}`);
+                        await uploadBytes(storageRef, file);
+                    } catch (err1) {
+                        console.warn("Falha no caminho com UID. Tentando raiz...", err1);
+                        try {
+                            // TENTATIVA 2: Sem UID, direto na pasta documentos
+                            storageRef = ref(storage, `documentos/${uniqueName}`);
+                            await uploadBytes(storageRef, file);
+                        } catch (err2) {
+                            console.warn("Falha no caminho documentos/. Tentando sem pasta...", err2);
+                            // TENTATIVA 3: Direto no bucket
+                            storageRef = ref(storage, `${uniqueName}`);
+                            await uploadBytes(storageRef, file);
+                        }
+                    }
+
                     const url = await getDownloadURL(storageRef);
                     
                     const docId = window.currentUploadDocId || 'outros';
@@ -1063,16 +1085,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     currentDocs[docId].push({ name: file.name, url: url });
 
                 } catch (error) {
-                    console.error("Erro no upload:", error);
+                    console.error("Erro absoluto no upload:", error);
                     errorOccurred = true;
+                    errorMsgDetalhada = error.message || error.code || "Erro desconhecido";
                     showToast("Erro ao enviar: " + file.name);
                 }
             }
         } finally {
             if (errorOccurred) {
                 uploadProgress.style.color = '#ef4444';
-                uploadProgress.innerText = 'Erro ao salvar. Verifique permissões.';
-                setTimeout(() => { uploadProgress.style.display = 'none'; }, 5000);
+                // AGORA O SISTEMA VAI IMPRIMIR EXATAMENTE O QUE O FIREBASE ESTÁ RECLAMANDO NA TELA
+                uploadProgress.innerText = `Erro: ${errorMsgDetalhada}`;
+                setTimeout(() => { uploadProgress.style.display = 'none'; }, 10000);
             } else {
                 uploadProgress.style.color = '#10b981';
                 uploadProgress.innerText = 'Upload concluído com sucesso!';
