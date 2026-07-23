@@ -653,7 +653,6 @@ import {
 
 
 /* ================= CONFIGURAÇÃO DE DOCUMENTOS DO CLIENTE ================= */
-// Você pode alterar os nomes aqui. O 'obrigatorio: true' bloqueia a coluna 'Fechado'
 const DOCUMENTOS_CONFIG = [
     // Obrigatórios
     { id: 'procuracao', label: 'Procuração', obrigatorio: true },
@@ -783,9 +782,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const docsListContainer = document.getElementById('docsListContainer');
     const uploadProgress = document.getElementById('uploadProgress');
     
-    // Agora currentDocs é um Objeto mapeado por categorias: { 'procuracao': [{name, url}], 'outros': [...] }
     let currentDocs = {}; 
-    window.currentUploadDocId = null; // Guarda o id do documento clicado no momento
+    window.currentUploadDocId = null; 
 
     let currentUser = null;
     let todosClientesCache = []; 
@@ -807,7 +805,7 @@ document.addEventListener('DOMContentLoaded', () => {
         clearTimeout(toastEl._t);
         toastEl._t = setTimeout(() => {
             toastEl.style.display = 'none';
-        },4500); // Aumentado para dar tempo de ler os nomes dos documentos faltantes
+        },4500); 
     }
 
     /* ================= FORÇAR DOWNLOAD ================= */
@@ -1000,7 +998,6 @@ document.addEventListener('DOMContentLoaded', () => {
             headerRow.appendChild(btnAnexar);
             rowWrapper.appendChild(headerRow);
             
-            // Listar os arquivos upados nesta categoria
             const files = currentDocs[docConf.id] || [];
             if (files.length > 0) {
                 const filesContainer = document.createElement('div');
@@ -1053,14 +1050,20 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             for (let file of files) {
                 try {
-                    const uniqueName = Date.now() + "_" + file.name;
-                    const storageRef = ref(storage, `documentos/${currentUser.uid}/${uniqueName}`);
+                    // CORREÇÃO APLICADA: 
+                    // 1. Limpando caracteres especiais do nome para evitar erro de encoding na URL
+                    const safeFileName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+                    const uniqueName = Date.now() + "_" + safeFileName;
+                    
+                    // 2. Removendo currentUser.uid do caminho para não entrar em conflito com as regras do Firebase
+                    const storageRef = ref(storage, `documentos/${uniqueName}`);
+                    
                     await uploadBytes(storageRef, file);
                     const url = await getDownloadURL(storageRef);
                     
                     const docId = window.currentUploadDocId || 'outros';
                     if (!currentDocs[docId]) currentDocs[docId] = [];
-                    currentDocs[docId].push({ name: file.name, url: url });
+                    currentDocs[docId].push({ name: file.name, url: url }); // Mantém o nome original pro usuário ver bonito
 
                 } catch (error) {
                     console.error("Erro no upload:", error);
@@ -1071,7 +1074,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             if (errorOccurred) {
                 uploadProgress.style.color = '#ef4444';
-                uploadProgress.innerText = 'Erro ao salvar. Verifique permissões.';
+                uploadProgress.innerText = 'Erro ao salvar. Verifique permissões das Regras do Storage.';
                 setTimeout(() => { uploadProgress.style.display = 'none'; }, 5000);
             } else {
                 uploadProgress.style.color = '#10b981';
@@ -1116,7 +1119,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const telefones = data.numeros ? data.numeros.split(',').map(t => t.trim()) : [''];
             telefones.forEach(t => addTelefoneField(t));
 
-            // Compatibilidade com os clientes antigos que tinham documentos em Array 
             if (Array.isArray(data.documentos)) {
                 currentDocs = { outros: [...data.documentos] };
             } else {
@@ -1337,7 +1339,6 @@ document.addEventListener('DOMContentLoaded', () => {
         card.dataset.cpf = (cliente.cpf || '').toLowerCase();
         card.dataset.processo = (cliente.processo || '').toLowerCase();
         
-        // Verifica se há documentos para flag generalizada
         let totalDocsLength = 0;
         if (Array.isArray(cliente.documentos)) {
             totalDocsLength = cliente.documentos.length;
@@ -1471,7 +1472,6 @@ document.addEventListener('DOMContentLoaded', () => {
             <p><strong>Pipeline:</strong> ${textoPipeline}</p>
         `;
 
-        // Renderiza os documentos upados mostrando a qual grupo eles pertencem
         let arrayParaDisplay = [];
         if (Array.isArray(cliente.documentos)) {
             arrayParaDisplay = cliente.documentos.map(d => ({...d, label: 'Outros'}));
@@ -1646,7 +1646,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 classe: inputClasse.value,
                 valor: inputValor.value,
                 estado: inputEstado.value,
-                documentos: currentDocs, // Salvando o objeto de categorias
+                documentos: currentDocs, 
                 criadoPor: currentUser ? (currentUser.email || "") : "",
                 fechadoPor: ""
             };
@@ -1725,9 +1725,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     showToast("Bloqueado: O card precisa passar por 'Contrato Assinado' primeiro."); return;
                 }
 
-                // ========================================================
                 // VALIDAÇÃO: DOCUMENTOS OBRIGATÓRIOS PARA FECHAR
-                // ========================================================
                 const clienteDragged = todosClientesCache.find(c => c.id === draggedCard.dataset.id);
                 if (clienteDragged) {
                     const docsDoCliente = clienteDragged.documentos || {};
@@ -1956,11 +1954,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 </select>
             </div>
 
-            <!-- NOVA SEÇÃO DE DOCUMENTOS -->
             <div class="docs-section">
                 <h4>Documentos do Cliente</h4>
                 <div id="docsListContainer"></div>
-                <!-- Input genérico oculto reutilizado por cada botão de anexar -->
                 <input type="file" id="inputSpecificFile" style="display: none;" multiple />
                 <div id="uploadProgress" style="font-size: 12px; color: #10b981; margin-top: 5px; display: none;"></div>
             </div>
