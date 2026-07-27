@@ -396,10 +396,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const txtBusca = searchInput.value.toLowerCase();
 
         clientesExibidos = todosClientes.filter(c => {
-            // Verifica Data
+            // CORREÇÃO MÁXIMA NA VERIFICAÇÃO DE DATA:
+            // Alinha qualquer formato (DD/MM/YYYY ou YYYY-MM-DD) para comparar sem falhas
             let matchData = true;
             if (selData) {
-                matchData = c.dataCadastro && c.dataCadastro.startsWith(selData);
+                if (!c.dataCadastro) {
+                    matchData = false;
+                } else {
+                    // Normaliza a data do campo de busca do navegador
+                    let buscaIso = selData;
+                    if (selData.includes('/')) {
+                        const pBusca = selData.split('/');
+                        buscaIso = `${pBusca[2]}-${pBusca[1]}-${pBusca[0]}`;
+                    }
+                    
+                    // Normaliza a data salva no Firebase (remove horário e trata barras perdidas)
+                    let bancoIso = c.dataCadastro.split('T')[0];
+                    if (bancoIso.includes('/')) {
+                        const pBanco = bancoIso.split('/');
+                        bancoIso = `${pBanco[2]}-${pBanco[1]}-${pBanco[0]}`;
+                    }
+                    
+                    matchData = (bancoIso === buscaIso);
+                }
             }
 
             // Verifica Estado
