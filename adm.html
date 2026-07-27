@@ -162,6 +162,23 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+// Adicionado o CONFIG de documentos para exibição correta dos rótulos
+const DOCUMENTOS_CONFIG = [
+    { id: 'procuracao', label: 'Procuração' },
+    { id: 'declaracao_hipossuficiencia', label: 'Declaração de hipossuficiência' },
+    { id: 'contrato', label: 'Contrato de honorários' },
+    { id: 'identidade', label: 'Documento de identificação' },
+    { id: 'comprovante_residencia', label: 'Comprovante de residência' },
+    { id: 'extratos_bancarios', label: 'Últimos 3 extratos bancários' },
+    { id: 'comprovante_renda', label: 'Últimos 3 comprovantes de renda' },
+    { id: 'imposto_renda', label: 'Última Declaração de Imposto de Renda' },
+    { id: 'despesas_mensais', label: 'Comprovantes de despesas mensais' },
+    { id: 'faturas_cartao', label: 'Últimas 3 faturas do cartão de crédito' },
+    { id: 'peticao_inicial', label: 'Petição Inicial' },
+    { id: 'contrato_financiamento', label: 'Contrato de Financiamento' },
+    { id: 'outros', label: 'Outros' }
+];
+
 document.addEventListener('DOMContentLoaded', () => {
     
     const sidebar = document.querySelector(".sidebar");
@@ -324,10 +341,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 const acaoCliente = c.classe || c.acao || c.tipoAcao || 'Não informada';
                 const dataCard = c.dataFechamento ? new Date(c.dataFechamento).toLocaleDateString('pt-BR') : 'Data não registrada';
                 
-                const temDocs = Array.isArray(c.documentos) && c.documentos.length > 0;
+                // Lógica corrigida de contagem de documentos (Array e Object)
+                let totalDocsLength = 0;
+                if (Array.isArray(c.documentos)) {
+                    totalDocsLength = c.documentos.length;
+                } else if (c.documentos) {
+                    Object.values(c.documentos).forEach(arr => {
+                        if(Array.isArray(arr)) totalDocsLength += arr.length;
+                    });
+                }
+                const temDocs = totalDocsLength > 0;
                 
                 const badgeDoc = temDocs 
-                    ? `<span class="badge-com-anexo">📎 ${c.documentos.length} Anexo(s)</span>`
+                    ? `<span class="badge-com-anexo">📎 ${totalDocsLength} Anexo(s)</span>`
                     : `<span class="badge-sem-anexo">⚠️ Pendente Anexo</span>`;
 
                 listaFechadosEl.innerHTML += `
@@ -387,12 +413,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const docsList = document.getElementById('detalheClienteDocs');
         docsList.innerHTML = '';
 
-        if(Array.isArray(cliente.documentos) && cliente.documentos.length > 0) {
-            cliente.documentos.forEach(doc => {
+        // Lógica corrigida para exibir documentos das Categorias
+        let arrayParaDisplay = [];
+        if (Array.isArray(cliente.documentos)) {
+            arrayParaDisplay = cliente.documentos.map(d => ({...d, label: 'Outros'}));
+        } else if (cliente.documentos) {
+            Object.keys(cliente.documentos).forEach(docId => {
+                const conf = DOCUMENTOS_CONFIG.find(c => c.id === docId);
+                const labelName = conf ? conf.label : 'Doc';
+                if(Array.isArray(cliente.documentos[docId])) {
+                    cliente.documentos[docId].forEach(d => {
+                        arrayParaDisplay.push({...d, label: labelName});
+                    });
+                }
+            });
+        }
+
+        if(arrayParaDisplay.length > 0) {
+            arrayParaDisplay.forEach(doc => {
                 docsList.innerHTML += `
                     <div class="doc-item">
                         <a href="javascript:void(0)" onclick="window.forceDownload('${doc.url}', '${doc.name}', event)">
-                            📄 ${doc.name} <span style="font-size:10px; color:#9ca3af; margin-left: 5px;">(Clique para Baixar)</span>
+                            <span style="color:#9ca3af; font-size:10px;">[${doc.label}]</span> 📄 ${doc.name} 
+                            <span style="font-size:10px; color:#9ca3af; margin-left: 5px;">(Clique para Baixar)</span>
                         </a>
                     </div>
                 `;
