@@ -635,7 +635,8 @@ import {
     updateDoc,
     deleteDoc,
     query,
-    where
+    where,
+    enableIndexedDbPersistence // <-- ADICIONADO: Importação do Cache Offline
 } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
 import {
@@ -653,7 +654,6 @@ import {
 
 
 /* ================= CONFIGURAÇÃO DE DOCUMENTOS DO CLIENTE ================= */
-// Você pode alterar os nomes aqui. O 'obrigatorio: true' bloqueia a coluna 'Fechado'
 const DOCUMENTOS_CONFIG = [
     // Obrigatórios
     { id: 'procuracao', label: 'Procuração', obrigatorio: true },
@@ -688,6 +688,12 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
+// <-- ADICIONADO: Habilita cache offline para economizar requisições e leituras
+enableIndexedDbPersistence(db).catch((err) => {
+    console.warn("Aviso de Cache Offline: ", err.message);
+});
+
 const auth = getAuth(app);
 let storage;
 
@@ -743,6 +749,26 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // <-- ADICIONADO: Atualiza apenas as métricas de "Cadastrados hoje" sem recarregar o HTML da coluna
+    function atualizarInfosHoje() {
+        if (!currentUser) return;
+        const hojeStr = new Date().toLocaleDateString('pt-BR');
+        
+        let cFria = 0, cDia1 = 0;
+        todosClientesCache.forEach(c => {
+            if (c.criadoPor === currentUser.email) {
+                if (c.status === 'lista-fria' && c.dataCadastro && new Date(c.dataCadastro).toLocaleDateString('pt-BR') === hojeStr) cFria++;
+                if (c.status === 'dia-1' && c.dataPipeline && new Date(c.dataPipeline).toLocaleDateString('pt-BR') === hojeStr) cDia1++;
+            }
+        });
+
+        const spanFria = document.querySelector('#lista-fria .col-header-actions span strong');
+        if (spanFria) spanFria.innerText = cFria;
+
+        const spanDia1 = document.querySelector('#dia-1 .col-header-actions span strong');
+        if (spanDia1) spanDia1.innerText = cDia1;
+    }
+
     const cardsMap = {};
 
     const modalBackdrop = document.getElementById('modalBackdrop');
@@ -796,9 +822,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const docsListContainer = document.getElementById('docsListContainer');
     const uploadProgress = document.getElementById('uploadProgress');
     
-    // Agora currentDocs é um Objeto mapeado por categorias: { 'procuracao': [{name, url}], 'outros': [...] }
     let currentDocs = {}; 
-    window.currentUploadDocId = null; // Guarda o id do documento clicado no momento
+    window.currentUploadDocId = null; 
 
     let currentUser = null;
     let todosClientesCache = []; 
@@ -820,7 +845,7 @@ document.addEventListener('DOMContentLoaded', () => {
         clearTimeout(toastEl._t);
         toastEl._t = setTimeout(() => {
             toastEl.style.display = 'none';
-        },4500); // Aumentado para dar tempo de ler os nomes dos documentos faltantes
+        },4500); 
     }
 
     /* ================= FORÇAR DOWNLOAD ================= */
@@ -904,7 +929,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             btnCarregarFila.innerText = "Carregando...";
-            const clientes = await getClientes();
+            // <-- CORRIGIDO: Usa o cache local em vez de buscar todos os dados de novo (Zero leituras)
+            const clientes = todosClientesCache;
             const listaFria = clientes.filter(c => c.status === 'lista-fria' && c.numeros);
 
             btnCarregarFila.innerText = "Carregar Lista Fria";
@@ -946,11 +972,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     btnEnviar.disabled = true;
 
                     try {
+                        const nowIso = new Date().toISOString();
                         const docRef = doc(db, "clientes", cliente.id);
                         await updateDoc(docRef, { 
                             status: 'dia-1',
-                            dataPipeline: new Date().toISOString()
+                            dataPipeline: nowIso
                         });
+                        
+                        // <-- CORRIGIDO: Atualiza o cache local
+                        const cacheCli = todosClientesCache.find(c => c.id === cliente.id);
+                        if(cacheCli) { cacheCli.status = 'dia-1'; cacheCli.dataPipeline = nowIso; }
+
                         const cardNaTela = document.querySelector(`.card[data-id="${cliente.id}"]`);
                         const colunaDia1 = document.getElementById('dia-1');
                         if (cardNaTela && colunaDia1) {
@@ -1014,7 +1046,6 @@ document.addEventListener('DOMContentLoaded', () => {
             headerRow.appendChild(btnAnexar);
             rowWrapper.appendChild(headerRow);
             
-            // Listar os arquivos upados nesta categoria
             const files = currentDocs[docConf.id] || [];
             if (files.length > 0) {
                 const filesContainer = document.createElement('div');
@@ -1130,7 +1161,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const telefones = data.numeros ? data.numeros.split(',').map(t => t.trim()) : [''];
             telefones.forEach(t => addTelefoneField(t));
 
-            // Compatibilidade com os clientes antigos que tinham documentos em Array 
             if (Array.isArray(data.documentos)) {
                 currentDocs = { outros: [...data.documentos] };
             } else {
@@ -1351,7 +1381,6 @@ document.addEventListener('DOMContentLoaded', () => {
         card.dataset.cpf = (cliente.cpf || '').toLowerCase();
         card.dataset.processo = (cliente.processo || '').toLowerCase();
         
-        // Verifica se há documentos para flag generalizada
         let totalDocsLength = 0;
         if (Array.isArray(cliente.documentos)) {
             totalDocsLength = cliente.documentos.length;
@@ -1396,8 +1425,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (cliente.status === 'lista-fria') {
                 try {
+                    const nowIso = new Date().toISOString();
                     const docRef = doc(db, "clientes", cliente.id);
-                    await updateDoc(docRef, { status: 'dia-1', dataPipeline: new Date().toISOString() });
+                    await updateDoc(docRef, { status: 'dia-1', dataPipeline: nowIso });
+                    
+                    // <-- CORRIGIDO: Atualiza o cache local
+                    const cacheCli = todosClientesCache.find(c => c.id === cliente.id);
+                    if(cacheCli) { cacheCli.status = 'dia-1'; cacheCli.dataPipeline = nowIso; }
+
                     const colunaDia1 = document.getElementById('dia-1');
                     if (colunaDia1) {
                         colunaDia1.appendChild(card);
@@ -1425,7 +1460,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         await deleteDoc(doc(db, "clientes", cliente.id));
                         showToast("Card excluído!");
                         card.remove(); 
+                        
+                        // <-- CORRIGIDO: Remove do cache local para manter a busca correta
+                        todosClientesCache = todosClientesCache.filter(c => c.id !== cliente.id);
                         atualizarContadores();
+                        atualizarInfosHoje();
                     } catch (error) {}
                 }
             };
@@ -1442,9 +1481,15 @@ document.addEventListener('DOMContentLoaded', () => {
             btnNegociacao.onclick = async (e) => {
                 e.stopPropagation();
                 try {
+                    const nowIso = new Date().toISOString();
                     await updateDoc(doc(db, "clientes", cliente.id), { 
-                        status: 'em-negociacao', dataEmNegociacao: new Date().toISOString()
+                        status: 'em-negociacao', dataEmNegociacao: nowIso
                     });
+                    
+                    // <-- CORRIGIDO: Atualiza o cache local
+                    const cacheCli = todosClientesCache.find(c => c.id === cliente.id);
+                    if(cacheCli) { cacheCli.status = 'em-negociacao'; cacheCli.dataEmNegociacao = nowIso; }
+
                     const coluna = document.getElementById('em-negociacao');
                     if (coluna) {
                         coluna.appendChild(card);
@@ -1488,7 +1533,6 @@ document.addEventListener('DOMContentLoaded', () => {
             <p><strong>Pipeline:</strong> ${textoPipeline}</p>
         `;
 
-        // Renderiza os documentos upados mostrando a qual grupo eles pertencem
         let arrayParaDisplay = [];
         if (Array.isArray(cliente.documentos)) {
             arrayParaDisplay = cliente.documentos.map(d => ({...d, label: 'Outros'}));
@@ -1588,13 +1632,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (cliente.status === 'lista-fria') { criarCard(cliente); continue; }
             if (cliente.status === 'em-negociacao') {
-                
-                // CORREÇÃO: Garante que cards em negociação tenham sempre a data de entrada estabelecida
                 if (!cliente.dataEmNegociacao) {
                     cliente.dataEmNegociacao = new Date().toISOString();
                     updateDoc(doc(db, "clientes", cliente.id), { dataEmNegociacao: cliente.dataEmNegociacao });
                 }
-                
                 if (getDiaPipeline(cliente.dataEmNegociacao) > 10) {
                     cliente.status = 'funil-geral'; updateDoc(doc(db, "clientes", cliente.id), { status: 'funil-geral' });
                 } else criarCard(cliente);
@@ -1633,6 +1674,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         filtragemAplicada();
         atualizarContadores();
+        atualizarInfosHoje();
     }
 
    /* ================= FORM ================= */
@@ -1677,14 +1719,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 classe: inputClasse.value,
                 valor: inputValor.value,
                 estado: inputEstado.value,
-                documentos: currentDocs, // Salvando o objeto de categorias
+                documentos: currentDocs, 
                 criadoPor: currentUser ? (currentUser.email || "") : "",
                 fechadoPor: ""
             };
 
+            // <-- CORRIGIDO: Agora o form NÃO baixa toda a base após salvar
             if(clientForm.dataset.editId){
                 novo.id = clientForm.dataset.editId;
-                const antigo = (await getClientes()).find(c=>c.id===novo.id);
+                
+                // Pega do cache local em vez do Firebase! Zero Leituras.
+                const antigo = todosClientesCache.find(c=>c.id===novo.id);
                 if(antigo){
                     novo.criadoPor = antigo.criadoPor || "";
                     novo.fechadoPor = antigo.fechadoPor || "";
@@ -1698,14 +1743,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 await saveCliente(novo);
                 showToast("Cliente atualizado!");
+
+                // Atualiza a memória e recria só esse card (Zero leituras na nuvem)
+                const index = todosClientesCache.findIndex(c => c.id === novo.id);
+                if(index !== -1) todosClientesCache[index] = novo;
+                
+                const cardAntigo = document.querySelector(`.card[data-id="${novo.id}"]`);
+                if(cardAntigo) cardAntigo.remove();
+                criarCard(novo);
+                
             }else{
                 novo.dataCadastro = new Date().toISOString();
                 novo.status = "lista-fria";
                 await saveCliente(novo);
                 showToast("Cliente adicionado!");
+                
+                // Adiciona na memória local (Zero leituras na nuvem)
+                todosClientesCache.push(novo);
+                criarCard(novo);
             }
+            
             closeModal();
-            await render(); 
+            filtragemAplicada();
+            atualizarContadores();
+            atualizarInfosHoje(); 
+            // REMOVIDO o "await render()" que causava o vazamento de leituras!
+            
         } catch (error) {
             showToast("Erro inesperado ao salvar!");
         } finally {
@@ -1756,9 +1819,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     showToast("Bloqueado: O card precisa passar por 'Contrato Assinado' primeiro."); return;
                 }
 
-                // ========================================================
-                // VALIDAÇÃO: DOCUMENTOS OBRIGATÓRIOS PARA FECHAR
-                // ========================================================
                 const clienteDragged = todosClientesCache.find(c => c.id === draggedCard.dataset.id);
                 if (clienteDragged) {
                     const docsDoCliente = clienteDragged.documentos || {};
@@ -1774,7 +1834,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     if (pendentes.length > 0) {
                         showToast(`Bloqueado! Faltam os seguintes documentos obrigatórios: ${pendentes.join(', ')}`);
-                        return; // Cancela o arraste
+                        return; 
                     }
                 }
             }
@@ -1789,6 +1849,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             await updateDoc(doc(db, "clientes", draggedCard.dataset.id), updatePayload);
+            
+            // <-- CORRIGIDO: Atualiza a memória local para não afetar as buscas ou precisar de novo download
+            const cacheCli = todosClientesCache.find(c => c.id === draggedCard.dataset.id);
+            if(cacheCli) Object.assign(cacheCli, updatePayload);
+
             showToast("Sucesso! Card movimentado e salvo.");
             col.appendChild(draggedCard); 
             draggedCard.dataset.status = novoStatus;
