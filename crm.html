@@ -730,6 +730,19 @@ document.addEventListener('DOMContentLoaded', () => {
         'fechado'
     ];
 
+    function atualizarContadores() {
+        STATUS.forEach(s => {
+            const col = document.getElementById(s);
+            if (col) {
+                const count = col.querySelectorAll('.card').length;
+                const totalEl = document.getElementById(`total-${s}`);
+                if (totalEl) {
+                    totalEl.innerText = count;
+                }
+            }
+        });
+    }
+
     const cardsMap = {};
 
     const modalBackdrop = document.getElementById('modalBackdrop');
@@ -944,6 +957,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             colunaDia1.appendChild(cardNaTela);
                             cardNaTela.dataset.status = 'dia-1';
                             cardNaTela.className = 'card dia-1'; 
+                            atualizarContadores();
                         }
                     } catch (error) {
                         console.error("Erro ao mover para o Dia 1:", error);
@@ -1389,6 +1403,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         colunaDia1.appendChild(card);
                         card.dataset.status = 'dia-1';
                         card.className = 'card dia-1'; 
+                        atualizarContadores();
                     }
                 } catch (error) {}
             }
@@ -1410,6 +1425,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         await deleteDoc(doc(db, "clientes", cliente.id));
                         showToast("Card excluído!");
                         card.remove(); 
+                        atualizarContadores();
                     } catch (error) {}
                 }
             };
@@ -1435,6 +1451,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         card.dataset.status = 'em-negociacao';
                         card.className = 'card em-negociacao'; 
                         btnNegociacao.style.display = 'none'; 
+                        atualizarContadores();
                     }
                 } catch (error) {}
             };
@@ -1518,6 +1535,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let countListaFriaHoje = 0;
         let countDia1Hoje = 0;
+        let countResgatados = 0;
         const hojeStr = new Date().toLocaleDateString('pt-BR');
         
         if (currentUser) {
@@ -1530,7 +1548,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!c.dataPipeline || c.status !== 'dia-1') return false;
                 return new Date(c.dataPipeline).toLocaleDateString('pt-BR') === hojeStr && c.criadoPor === currentUser.email;
             }).length;
+
+            countResgatados = clientes.filter(c => c.resgatado === true || c.resgatadoFunil === true || c.resgatadoFunilGeral === true).length;
         }
+
+        const resgatadosText = document.getElementById('countResgatadosText');
+        if (resgatadosText) resgatadosText.innerText = countResgatados;
 
         STATUS.forEach(status => {
             const col = document.getElementById(status);
@@ -1538,7 +1561,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 col.innerHTML = `
                     <div class="col-header-actions">
                         <div style="display:flex; flex-direction:column;">
-                            <h2 style="margin-bottom:2px;">LISTA FRIA</h2>
+                            <h2 style="margin-bottom:2px;">LISTA FRIA (<span id="total-${status}">0</span>)</h2>
                             <span style="font-size: 11px; font-weight: normal; color: rgba(255,255,255,0.6);">Cadastrados hoje: <strong style="color:#fff;">${countListaFriaHoje}</strong></span>
                         </div>
                         <button class="btn-robot" title="Ativar Robô" onclick="document.getElementById('btnAgente').click()">
@@ -1549,13 +1572,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 col.innerHTML = `
                     <div class="col-header-actions">
                         <div style="display:flex; flex-direction:column;">
-                            <h2 style="margin-bottom:2px;">EM NEGOCIAÇÃO (DIA 1)</h2>
+                            <h2 style="margin-bottom:2px;">EM NEGOCIAÇÃO (DIA 1) (<span id="total-${status}">0</span>)</h2>
                             <span style="font-size: 11px; font-weight: normal; color: rgba(255,255,255,0.6);">Chamados hoje: <strong style="color:#fff;">${countDia1Hoje}</strong></span>
                         </div>
                     </div>`;
-            } else if (status === 'dia-2') { col.innerHTML = `<h2>EM NEGOCIAÇÃO (DIA 2)</h2>`;
-            } else if (status === 'em-negociacao') { col.innerHTML = `<h2>EM NEGOCIAÇÃO</h2>`;
-            } else { col.innerHTML = `<h2>${status.replace('-', ' ').toUpperCase()}</h2>`; }
+            } else if (status === 'dia-2') { col.innerHTML = `<h2>EM NEGOCIAÇÃO (DIA 2) (<span id="total-${status}">0</span>)</h2>`;
+            } else if (status === 'em-negociacao') { col.innerHTML = `<h2>EM NEGOCIAÇÃO (<span id="total-${status}">0</span>)</h2>`;
+            } else { col.innerHTML = `<h2>${status.replace('-', ' ').toUpperCase()} (<span id="total-${status}">0</span>)</h2>`; }
         });
 
         for(const k in cardsMap){ delete cardsMap[k]; }
@@ -1609,6 +1632,7 @@ document.addEventListener('DOMContentLoaded', () => {
             criarCard(cliente);
         }
         filtragemAplicada();
+        atualizarContadores();
     }
 
    /* ================= FORM ================= */
@@ -1769,6 +1793,7 @@ document.addEventListener('DOMContentLoaded', () => {
             col.appendChild(draggedCard); 
             draggedCard.dataset.status = novoStatus;
             draggedCard.className = `card ${novoStatus}`; 
+            atualizarContadores();
         });
     });
 
@@ -1854,6 +1879,9 @@ document.addEventListener('DOMContentLoaded', () => {
     <div style="display: flex; align-items: center; gap: 20px;">
         <h1>CRM</h1>
         <div id="userEmailDisplay" class="user-info"></div>
+        <div class="user-info" style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3); color: #34d399;">
+            Resgatados do Funil: <strong id="countResgatadosText" style="color: #fff; margin-left: 4px;">0</strong>
+        </div>
     </div>
 
     <div style="display: flex; gap: 12px; align-items: center;">
