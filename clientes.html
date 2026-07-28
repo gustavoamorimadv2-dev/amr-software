@@ -145,7 +145,7 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 .situacao-card-select:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3); }
 .situacao-card-select option { background: #0f172a; color: #fff; }
 
-.boletos-list { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; padding-right: 5px; flex: 1; }
+.boletos-list { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; overflow-x: hidden; padding-right: 5px; flex: 1; }
 .boleto-item { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
 .boleto-info { display: flex; flex-direction: column; gap: 4px; flex: 1; }
 .boleto-info .val { font-size: 14px; font-weight: 700; color: #10b981; }
@@ -182,7 +182,9 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 .info-pessoal strong { color: #fff; }
 
 .honorarios-box { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px; }
-.form-inline { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+
+/* FIX: Refinando o formulário de grid para não engolir o layout */
+.form-inline { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 12px; }
 
 .doc-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); padding: 12px 16px; border-radius: 12px; margin-bottom: 8px; transition: 0.2s; }
 .doc-item:hover { background: rgba(255,255,255,0.08); border-color: rgba(59, 130, 246, 0.3); }
@@ -193,7 +195,9 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 .btn-view-doc:hover { background: #3b82f6; color: #fff; }
 
 label { display:block; margin-bottom:6px; font-size:12px; font-weight:600; color:rgba(255,255,255,0.7); }
-input { width:100%; padding:10px 14px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:#fff; font-size:13px; outline:none; transition:0.3s; }
+
+/* FIX: Adicionado min-width:0 para evitar que o text suma ou quebre o Flexbox */
+input { width:100%; min-width: 0; padding:10px 14px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:#fff; font-size:13px; outline:none; transition:0.3s; }
 input:focus { background:rgba(255,255,255,0.1); border-color: #10b981; }
 input[type="file"] { padding: 8px; font-size: 12px; }
 input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; margin-right: 10px; }
@@ -1212,6 +1216,7 @@ window.removerParcela = async function(index) {
     }
 };
 
+// FIX: Usando CSS Grid responsivo dentro das parcelas geradas também para evitar cortes
 function renderizarHonorarios() {
     const containerHon = document.getElementById('listaHonorariosGerados');
     // BLINDAGEM DE ARRAYS AQUI TBM
@@ -1249,16 +1254,16 @@ function renderizarHonorarios() {
                 </select>
             </div>
             
-            <div style="display: flex; gap: 8px;">
-                <div style="flex: 1;">
-                    <label style="font-size: 10px; margin-bottom: 2px;">Valor (R$)</label>
-                    <input type="text" value="${h.valor}" style="padding: 6px; font-size: 12px; width: 100%;" 
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; margin-top: 8px;">
+                <div>
+                    <label style="font-size: 11px; margin-bottom: 4px; display: block; color: rgba(255,255,255,0.7);">Valor (R$)</label>
+                    <input type="text" value="${h.valor}" style="padding: 8px 12px; font-size: 13px; width: 100%; box-sizing: border-box;" 
                            oninput="mascaraDinheirInline(this)" 
                            onchange="atualizarDadosParcela(${index}, 'valor', this.value)">
                 </div>
-                <div style="flex: 1;">
-                    <label style="font-size: 10px; margin-bottom: 2px;">Vencimento</label>
-                    <input type="date" value="${h.vencimento}" style="padding: 6px; font-size: 12px; width: 100%;" 
+                <div>
+                    <label style="font-size: 11px; margin-bottom: 4px; display: block; color: rgba(255,255,255,0.7);">Vencimento</label>
+                    <input type="date" value="${h.vencimento}" style="padding: 8px 12px; font-size: 13px; width: 100%; box-sizing: border-box;" 
                            onchange="atualizarDadosParcela(${index}, 'vencimento', this.value)">
                 </div>
             </div>
