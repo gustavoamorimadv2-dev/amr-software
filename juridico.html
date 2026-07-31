@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jurídico - CRM AMR ADV</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.1.0/uicons-thin-rounded/css/uicons-thin-rounded.css'>
+
+<style>
+
+* { margin:0; padding:0; box-sizing:border-box; font-family: 'Inter', sans-serif; }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
+
+body { 
+    display:flex; height:100vh; overflow:hidden; transition:filter 0.3s; 
+    background:
+        radial-gradient(circle at top left,#2f3f73 0%,transparent 30%),
+        radial-gradient(circle at bottom right,#0f766e 0%,transparent 25%),
+        linear-gradient(135deg,#0f172a,#111827,#020617);
+    color: #fff;
+}
+
+/* ================= SIDEBAR ================= */
+.sidebar {
+    width:80px; display:flex; flex-direction:column; align-items:center;
+    padding:20px 0; flex-shrink:0; transition:width 0.4s ease; position:relative; z-index:10;
+    backdrop-filter:blur(30px); background:rgba(255,255,255,0.06); border-right:1px solid rgba(255,255,255,0.08);
+    box-shadow:0 0 40px rgba(0,0,0,0.25);
+}
+.sidebar.expanded { width:240px; }
+.sidebar h2 {
+    font-size:22px; font-weight:800; color:#fff;
+    letter-spacing:1px; margin-bottom:30px; text-align:center; cursor:pointer;
+    width:100%; white-space:nowrap; overflow:hidden; transition:opacity 0.3s; opacity:0;
+}
+.sidebar.expanded h2 { opacity:1; }
+
+.sidebar button {
+    width:calc(100% - 20px); background:transparent; border:none; color:rgba(255,255,255,0.7);
+    display:flex; align-items:center; gap:15px; padding:12px 15px; margin:5px 10px;
+    cursor:pointer; border-radius:14px; transition:all 0.3s; font-size:14px;
+    white-space:nowrap; overflow:hidden;
+}
+.sidebar button img { width:24px; height:24px; filter:invert(1) opacity(0.7); flex-shrink:0; transition:transform 0.3s, filter 0.3s; }
+.sidebar button span { display:inline-block; opacity:0; transition:opacity 0.3s; font-weight:600; }
+.sidebar.expanded button span { opacity:1; }
+.sidebar button:hover img { transform:scale(1.1); filter:invert(1) opacity(1); }
+.sidebar button:hover, .sidebar button.active { background:rgba(255,255,255,0.1); color:#fff; }
+
+/* ================= MAIN ================= */
+.main { flex:1; display:flex; flex-direction:column; overflow:hidden; transition:filter 0.3s; }
+.main.blur { filter:blur(5px) brightness(0.7); }
+
+header { 
+    height:70px; background:transparent; border-bottom:1px solid rgba(255,255,255,0.08); 
+    display:flex; align-items:center; justify-content:space-between; padding:0 30px; flex-shrink:0; 
+}
+header h1 { font-size:24px; color:#fff; font-weight:800; }
+
+/* ================= RESUMO JURÍDICO ================= */
+.resumo-container { display: flex; gap: 20px; padding: 25px 30px 0 30px; flex-wrap: wrap; flex-shrink: 0; }
+.resumo-card {
+    flex: 1; min-width: 200px;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 8px;
+    backdrop-filter: blur(10px); box-shadow: 0 8px 30px rgba(0,0,0,0.1); transition: 0.3s;
+}
+.resumo-card .title { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.7); text-transform: uppercase; letter-spacing: 1px; }
+.resumo-card .value { font-size: 26px; font-weight: 800; }
+.resumo-total .value { color: #3b82f6; }
+.resumo-aguardando .value { color: #f59e0b; }
+.resumo-lancados .value { color: #10b981; }
+.resumo-total { border-bottom: 4px solid #3b82f6; }
+.resumo-aguardando { border-bottom: 4px solid #f59e0b; }
+.resumo-lancados { border-bottom: 4px solid #10b981; }
+
+/* ================= SEARCH ================= */
+.search-container { padding: 25px 30px 0 30px; flex-shrink: 0; display: flex; gap: 15px; flex-wrap: wrap; }
+input.search-input { 
+    flex: 1; min-width: 250px; padding:12px 16px; background:rgba(255,255,255,0.08); 
+    border:1px solid rgba(255,255,255,0.1); border-radius:12px; color:#fff; font-size: 14px; 
+    outline: none; transition: 0.3s; backdrop-filter: blur(10px); 
+}
+input.search-input:focus { border-color: #3b82f6; background:rgba(255,255,255,0.1); }
+
+/* ================= CARDS ================= */
+.container { flex:1; overflow-y:auto; padding:30px; display:flex; flex-wrap:wrap; gap:25px; align-content: flex-start; }
+
+.card { 
+    display:flex; background:rgba(255,255,255,0.05); backdrop-filter:blur(15px);
+    border:1px solid rgba(255,255,255,0.08); border-radius:16px; box-shadow:0 8px 30px rgba(0,0,0,0.15);
+    overflow:hidden; transition:transform 0.3s, background 0.3s, opacity 0.3s; 
+    flex-direction:row; position:relative; width:340px; max-height: 480px;
+    cursor: pointer;
+}
+.card:hover { transform:translateY(-5px); background:rgba(255,255,255,0.08); border-color: rgba(59, 130, 246, 0.4); }
+
+/* CLASSE DINÂMICA PARA CARD LANÇADO */
+.card.lancado { 
+    border-color: rgba(255, 255, 255, 0.1) !important; 
+    background: rgba(255, 255, 255, 0.02) !important; 
+    opacity: 0.75;
+}
+.card.lancado:hover { opacity: 1; }
+.card.lancado .color-bar { background: #475569 !important; } /* Cinza pardo/Slate para indicar finalizado */
+
+.card .color-bar { width:6px; height:100%; border-radius:16px 0 0 16px; background:#10b981; flex-shrink: 0; transition: 0.3s;}
+.card-content { padding:20px; flex:1; display:flex; flex-direction:column; overflow:hidden; position: relative;}
+
+/* Indicador de Documentos Anexados */
+.indicator-docs {
+    position: absolute; top: 15px; left: 15px;
+    background: rgba(59, 130, 246, 0.15); color: #60a5fa;
+    padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600;
+    border: 1px solid rgba(59, 130, 246, 0.3); display: flex; align-items: center; gap: 5px;
+}
+
+.card-header-info { margin-bottom: 12px; margin-top: 25px; display: flex; align-items: center; justify-content: space-between; }
+.card-date { font-size: 11px; color: rgba(255,255,255,0.6); font-weight: 500; }
+
+.action-badges { position: absolute; top: 15px; right: 15px; display: flex; gap: 8px; z-index: 2; }
+.badge-btn {
+    width: 32px; height: 32px; border-radius: 10px; display: flex;
+    align-items: center; justify-content: center; font-size: 16px; font-weight: bold;
+    cursor: pointer; transition: 0.3s;
+}
+
+/* Botão de Lançar Sistema */
+.badge-lancamento { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+.badge-lancamento:hover { background: #f59e0b; color: #fff; }
+.card.lancado .badge-lancamento { background: rgba(16, 185, 129, 0.2); color: #10b981; border-color: rgba(16, 185, 129, 0.3); }
+.card.lancado .badge-lancamento:hover { background: #10b981; color: #fff; }
+
+.card h2 { font-size:18px; margin-bottom:8px; color:#fff; font-weight:700; padding-right: 40px; }
+.card p { font-size:13px; color:rgba(255,255,255,0.7); margin:2px 0; }
+.card p strong { color: #fff; font-weight: 600; }
+
+/* MODAL / TOAST STYLES */
+/* (Mantido o mínimo necessário para visualização do cliente caso o Jurídico queira ler) */
+.toast {
+    position:fixed; right:30px; bottom:30px; background:rgba(255,255,255,0.1);
+    backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); color:#fff;
+    padding:12px 20px; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.4);
+    display:none; z-index:9999; font-size:14px; font-weight: 500;
+}
+
+.boletos-list { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; overflow-x: hidden; padding-right: 5px; flex: 1; }
+.boleto-item { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.boleto-info { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.boleto-info .val { font-size: 14px; font-weight: 700; color: #10b981; }
+.boleto-info .date { font-size: 11px; color: rgba(255,255,255,0.5); }
+
+/* Modal Padrão Read-Only para o Jurídico */
+.modal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(8px); justify-content:center; align-items:center; z-index:50; }
+.modal { background:#0f172a; border:1px solid rgba(255,255,255,0.1); padding:30px; border-radius:24px; min-width:320px; max-width:600px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 50px rgba(0,0,0,0.5); }
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.modal-header h3 { font-size:22px; font-weight:700; color:#fff; margin: 0; }
+.btn-close { background: transparent; border: none; color: rgba(255,255,255,0.5); font-size: 20px; cursor: pointer; transition: 0.3s; }
+.btn-close:hover { color: #ef4444; }
+.info-pessoal { display: flex; flex-direction: column; gap: 10px; background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px;}
+.info-pessoal p { font-size: 13px; color: rgba(255,255,255,0.7); }
+.info-pessoal strong { color: #fff; }
+
+.doc-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); padding: 12px 16px; border-radius: 12px; margin-bottom: 8px; transition: 0.2s; }
+.doc-item:hover { background: rgba(255,255,255,0.08); border-color: rgba(59, 130, 246, 0.3); }
+.doc-info { display: flex; align-items: center; gap: 12px; overflow: hidden; }
+.doc-info i { color: #3b82f6; font-size: 18px; flex-shrink: 0;}
+.doc-info span { font-size: 13px; font-weight: 500; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
+.btn-view-doc { background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: none; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; text-decoration: none; transition: 0.2s; }
+.btn-view-doc:hover { background: #3b82f6; color: #fff; }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2 onclick="window.location.href='dashboard.html'">AMR ADV</h2>
+    <button onclick="location.href='crm.html'"><img src="https://img.icons8.com/ios-filled/50/ffffff/dashboard.png"/><span>CRM</span></button>
+    <button onclick="window.location.href='clientes.html'"><img src="https://img.icons8.com/ios-filled/50/ffffff/user-group-man-man.png"/><span>Clientes</span></button>
+    <!-- Aba Jurídico Adicionada e Ativa -->
+    <button class="active" onclick="window.location.href='juridico.html'"><img src="https://img.icons8.com/ios-filled/50/ffffff/law.png"/><span>Jurídico</span></button>
+    <button onclick="window.location.href='processos.html'"><img src="https://img.icons8.com/ios-filled/50/ffffff/file.png"/><span>Processos</span></button>
+</div>
+
+<div class="main">
+    <header>
+        <h1>Painel Jurídico - Conferência</h1>
+    </header>
+
+    <div class="resumo-container">
+        <div class="resumo-card resumo-total">
+            <span class="title">Total de Fechados</span>
+            <span class="value" id="resumoTotal">0</span>
+        </div>
+        <div class="resumo-card resumo-aguardando">
+            <span class="title">Aguardando Lançamento</span>
+            <span class="value" id="resumoAguardando">0</span>
+        </div>
+        <div class="resumo-card resumo-lancados">
+            <span class="title">Já Lançados</span>
+            <span class="value" id="resumoLancados">0</span>
+        </div>
+    </div>
+
+    <div class="search-container">
+        <input type="text" id="buscarCliente" class="search-input" placeholder="Buscar por nome, CPF, telefone ou processo...">
+    </div>
+
+    <div class="container" id="clientesContainer"></div>
+</div>
+
+<!-- Modal Somente Leitura para o Jurídico visualizar informações rápidas -->
+<div id="modalVisualizacao" class="modal-backdrop">
+    <div class="modal">
+        <div class="modal-header">
+            <h3 id="infoCompletaNome">Nome do Cliente</h3>
+            <button class="btn-close" onclick="fecharModal()">✖</button>
+        </div>
+        
+        <h4 style="font-size: 14px; font-weight: 700; color: #10b981; margin-bottom: 15px; text-transform: uppercase;">Dados Gerais</h4>
+        <div class="info-pessoal" id="dadosPessoaisContainer"></div>
+
+        <h4 style="font-size: 14px; font-weight: 700; color: #3b82f6; margin-bottom: 15px; text-transform: uppercase;">Documentos Anexados</h4>
+        <div id="listaDocsContainer" class="boletos-list" style="max-height: 200px;"></div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
+import { getFirestore, collection, query, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyAFJJAqVf3ge0WDHBpmS9E6sXKvnjuFkhw",
+    authDomain: "dapapp-38637.firebaseapp.com",
+    projectId: "dapapp-38637",
+    storageBucket: "dapapp-38637.appspot.com",
+    messagingSenderId: "628852295313",
+    appId: "1:628852295313:web:1234567890abcdef123456"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const sidebar = document.querySelector(".sidebar");
+const mainContent = document.querySelector(".main");
+const container = document.getElementById("clientesContainer");
+const toastEl = document.getElementById("toast");
+const inputBusca = document.getElementById('buscarCliente');
+
+let clientesData = [];
+
+sidebar.addEventListener('mouseenter', () => { sidebar.classList.add('expanded'); mainContent.classList.add('blur'); });
+sidebar.addEventListener('mouseleave', () => { sidebar.classList.remove('expanded'); mainContent.classList.remove('blur'); });
+
+function showToast(msg) {
+    toastEl.textContent = msg;
+    toastEl.style.display = 'block';
+    clearTimeout(toastEl._t);
+    toastEl._t = setTimeout(() => toastEl.style.display = 'none', 3000);
+}
+
+// Extrai Documentos (Helpers)
+function extrairDocumentos(docsOriginais) {
+    let listaDocs = [];
+    if (Array.isArray(docsOriginais)) {
+        listaDocs = docsOriginais;
+    } else if (docsOriginais && typeof docsOriginais === 'object') {
+        Object.values(docsOriginais).forEach(categoriaArray => {
+            if (Array.isArray(categoriaArray)) {
+                listaDocs = listaDocs.concat(categoriaArray);
+            }
+        });
+    }
+    return listaDocs;
+}
+
+function atualizarResumo(lista) {
+    const total = lista.length;
+    const lancados = lista.filter(c => c.lancadoSistemaInterno === true).length;
+    const aguardando = total - lancados;
+
+    document.getElementById('resumoTotal').textContent = total;
+    document.getElementById('resumoAguardando').textContent = aguardando;
+    document.getElementById('resumoLancados').textContent = lancados;
+}
+
+window.aplicarFiltrosEOrdenacao = function() {
+    const termo = inputBusca.value.toLowerCase().trim();
+    
+    // REGRA 1: Apenas os que estão com status "fechado"
+    let filtrados = clientesData.filter(c => c.status === "fechado");
+
+    if (termo !== '') {
+        filtrados = filtrados.filter(c => {
+            const nome = (c.nome || "").toLowerCase();
+            const cpf = (c.cpf || "").toLowerCase();
+            const processo = (c.processo || "").toLowerCase();
+            return nome.includes(termo) || cpf.includes(termo) || processo.includes(termo);
+        });
+    }
+
+    // REGRA 2: Ordenação Visual Customizada (Jurídico)
+    filtrados.sort((a, b) => {
+        const isLancadoA = a.lancadoSistemaInterno === true;
+        const isLancadoB = b.lancadoSistemaInterno === true;
+
+        // Não lançados permanecem em cima
+        if (isLancadoA !== isLancadoB) {
+            return isLancadoA ? 1 : -1; 
+        }
+
+        // Se o status for o mesmo, organiza por data de fechamento (mais recentes em cima)
+        const dateA = a.dataFechamento ? (a.dataFechamento.toDate ? a.dataFechamento.toDate() : new Date(a.dataFechamento)) : new Date(0);
+        const dateB = b.dataFechamento ? (b.dataFechamento.toDate ? b.dataFechamento.toDate() : new Date(b.dataFechamento)) : new Date(0);
+        
+        return dateB - dateA;
+    });
+
+    exibirClientes(filtrados);
+}
+
+inputBusca.addEventListener('input', aplicarFiltrosEOrdenacao);
+
+// ================= MARCAR COMO LANÇADO =================
+window.toggleLancamento = async function(id, currentState) {
+    const newState = !currentState;
+    
+    // Atualiza UI instantaneamente para sensação de fluidez
+    const cardEl = document.getElementById(`card-cliente-${id}`);
+    const btnEl = document.getElementById(`btnLancamento-${id}`);
+    
+    if (newState) {
+        cardEl.classList.add('lancado');
+        btnEl.innerHTML = "✔️";
+        btnEl.title = "Desmarcar Lançamento";
+    } else {
+        cardEl.classList.remove('lancado');
+        btnEl.innerHTML = "⏳";
+        btnEl.title = "Marcar como Lançado";
+    }
+
+    try {
+        const clienteRef = doc(db, "clientes", id);
+        await updateDoc(clienteRef, { lancadoSistemaInterno: newState });
+        
+        // Atualiza a memória local
+        const idx = clientesData.findIndex(c => c.id === id);
+        if (idx > -1) {
+            clientesData[idx].lancadoSistemaInterno = newState;
+        }
+        
+        showToast(newState ? "Card marcado como Lançado!" : "Lançamento desmarcado!");
+        
+        // Aplica a reordenação automática após 1.5s para não pular da tela bruscamente enquanto o usuário clica
+        setTimeout(() => {
+            aplicarFiltrosEOrdenacao();
+        }, 1500);
+
+    } catch(err) {
+        console.error(err);
+        showToast("Erro ao atualizar o card.");
+    }
+}
+
+// ================= CARREGAR E RENDERIZAR CARDS =================
+async function carregarClientes() {
+    container.innerHTML = "<p style='color:rgba(255,255,255,0.5);'>Carregando base do Jurídico...</p>";
+    try {
+        const q = query(collection(db, "clientes"));
+        const snapshot = await getDocs(q);
+        clientesData = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+        aplicarFiltrosEOrdenacao();
+    } catch (error) {
+        showToast("Erro ao carregar dados.");
+        console.error(error);
+    }
+}
+
+function exibirClientes(lista) {
+    atualizarResumo(lista);
+    
+    container.innerHTML = "";
+    if(lista.length === 0) {
+        container.innerHTML = "<p style='color:rgba(255,255,255,0.5);'>Nenhum cliente fechado encontrado.</p>";
+        return;
+    }
+    
+    lista.forEach(cliente => {
+        const isLancado = cliente.lancadoSistemaInterno === true;
+        const card = document.createElement("div");
+        
+        card.className = `card ${isLancado ? 'lancado' : ''}`;
+        card.id = `card-cliente-${cliente.id}`;
+        
+        let dataFechamentoStr = "";
+        try {
+            if (cliente.dataFechamento) {
+                const dataObj = cliente.dataFechamento.toDate ? cliente.dataFechamento.toDate() : new Date(cliente.dataFechamento);
+                if (!isNaN(dataObj)) dataFechamentoStr = dataObj.toLocaleDateString('pt-BR');
+            }
+        } catch(e) {}
+
+        const documentosArr = extrairDocumentos(cliente.documentos);
+        let docsIndicator = '';
+        if (documentosArr.length > 0) {
+            docsIndicator = `<div class="indicator-docs"><i class="fi fi-tr-clip"></i> ${documentosArr.length} Doc(s)</div>`;
+        }
+
+        const btnIcon = isLancado ? '✔️' : '⏳';
+        const btnTitle = isLancado ? 'Desmarcar Lançamento' : 'Marcar como Lançado';
+
+        card.innerHTML = `
+            <div class="color-bar"></div>
+            <div class="card-content">
+                ${docsIndicator}
+                
+                <div class="action-badges">
+                    <div class="badge-btn badge-lancamento" title="${btnTitle}" id="btnLancamento-${cliente.id}" 
+                         onclick="event.stopPropagation(); toggleLancamento('${cliente.id}', ${isLancado})">
+                        ${btnIcon}
+                    </div>
+                </div>
+
+                <div class="card-header-info">
+                    <span style="background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; border: 1px solid rgba(16, 185, 129, 0.3);">
+                        FECHADO
+                    </span>
+                    ${dataFechamentoStr ? `<span class="card-date">Fechado em: ${dataFechamentoStr}</span>` : ''}
+                </div>
+
+                <h2>${cliente.nome || "Sem nome"}</h2>
+                <p><strong>CPF:</strong> ${cliente.cpf || "-"}</p>
+                <p><strong>Processo:</strong> ${cliente.processo || "Não informado"}</p>
+                <p><strong>Situação (Cobrança):</strong> ${cliente.situacao || "Aguardando"}</p>
+            </div>
+        `;
+        
+        // Abre visualização rápida ao clicar
+        card.onclick = () => abrirModalVisualizacao(cliente);
+        container.appendChild(card);
+    });
+}
+
+// ================= MODAL LEITURA =================
+const modalView = document.getElementById('modalVisualizacao');
+
+window.abrirModalVisualizacao = function(cliente) {
+    document.getElementById('infoCompletaNome').textContent = cliente.nome || "Cliente";
+    document.getElementById('dadosPessoaisContainer').innerHTML = `
+        <p><strong>CPF/CNPJ:</strong> ${cliente.cpf || "Não informado"}</p>
+        <p><strong>E-mail:</strong> ${cliente.email || "Não informado"}</p>
+        <p><strong>Telefone:</strong> ${cliente.numeros || "Não informado"}</p>
+        <p><strong>Processo:</strong> ${cliente.processo || "Não informado"}</p>
+        <p><strong>Vendedor:</strong> ${cliente.vendedor || "Não informado"}</p>
+    `;
+
+    const documentos = extrairDocumentos(cliente.documentos);
+    const containerDocs = document.getElementById('listaDocsContainer');
+
+    if (documentos.length === 0) {
+        containerDocs.innerHTML = '<p style="font-size:12px; color:rgba(255,255,255,0.4);">Nenhum documento anexado.</p>';
+    } else {
+        containerDocs.innerHTML = documentos.map(doc => {
+            let nomeDoArquivo = doc.nome || "Documento";
+            return `
+                <div class="doc-item">
+                    <div class="doc-info">
+                        <i class="fi fi-tr-document"></i>
+                        <span title="${nomeDoArquivo}">${nomeDoArquivo}</span>
+                    </div>
+                    <a href="${doc.url}" target="_blank" class="btn-view-doc">Acessar</a>
+                </div>
+            `;
+        }).join('');
+    }
+
+    modalView.style.display = "flex";
+}
+
+window.fecharModal = function() {
+    modalView.style.display = "none";
+}
+
+modalView.addEventListener('click', (e) => {
+    if(e.target === modalView) fecharModal();
+});
+
+carregarClientes();
+</script>
+</body>
+</html>
