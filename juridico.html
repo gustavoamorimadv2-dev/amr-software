@@ -96,22 +96,20 @@ input.search-input:focus { border-color: #3b82f6; background:rgba(255,255,255,0.
 .card { 
     display:flex; background:rgba(255,255,255,0.05); backdrop-filter:blur(15px);
     border:1px solid rgba(255,255,255,0.08); border-radius:16px; box-shadow:0 8px 30px rgba(0,0,0,0.15);
-    overflow:hidden; transition:transform 0.3s, background 0.3s, opacity 0.3s; 
-    flex-direction:row; position:relative; width:340px; max-height: 480px;
+    overflow:hidden; transition:transform 0.3s, background 0.3s, border-color 0.3s; 
+    flex-direction:row; position:relative; width:340px; min-height: 250px; height: max-content;
     cursor: pointer;
 }
-.card:hover { transform:translateY(-5px); background:rgba(255,255,255,0.08); border-color: rgba(59, 130, 246, 0.4); }
+.card:hover { transform:translateY(-5px); border-color: rgba(59, 130, 246, 0.4); }
 
 /* CLASSE DINÂMICA PARA CARD LANÇADO */
 .card.lancado { 
-    border-color: rgba(255, 255, 255, 0.1) !important; 
-    background: rgba(255, 255, 255, 0.02) !important; 
-    opacity: 0.75;
+    border-color: #10b981 !important; /* Borda Verde viva */
+    background: rgba(16, 185, 129, 0.1) !important; /* Fundo esverdeado */
 }
-.card.lancado:hover { opacity: 1; }
-.card.lancado .color-bar { background: #475569 !important; } /* Cinza pardo/Slate para indicar finalizado */
+.card.lancado .color-bar { background: #10b981 !important; }
 
-.card .color-bar { width:6px; height:100%; border-radius:16px 0 0 16px; background:#10b981; flex-shrink: 0; transition: 0.3s;}
+.card .color-bar { width:6px; height:100%; min-height: 100%; border-radius:16px 0 0 16px; background:#475569; flex-shrink: 0; transition: 0.3s;}
 .card-content { padding:20px; flex:1; display:flex; flex-direction:column; overflow:hidden; position: relative;}
 
 /* Indicador de Documentos Anexados */
@@ -139,11 +137,41 @@ input.search-input:focus { border-color: #3b82f6; background:rgba(255,255,255,0.
 .card.lancado .badge-lancamento:hover { background: #10b981; color: #fff; }
 
 .card h2 { font-size:18px; margin-bottom:8px; color:#fff; font-weight:700; padding-right: 40px; }
-.card p { font-size:13px; color:rgba(255,255,255,0.7); margin:2px 0; }
+.card p { font-size:13px; color:rgba(255,255,255,0.7); margin:2px 0; line-height: 1.4; }
 .card p strong { color: #fff; font-weight: 600; }
 
-/* MODAL / TOAST STYLES */
-/* (Mantido o mínimo necessário para visualização do cliente caso o Jurídico queira ler) */
+.tramitacao-box {
+    margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+/* MODAIS & FORMULÁRIOS */
+.modal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(8px); justify-content:center; align-items:center; z-index:50; }
+.modal { background:#0f172a; border:1px solid rgba(255,255,255,0.1); padding:30px; border-radius:24px; min-width:320px; max-width:600px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 50px rgba(0,0,0,0.5); }
+.modal-large { max-width: 900px; } 
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+.modal-header h3 { font-size:22px; font-weight:700; color:#fff; margin: 0; }
+.btn-close { background: transparent; border: none; color: rgba(255,255,255,0.5); font-size: 20px; cursor: pointer; transition: 0.3s; }
+.btn-close:hover { color: #ef4444; }
+
+.grid-completa { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+@media(max-width: 768px) { .grid-completa { grid-template-columns: 1fr; } }
+
+.section-title { font-size: 14px; font-weight: 700; color: #3b82f6; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; }
+
+label { display:block; margin-bottom:6px; margin-top: 10px; font-size:12px; font-weight:600; color:rgba(255,255,255,0.7); }
+input, textarea { 
+    width:100%; min-width: 0; padding:10px 14px; background:rgba(255,255,255,0.05); 
+    border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:#fff; font-size:13px; 
+    outline:none; transition:0.3s; font-family: 'Inter', sans-serif;
+}
+input:focus, textarea:focus { background:rgba(255,255,255,0.1); border-color: #3b82f6; }
+textarea { resize: vertical; }
+
+.btn { padding:10px 18px; border-radius:10px; border:0; cursor:pointer; font-weight:600; font-size:13px; transition:0.3s; display: flex; align-items: center; justify-content: center;}
+.btn.primary { background: linear-gradient(135deg, #10b981, #059669); color:#fff; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); }
+.btn.primary:hover { transform:translateY(-2px); box-shadow:0 8px 25px rgba(16, 185, 129, 0.4); }
+.btn.blue { background: linear-gradient(135deg, #3b82f6, #2563eb); color:#fff; }
+
 .toast {
     position:fixed; right:30px; bottom:30px; background:rgba(255,255,255,0.1);
     backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); color:#fff;
@@ -152,22 +180,6 @@ input.search-input:focus { border-color: #3b82f6; background:rgba(255,255,255,0.
 }
 
 .boletos-list { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; overflow-x: hidden; padding-right: 5px; flex: 1; }
-.boleto-item { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-.boleto-info { display: flex; flex-direction: column; gap: 4px; flex: 1; }
-.boleto-info .val { font-size: 14px; font-weight: 700; color: #10b981; }
-.boleto-info .date { font-size: 11px; color: rgba(255,255,255,0.5); }
-
-/* Modal Padrão Read-Only para o Jurídico */
-.modal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); backdrop-filter:blur(8px); justify-content:center; align-items:center; z-index:50; }
-.modal { background:#0f172a; border:1px solid rgba(255,255,255,0.1); padding:30px; border-radius:24px; min-width:320px; max-width:600px; width:100%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 50px rgba(0,0,0,0.5); }
-.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); }
-.modal-header h3 { font-size:22px; font-weight:700; color:#fff; margin: 0; }
-.btn-close { background: transparent; border: none; color: rgba(255,255,255,0.5); font-size: 20px; cursor: pointer; transition: 0.3s; }
-.btn-close:hover { color: #ef4444; }
-.info-pessoal { display: flex; flex-direction: column; gap: 10px; background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px;}
-.info-pessoal p { font-size: 13px; color: rgba(255,255,255,0.7); }
-.info-pessoal strong { color: #fff; }
-
 .doc-item { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); padding: 12px 16px; border-radius: 12px; margin-bottom: 8px; transition: 0.2s; }
 .doc-item:hover { background: rgba(255,255,255,0.08); border-color: rgba(59, 130, 246, 0.3); }
 .doc-info { display: flex; align-items: center; gap: 12px; overflow: hidden; }
@@ -215,19 +227,71 @@ input.search-input:focus { border-color: #3b82f6; background:rgba(255,255,255,0.
     <div class="container" id="clientesContainer"></div>
 </div>
 
-<!-- Modal Somente Leitura para o Jurídico visualizar informações rápidas -->
-<div id="modalVisualizacao" class="modal-backdrop">
-    <div class="modal">
+<!-- MODAL DE EDIÇÃO COMPLETA -->
+<div id="modalEdicao" class="modal-backdrop">
+    <div class="modal modal-large">
         <div class="modal-header">
-            <h3 id="infoCompletaNome">Nome do Cliente</h3>
+            <h3 id="modalTitulo">Editar Cliente</h3>
             <button class="btn-close" onclick="fecharModal()">✖</button>
         </div>
         
-        <h4 style="font-size: 14px; font-weight: 700; color: #10b981; margin-bottom: 15px; text-transform: uppercase;">Dados Gerais</h4>
-        <div class="info-pessoal" id="dadosPessoaisContainer"></div>
+        <div class="grid-completa">
+            <!-- COLUNA 1: DADOS E ANDAMENTO -->
+            <div>
+                <h4 class="section-title">Dados Gerais</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div style="grid-column: 1 / -1;">
+                        <label>Nome Completo</label>
+                        <input type="text" id="editNome">
+                    </div>
+                    <div>
+                        <label>CPF/CNPJ</label>
+                        <input type="text" id="editCpf">
+                    </div>
+                    <div>
+                        <label>Telefone</label>
+                        <input type="text" id="editTelefone">
+                    </div>
+                    <div style="grid-column: 1 / -1;">
+                        <label>E-mail</label>
+                        <input type="text" id="editEmail">
+                    </div>
+                    <div style="grid-column: 1 / -1;">
+                        <label>Número do Processo</label>
+                        <input type="text" id="editProcesso">
+                    </div>
+                </div>
 
-        <h4 style="font-size: 14px; font-weight: 700; color: #3b82f6; margin-bottom: 15px; text-transform: uppercase;">Documentos Anexados</h4>
-        <div id="listaDocsContainer" class="boletos-list" style="max-height: 200px;"></div>
+                <h4 class="section-title" style="margin-top: 25px;">Andamento Processual</h4>
+                <div>
+                    <label>Data do Último Andamento Passado</label>
+                    <input type="date" id="editUltimoAndamento">
+                </div>
+                <div>
+                    <label>Tramitação Processual (Detalhes)</label>
+                    <textarea id="editTramitacao" rows="4" placeholder="Registre aqui a situação atual, prazos, etc."></textarea>
+                </div>
+
+                <button class="btn primary" style="width: 100%; margin-top: 20px;" id="btnSalvarEdicao" onclick="salvarAlteracoes()">
+                    Salvar Alterações
+                </button>
+            </div>
+
+            <!-- COLUNA 2: DOCUMENTOS -->
+            <div>
+                <h4 class="section-title">Documentação</h4>
+                
+                <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px;">
+                    <label style="margin-top:0;">Nome do Documento</label>
+                    <input type="text" id="addDocNome" placeholder="Opcional (Usa nome do arquivo se vazio)" style="margin-bottom:10px;">
+                    <label>Arquivo</label>
+                    <input type="file" id="addDocFile" style="margin-bottom:10px; font-size: 12px;">
+                    <button class="btn blue" style="width: 100%;" onclick="anexarDocumento()" id="btnAnexarDoc">Anexar Documento</button>
+                </div>
+
+                <div id="listaDocsContainer" class="boletos-list" style="max-height: 250px;"></div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -236,6 +300,7 @@ input.search-input:focus { border-color: #3b82f6; background:rgba(255,255,255,0.
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
 import { getFirestore, collection, query, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAFJJAqVf3ge0WDHBpmS9E6sXKvnjuFkhw",
@@ -248,6 +313,7 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
 const sidebar = document.querySelector(".sidebar");
 const mainContent = document.querySelector(".main");
@@ -256,6 +322,7 @@ const toastEl = document.getElementById("toast");
 const inputBusca = document.getElementById('buscarCliente');
 
 let clientesData = [];
+let clienteAtual = null;
 
 sidebar.addEventListener('mouseenter', () => { sidebar.classList.add('expanded'); mainContent.classList.add('blur'); });
 sidebar.addEventListener('mouseleave', () => { sidebar.classList.remove('expanded'); mainContent.classList.remove('blur'); });
@@ -312,12 +379,10 @@ window.aplicarFiltrosEOrdenacao = function() {
         const isLancadoA = a.lancadoSistemaInterno === true;
         const isLancadoB = b.lancadoSistemaInterno === true;
 
-        // Não lançados permanecem em cima
         if (isLancadoA !== isLancadoB) {
             return isLancadoA ? 1 : -1; 
         }
 
-        // Se o status for o mesmo, organiza por data de fechamento (mais recentes em cima)
         const dateA = a.dataFechamento ? (a.dataFechamento.toDate ? a.dataFechamento.toDate() : new Date(a.dataFechamento)) : new Date(0);
         const dateB = b.dataFechamento ? (b.dataFechamento.toDate ? b.dataFechamento.toDate() : new Date(b.dataFechamento)) : new Date(0);
         
@@ -333,7 +398,6 @@ inputBusca.addEventListener('input', aplicarFiltrosEOrdenacao);
 window.toggleLancamento = async function(id, currentState) {
     const newState = !currentState;
     
-    // Atualiza UI instantaneamente para sensação de fluidez
     const cardEl = document.getElementById(`card-cliente-${id}`);
     const btnEl = document.getElementById(`btnLancamento-${id}`);
     
@@ -351,7 +415,6 @@ window.toggleLancamento = async function(id, currentState) {
         const clienteRef = doc(db, "clientes", id);
         await updateDoc(clienteRef, { lancadoSistemaInterno: newState });
         
-        // Atualiza a memória local
         const idx = clientesData.findIndex(c => c.id === id);
         if (idx > -1) {
             clientesData[idx].lancadoSistemaInterno = newState;
@@ -359,10 +422,7 @@ window.toggleLancamento = async function(id, currentState) {
         
         showToast(newState ? "Card marcado como Lançado!" : "Lançamento desmarcado!");
         
-        // Aplica a reordenação automática após 1.5s para não pular da tela bruscamente enquanto o usuário clica
-        setTimeout(() => {
-            aplicarFiltrosEOrdenacao();
-        }, 1500);
+        setTimeout(() => { aplicarFiltrosEOrdenacao(); }, 1500);
 
     } catch(err) {
         console.error(err);
@@ -408,6 +468,14 @@ function exibirClientes(lista) {
             }
         } catch(e) {}
 
+        let dataAndamentoStr = "Nenhum";
+        try {
+            if (cliente.ultimoAndamento) {
+                const dataAndObj = cliente.ultimoAndamento.toDate ? cliente.ultimoAndamento.toDate() : new Date(cliente.ultimoAndamento);
+                if (!isNaN(dataAndObj)) dataAndamentoStr = dataAndObj.toLocaleDateString('pt-BR');
+            }
+        } catch(e) {}
+
         const documentosArr = extrairDocumentos(cliente.documentos);
         let docsIndicator = '';
         if (documentosArr.length > 0) {
@@ -439,59 +507,193 @@ function exibirClientes(lista) {
                 <h2>${cliente.nome || "Sem nome"}</h2>
                 <p><strong>CPF:</strong> ${cliente.cpf || "-"}</p>
                 <p><strong>Processo:</strong> ${cliente.processo || "Não informado"}</p>
-                <p><strong>Situação (Cobrança):</strong> ${cliente.situacao || "Aguardando"}</p>
+                
+                <div class="tramitacao-box">
+                    <p><strong>Último Andamento:</strong> ${dataAndamentoStr}</p>
+                    <p style="font-size: 11px; margin-top: 4px; opacity: 0.8;">
+                        <strong>Tramitação:</strong> ${cliente.tramitacaoProcessual || "Sem informações de tramitação cadastradas."}
+                    </p>
+                </div>
             </div>
         `;
         
-        // Abre visualização rápida ao clicar
-        card.onclick = () => abrirModalVisualizacao(cliente);
+        card.onclick = () => abrirModalEdicao(cliente);
         container.appendChild(card);
     });
 }
 
-// ================= MODAL LEITURA =================
-const modalView = document.getElementById('modalVisualizacao');
+// ================= MODAL DE EDIÇÃO =================
+const modalView = document.getElementById('modalEdicao');
 
-window.abrirModalVisualizacao = function(cliente) {
-    document.getElementById('infoCompletaNome').textContent = cliente.nome || "Cliente";
-    document.getElementById('dadosPessoaisContainer').innerHTML = `
-        <p><strong>CPF/CNPJ:</strong> ${cliente.cpf || "Não informado"}</p>
-        <p><strong>E-mail:</strong> ${cliente.email || "Não informado"}</p>
-        <p><strong>Telefone:</strong> ${cliente.numeros || "Não informado"}</p>
-        <p><strong>Processo:</strong> ${cliente.processo || "Não informado"}</p>
-        <p><strong>Vendedor:</strong> ${cliente.vendedor || "Não informado"}</p>
-    `;
-
-    const documentos = extrairDocumentos(cliente.documentos);
-    const containerDocs = document.getElementById('listaDocsContainer');
-
-    if (documentos.length === 0) {
-        containerDocs.innerHTML = '<p style="font-size:12px; color:rgba(255,255,255,0.4);">Nenhum documento anexado.</p>';
-    } else {
-        containerDocs.innerHTML = documentos.map(doc => {
-            let nomeDoArquivo = doc.nome || "Documento";
-            return `
-                <div class="doc-item">
-                    <div class="doc-info">
-                        <i class="fi fi-tr-document"></i>
-                        <span title="${nomeDoArquivo}">${nomeDoArquivo}</span>
-                    </div>
-                    <a href="${doc.url}" target="_blank" class="btn-view-doc">Acessar</a>
-                </div>
-            `;
-        }).join('');
+window.abrirModalEdicao = function(cliente) {
+    clienteAtual = cliente;
+    
+    document.getElementById('modalTitulo').textContent = "Editar: " + (cliente.nome || "Cliente");
+    
+    // Preencher Inputs Gerais
+    document.getElementById('editNome').value = cliente.nome || "";
+    document.getElementById('editCpf').value = cliente.cpf || "";
+    document.getElementById('editTelefone').value = cliente.numeros || "";
+    document.getElementById('editEmail').value = cliente.email || "";
+    document.getElementById('editProcesso').value = cliente.processo || "";
+    
+    // Preencher Andamento
+    document.getElementById('editTramitacao').value = cliente.tramitacaoProcessual || "";
+    try {
+        if (cliente.ultimoAndamento) {
+            const dataUltAnd = cliente.ultimoAndamento.toDate ? cliente.ultimoAndamento.toDate() : new Date(cliente.ultimoAndamento);
+            if (!isNaN(dataUltAnd)) {
+                document.getElementById('editUltimoAndamento').value = dataUltAnd.toISOString().split('T')[0];
+            } else {
+                document.getElementById('editUltimoAndamento').value = "";
+            }
+        } else {
+            document.getElementById('editUltimoAndamento').value = "";
+        }
+    } catch (err) {
+        document.getElementById('editUltimoAndamento').value = "";
     }
 
+    renderizarDocumentos();
     modalView.style.display = "flex";
 }
 
 window.fecharModal = function() {
     modalView.style.display = "none";
+    clienteAtual = null;
 }
 
 modalView.addEventListener('click', (e) => {
     if(e.target === modalView) fecharModal();
 });
+
+// ================= SALVAR ALTERAÇÕES =================
+window.salvarAlteracoes = async function() {
+    if (!clienteAtual) return;
+    
+    const btn = document.getElementById('btnSalvarEdicao');
+    btn.textContent = "Salvando...";
+    btn.disabled = true;
+
+    try {
+        const dataUltAndStr = document.getElementById('editUltimoAndamento').value;
+        const dataAndamentoFormatada = dataUltAndStr ? dataUltAndStr + "T12:00:00" : "";
+
+        const updates = {
+            nome: document.getElementById('editNome').value.trim(),
+            cpf: document.getElementById('editCpf').value.trim(),
+            numeros: document.getElementById('editTelefone').value.trim(),
+            email: document.getElementById('editEmail').value.trim(),
+            processo: document.getElementById('editProcesso').value.trim(),
+            tramitacaoProcessual: document.getElementById('editTramitacao').value.trim(),
+            ultimoAndamento: dataAndamentoFormatada
+        };
+
+        const docRef = doc(db, "clientes", clienteAtual.id);
+        await updateDoc(docRef, updates);
+        
+        // Atualiza a lista em memória
+        Object.assign(clienteAtual, updates);
+        const idxCache = clientesData.findIndex(c => c.id === clienteAtual.id);
+        if (idxCache > -1) clientesData[idxCache] = clienteAtual;
+        
+        showToast("Informações do cliente atualizadas!");
+        aplicarFiltrosEOrdenacao();
+        fecharModal();
+        
+    } catch(err) {
+        console.error(err);
+        showToast("Erro ao salvar as edições.");
+    } finally {
+        btn.textContent = "Salvar Alterações";
+        btn.disabled = false;
+    }
+}
+
+// ================= DOCUMENTOS =================
+window.anexarDocumento = async function() {
+    if(!clienteAtual) return;
+
+    let nomeInput = document.getElementById('addDocNome').value.trim();
+    const fileInput = document.getElementById('addDocFile');
+    const file = fileInput.files[0];
+    const btn = document.getElementById('btnAnexarDoc');
+
+    if(!file) {
+        showToast("Selecione um arquivo para anexar.");
+        return;
+    }
+    
+    if(!nomeInput) {
+        nomeInput = file.name;
+    }
+
+    btn.textContent = "Enviando...";
+    btn.disabled = true;
+
+    try {
+        const storageRef = ref(storage, `documentos_clientes/${clienteAtual.id}/${Date.now()}_${file.name}`);
+        const uploadTask = await uploadBytesResumable(storageRef, file);
+        const downloadURL = await getDownloadURL(uploadTask.ref);
+
+        let docsAtuais = clienteAtual.documentos;
+        const novoDocObj = {
+            nome: nomeInput,
+            url: downloadURL,
+            dataEnvio: new Date().toISOString()
+        };
+
+        if (Array.isArray(docsAtuais)) {
+            docsAtuais.push(novoDocObj);
+        } else if (docsAtuais && typeof docsAtuais === 'object') {
+            if (!docsAtuais.outros) docsAtuais.outros = [];
+            docsAtuais.outros.push(novoDocObj);
+        } else {
+            docsAtuais = { outros: [novoDocObj] };
+        }
+
+        const docRef = doc(db, "clientes", clienteAtual.id);
+        await updateDoc(docRef, { documentos: docsAtuais });
+
+        clienteAtual.documentos = docsAtuais;
+        
+        document.getElementById('addDocNome').value = "";
+        fileInput.value = "";
+        
+        renderizarDocumentos();
+        showToast("Documento anexado com sucesso!");
+
+    } catch (error) {
+        console.error("Erro no upload:", error);
+        showToast("Erro ao anexar arquivo.");
+    } finally {
+        btn.textContent = "Anexar Documento";
+        btn.disabled = false;
+    }
+}
+
+function renderizarDocumentos() {
+    const containerDocs = document.getElementById('listaDocsContainer');
+    const documentos = extrairDocumentos(clienteAtual.documentos);
+
+    if (documentos.length === 0) {
+        containerDocs.innerHTML = '<p style="font-size:12px; color:rgba(255,255,255,0.4);">Nenhum documento anexado.</p>';
+        return;
+    }
+
+    containerDocs.innerHTML = documentos.map(doc => {
+        let nomeDoArquivo = doc.nome || "Documento";
+        return `
+            <div class="doc-item">
+                <div class="doc-info">
+                    <i class="fi fi-tr-document"></i>
+                    <span title="${nomeDoArquivo}">${nomeDoArquivo}</span>
+                </div>
+                <a href="${doc.url}" target="_blank" class="btn-view-doc">Acessar</a>
+            </div>
+        `;
+    }).join('');
+}
 
 carregarClientes();
 </script>
