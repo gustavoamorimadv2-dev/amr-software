@@ -324,10 +324,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 const acaoCliente = c.classe || c.acao || c.tipoAcao || 'Não informada';
                 const dataCard = c.dataFechamento ? new Date(c.dataFechamento).toLocaleDateString('pt-BR') : 'Data não registrada';
                 
-                const temDocs = Array.isArray(c.documentos) && c.documentos.length > 0;
+                let totalDocs = 0;
+                if (Array.isArray(c.documentos)) {
+                    totalDocs = c.documentos.length;
+                } else if (c.documentos && typeof c.documentos === 'object') {
+                    Object.values(c.documentos).forEach(arr => {
+                        if (Array.isArray(arr)) totalDocs += arr.length;
+                    });
+                }
+                const temDocs = totalDocs > 0;
                 
                 const badgeDoc = temDocs 
-                    ? `<span class="badge-com-anexo">📎 ${c.documentos.length} Anexo(s)</span>`
+                    ? `<span class="badge-com-anexo">📎 ${totalDocs} Anexo(s)</span>`
                     : `<span class="badge-sem-anexo">⚠️ Pendente Anexo</span>`;
 
                 listaFechadosEl.innerHTML += `
@@ -387,12 +395,28 @@ document.addEventListener('DOMContentLoaded', () => {
         const docsList = document.getElementById('detalheClienteDocs');
         docsList.innerHTML = '';
 
-        if(Array.isArray(cliente.documentos) && cliente.documentos.length > 0) {
-            cliente.documentos.forEach(doc => {
+        let arrayDocsDisplay = [];
+        if (Array.isArray(cliente.documentos)) {
+            arrayDocsDisplay = cliente.documentos.map(d => ({ ...d, label: 'Outros' }));
+        } else if (cliente.documentos && typeof cliente.documentos === 'object') {
+            Object.keys(cliente.documentos).forEach(key => {
+                const arr = cliente.documentos[key];
+                if (Array.isArray(arr)) {
+                    arr.forEach(d => {
+                        let labelFormatada = key.replace(/_/g, ' ');
+                        labelFormatada = labelFormatada.charAt(0).toUpperCase() + labelFormatada.slice(1);
+                        arrayDocsDisplay.push({ ...d, label: labelFormatada });
+                    });
+                }
+            });
+        }
+
+        if(arrayDocsDisplay.length > 0) {
+            arrayDocsDisplay.forEach(doc => {
                 docsList.innerHTML += `
                     <div class="doc-item">
                         <a href="javascript:void(0)" onclick="window.forceDownload('${doc.url}', '${doc.name}', event)">
-                            📄 ${doc.name} <span style="font-size:10px; color:#9ca3af; margin-left: 5px;">(Clique para Baixar)</span>
+                            <span style="font-size:10px; color:#9ca3af; margin-right:5px;">[${doc.label}]</span>📄 ${doc.name} <span style="font-size:10px; color:#9ca3af; margin-left: 5px;">(Clique para Baixar)</span>
                         </a>
                     </div>
                 `;
