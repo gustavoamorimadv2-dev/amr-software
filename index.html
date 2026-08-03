@@ -1241,13 +1241,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             
-            const cleanVal = val.replace(/\D/g, '');
+            const cleanVal = val.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
             if(cleanVal === '') return;
 
             const existe = todosClientesCache.some(c => {
                if (clientForm.dataset.editId && c.id === clientForm.dataset.editId) return false;
                if (!c.processo) return false;
-               const processosCadastrados = c.processo.split(',').map(p => p.replace(/\D/g, ''));
+               const processosCadastrados = c.processo.split(',').map(p => p.replace(/[^a-zA-Z0-9]/g, '').toLowerCase());
                return processosCadastrados.includes(cleanVal);
             });
             
@@ -1692,18 +1692,25 @@ document.addEventListener('DOMContentLoaded', () => {
             const processos = Array.from(document.querySelectorAll('.inputProcesso')).map(i => i.value.trim()).filter(v => v);
             if (processos.length > 0) {
                 let processoDuplicado = null;
+                
+                const clientesGlobais = await getDocs(collection(db, "clientes"));
+                
                 for (let proc of processos) {
-                    const cleanInputProc = proc.replace(/\D/g, '');
+                    const cleanInputProc = proc.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
                     if(!cleanInputProc) continue;
-                    const clienteExistente = todosClientesCache.find(c => {
-                        if (clientForm.dataset.editId && c.id === clientForm.dataset.editId) return false;
-                        if (!c.processo) return false;
-                        return c.processo.split(',').map(p => p.replace(/\D/g, '')).includes(cleanInputProc);
+                    
+                    const clienteExistente = clientesGlobais.docs.find(doc => {
+                        if (clientForm.dataset.editId && doc.id === clientForm.dataset.editId) return false;
+                        const data = doc.data();
+                        if (!data.processo) return false;
+                        return data.processo.split(',').map(p => p.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()).includes(cleanInputProc);
                     });
+                    
                     if (clienteExistente) { processoDuplicado = proc; break; }
                 }
+                
                 if (processoDuplicado) {
-                    showToast(`Erro: O processo ${processoDuplicado} já está cadastrado!`);
+                    showToast(`Erro: O processo ${processoDuplicado} já está cadastrado no sistema!`);
                     return; 
                 }
             }
