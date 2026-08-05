@@ -1,6 +1,4 @@
-mj
-
-ki<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
@@ -216,6 +214,16 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     transform: translateY(-3px);
     background: rgba(255,255,255,0.08);
     box-shadow: 0 10px 20px rgba(0,0,0,0.25);
+}
+
+/* Card Chamado (Verde) */
+.card-item.called-card {
+    background: rgba(16, 185, 129, 0.15);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+}
+.card-item.called-card:hover {
+    background: rgba(16, 185, 129, 0.25);
+    box-shadow: 0 10px 20px rgba(16, 185, 129, 0.2);
 }
 
 .card-item h3 { font-size: 17px; font-weight: 700; color: #fff; margin-bottom: 0; }
@@ -536,13 +544,13 @@ document.addEventListener('DOMContentLoaded', () => {
             <div>
                 <div style="display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px;">
                     <h3>${nomeParaExibir}</h3>
-                    <button class="btn-copy" style="margin-left: 10px;" onclick="navigator.clipboard.writeText('${textoEscapado}'); this.innerText='Copiada!'; setTimeout(() => this.innerText='Copiar Mensagem', 2000);" title="Copiar mensagem inicial">Copiar Mensagem</button>
+                    <button class="btn-copy" style="margin-left: 10px;" onclick="navigator.clipboard.writeText('${textoEscapado}'); this.innerText='Copiada!'; setTimeout(() => this.innerText='Copiar Mensagem', 2000); const card = this.closest('.card-item'); card.dataset.copiedMsg = 'true'; if(card.dataset.copiedPhone === 'true') card.classList.add('called-card');" title="Copiar mensagem inicial">Copiar Mensagem</button>
                 </div>
                 <p><strong>Ação:</strong> ${acao}</p>
                 <p><strong>CPF/CNPJ:</strong> ${documentoStr} ${tipoPessoa !== 'N/A' ? `<span class="badge-tipo ${badgeClass}">${tipoPessoa}</span>` : ''}</p>
                 <p style="display: flex; align-items: center; justify-content: space-between;">
                     <span><strong>Telefones:</strong> ${todosNumeros}</span>
-                    ${todosNumeros !== '-' ? `<button class="btn-copy" onclick="navigator.clipboard.writeText('${todosNumeros}'); this.innerText='Copiado!'; setTimeout(() => this.innerText='Copiar', 2000);" title="Copiar números">Copiar</button>` : ''}
+                    ${todosNumeros !== '-' ? `<button class="btn-copy" onclick="navigator.clipboard.writeText('${todosNumeros}'); this.innerText='Copiado!'; setTimeout(() => this.innerText='Copiar', 2000); const card = this.closest('.card-item'); card.dataset.copiedPhone = 'true'; if(card.dataset.copiedMsg === 'true') card.classList.add('called-card');" title="Copiar números">Copiar</button>` : ''}
                 </p>
                 <p><strong>Processo:</strong> ${primeiroProcesso}</p>
                 <p><strong>Estado:</strong> ${ufCard.toUpperCase()}</p>
