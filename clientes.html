@@ -348,6 +348,12 @@ input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); co
                 <h4 class="section-title">Dados Pessoais</h4>
                 <div class="info-pessoal" id="dadosPessoaisContainer"></div>
 
+                <!-- NOVA SEÇÃO: OBSERVAÇÕES -->
+                <h4 class="section-title" style="margin-top: 25px;">Observações</h4>
+                <div class="honorarios-box">
+                    <textarea id="editObservacoes" rows="3" placeholder="Adicione observações adicionais sobre o cliente..."></textarea>
+                </div>
+
                 <!-- NOVA SEÇÃO: ANDAMENTO PROCESSUAL -->
                 <h4 class="section-title" style="margin-top: 25px;">Andamento Processual</h4>
                 <div class="honorarios-box" style="display: flex; flex-direction: column; gap: 15px;">
@@ -812,6 +818,7 @@ function exibirClientes(lista) {
                 <h2>${cliente.nome || "Sem nome"}</h2>
                 <p><strong>CPF:</strong> ${cliente.cpf || "-"}</p>
                 <p><strong>Vendedor:</strong> ${cliente.vendedor || "Não informado"}</p>
+                ${cliente.observacoes ? `<p style="font-size:11px; margin-top:6px; margin-bottom:6px; padding:6px; border-radius:6px; background:rgba(255,255,255,0.05); border-left:3px solid #f59e0b; color:rgba(255,255,255,0.8); line-height: 1.4;"><strong>Obs:</strong> ${cliente.observacoes.substring(0, 65)}${cliente.observacoes.length > 65 ? '...' : ''}</p>` : ''}
                 
                 <select class="situacao-card-select" onclick="event.stopPropagation()" onchange="atualizarSituacao('${cliente.id}', this.value)">
                     <option value="" ${!cliente.situacao ? 'selected' : ''}>Situação da Cobrança...</option>
@@ -901,7 +908,8 @@ window.salvarNovoCliente = async function() {
         honorarios: [],
         documentos: [],
         ultimoAndamento: "",
-        tramitacaoProcessual: ""
+        tramitacaoProcessual: "",
+        observacoes: "" 
     };
 
     try {
@@ -942,7 +950,6 @@ window.abrirModalCompleto = function(cliente) {
     `;
 
     // BLINDAGEM MÁXIMA DE ERRO DE CLICK DO CARD
-    // Antes isso crashava o modal invisivelmente se o cliente antigo tivesse data quebrada.
     try {
         if (cliente.dataFechamento) {
             const dataObj = cliente.dataFechamento.toDate ? cliente.dataFechamento.toDate() : new Date(cliente.dataFechamento);
@@ -959,6 +966,7 @@ window.abrirModalCompleto = function(cliente) {
     }
     
     document.getElementById('editVendedor').value = cliente.vendedor || "";
+    document.getElementById('editObservacoes').value = cliente.observacoes || "";
 
     // CARREGAR DADOS DO ANDAMENTO PROCESSUAL
     document.getElementById('editTramitacao').value = cliente.tramitacaoProcessual || "";
@@ -1015,6 +1023,7 @@ window.salvarDetalhesFechamento = async function() {
     const novoVendedor = document.getElementById('editVendedor').value.trim();
     const novoUltimoAndamentoStr = document.getElementById('editUltimoAndamento').value;
     const novaTramitacao = document.getElementById('editTramitacao').value.trim();
+    const novaObservacao = document.getElementById('editObservacoes').value.trim();
     
     const btn = document.getElementById('btnSalvarDetalhes');
     btn.textContent = "Processando...";
@@ -1032,9 +1041,12 @@ window.salvarDetalhesFechamento = async function() {
             clienteAtual.dataFechamento = novaDataFormatada;
         }
 
-        // Gravar dados do Andamento
+        // Gravar dados do Andamento e Observações
         atualizacoes.tramitacaoProcessual = novaTramitacao;
         clienteAtual.tramitacaoProcessual = novaTramitacao;
+        
+        atualizacoes.observacoes = novaObservacao;
+        clienteAtual.observacoes = novaObservacao;
 
         if (novoUltimoAndamentoStr) {
             const dataAndamentoFormatada = novoUltimoAndamentoStr + "T12:00:00"; 
