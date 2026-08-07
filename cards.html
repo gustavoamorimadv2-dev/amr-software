@@ -525,7 +525,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let textoParaCopiar = "";
 
         if (tipoPessoa === 'PJ') {
-            textoParaCopiar = `Bom dia, falo com o representante da empresa "${nomeParaExibir}"?`;
+            textoParaCopiar = `Boa tarde, falo com o representante da empresa "${nomeParaExibir}"?`;
         } else {
             const partesNome = nomeParaExibir.split(' ');
             const primeiroNome = partesNome[0];
@@ -533,7 +533,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (primeiroNome) {
                 nomeFormatado = primeiroNome.charAt(0).toUpperCase() + primeiroNome.slice(1).toLowerCase();
             }
-            textoParaCopiar = `Bom dia ${nomeFormatado}`;
+            textoParaCopiar = `Boa tarde ${nomeFormatado}`;
         }
         
         // Protege contra aspas simples e duplas para não quebrar o HTML do onclick
