@@ -63,7 +63,6 @@ header {
     display:flex; align-items:center; justify-content:space-between; padding:0 30px; flex-shrink:0; 
 }
 header h1 { font-size:24px; color:#fff; font-weight:800; }
-.header-actions { display: flex; gap: 10px; }
 
 /* ================= RESUMO FINANCEIRO ================= */
 .resumo-container {
@@ -241,10 +240,7 @@ input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); co
 <div class="main">
     <header>
         <h1>Clientes</h1>
-        <div class="header-actions">
-            <button class="btn ghost" onclick="forcarAtualizacao()" title="Atualizar dados direto do banco">🔄 Atualizar</button>
-            <button class="btn primary" onclick="abrirModalNovoCliente()">+ Adicionar Cliente Antigo</button>
-        </div>
+        <button class="btn primary" onclick="abrirModalNovoCliente()">+ Adicionar Cliente Antigo</button>
     </header>
 
     <div class="resumo-container">
@@ -490,11 +486,6 @@ let clienteAtual = null;
 let clientesData = [];
 let filtroAtrasadosAtivo = false;
 
-// ================= CONFIGURAÇÃO DO CACHE =================
-const CACHE_KEY = 'crm_clientes_cache';
-const CACHE_TIME_KEY = 'crm_clientes_cache_time';
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos em milissegundos
-
 sidebar.addEventListener('mouseenter', () => { sidebar.classList.add('expanded'); mainContent.classList.add('blur'); });
 sidebar.addEventListener('mouseleave', () => { sidebar.classList.remove('expanded'); mainContent.classList.remove('blur'); });
 
@@ -503,30 +494,6 @@ function showToast(msg) {
     toastEl.style.display = 'block';
     clearTimeout(toastEl._t);
     toastEl._t = setTimeout(() => toastEl.style.display = 'none', 3000);
-}
-
-// ================= HELPERS DO CACHE =================
-function atualizarCacheLocal() {
-    // Sanitiza os dados para remover funções de Timestamp antes de salvar no Storage
-    const dadosSanitizados = clientesData.map(cliente => {
-        const copia = { ...cliente };
-        if (copia.dataFechamento && typeof copia.dataFechamento.toDate === 'function') {
-            copia.dataFechamento = copia.dataFechamento.toDate().toISOString();
-        }
-        if (copia.ultimoAndamento && typeof copia.ultimoAndamento.toDate === 'function') {
-            copia.ultimoAndamento = copia.ultimoAndamento.toDate().toISOString();
-        }
-        return copia;
-    });
-    localStorage.setItem(CACHE_KEY, JSON.stringify(dadosSanitizados));
-    localStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
-}
-
-window.forcarAtualizacao = function() {
-    localStorage.removeItem(CACHE_KEY);
-    localStorage.removeItem(CACHE_TIME_KEY);
-    showToast("Baixando dados atualizados do servidor...");
-    carregarClientes();
 }
 
 // ================= HELPERS (LÓGICA FINANCEIRA E DATAS) =================
@@ -729,9 +696,6 @@ window.deletarCliente = async function(id) {
     try {
         await deleteDoc(doc(db, "clientes", id));
         clientesData = clientesData.filter(c => c.id !== id);
-        
-        atualizarCacheLocal(); // Sincroniza o cache após exclusão
-        
         aplicarFiltros();
         showToast("Card excluído com sucesso!");
     } catch(err) {
@@ -758,7 +722,6 @@ window.atualizarSituacao = async function(clienteId, novaSituacao) {
         const idx = clientesData.findIndex(c => c.id === clienteId);
         if (idx > -1) {
             clientesData[idx].situacao = novaSituacao;
-            atualizarCacheLocal(); // Sincroniza o cache após alterar situação
         }
         
         showToast("Situação da cobrança atualizada!");
@@ -771,31 +734,10 @@ window.atualizarSituacao = async function(clienteId, novaSituacao) {
 // ================= CARREGAR E RENDERIZAR CARDS =================
 async function carregarClientes() {
     container.innerHTML = "<p style='color:rgba(255,255,255,0.5);'>Carregando clientes...</p>";
-    
-    // Tenta carregar do cache antes de bater no Firestore
-    const cachedData = localStorage.getItem(CACHE_KEY);
-    const cacheTime = localStorage.getItem(CACHE_TIME_KEY);
-    const now = Date.now();
-
-    if (cachedData && cacheTime && (now - parseInt(cacheTime) < CACHE_TTL_MS)) {
-        try {
-            clientesData = JSON.parse(cachedData);
-            aplicarFiltros();
-            console.log("Clientes carregados do cache local (economia de leituras).");
-            return; // Interrompe a função aqui, evitando consultar o banco de dados
-        } catch (e) {
-            console.error("Erro ao ler cache. Buscando dados do banco...", e);
-        }
-    }
-
     try {
-        console.log("Consultando dados no Firebase...");
         const q = query(collection(db, "clientes"));
         const snapshot = await getDocs(q);
         clientesData = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
-        
-        atualizarCacheLocal(); // Salva a consulta fresca no cache
-        
         aplicarFiltros();
     } catch (error) {
         showToast("Erro ao carregar clientes.");
@@ -975,8 +917,6 @@ window.salvarNovoCliente = async function() {
         novoCliente.id = docRef.id;
         
         clientesData.push(novoCliente);
-        
-        atualizarCacheLocal(); // Sincroniza o cache com o novo cliente
         aplicarFiltros();
         
         fecharModalNovoCliente();
@@ -1123,8 +1063,6 @@ window.salvarDetalhesFechamento = async function() {
         clienteAtual.vendedor = novoVendedor;
         clienteAtual.status = "fechado"; 
         
-        atualizarCacheLocal(); // Sincroniza o cache com as alterações
-        
         showToast("Cliente atualizado e salvo com sucesso!");
         btn.textContent = "Salvar Detalhes"; 
         
@@ -1181,8 +1119,6 @@ window.gerarAVista = async function() {
         if (idxCache > -1) clientesData[idxCache] = clienteAtual;
         atualizarResumoFinanceiro(clientesData);
         
-        atualizarCacheLocal(); // Sincroniza o cache
-
         renderizarHonorarios();
         showToast("Pagamento à vista registrado com sucesso!");
     } catch(err) {
@@ -1257,9 +1193,6 @@ window.gerarHonorarios = async function() {
         await updateDoc(docRef, { honorarios: novosHonorarios });
         
         clienteAtual.honorarios = novosHonorarios;
-        
-        atualizarCacheLocal(); // Sincroniza o cache
-        
         renderizarHonorarios();
         showToast("Honorários gerados e salvos!");
     } catch(err) {
@@ -1296,8 +1229,6 @@ window.atualizarDadosParcela = async function(index, campo, valor) {
         if (idxCache > -1) clientesData[idxCache] = clienteAtual;
         atualizarResumoFinanceiro(clientesData);
         
-        atualizarCacheLocal(); // Sincroniza o cache
-        
         showToast("Parcela atualizada!");
     } catch(err) {
         console.error(err);
@@ -1318,8 +1249,6 @@ window.atualizarStatusParcela = async function(index, novoStatus) {
         if (idxCache > -1) clientesData[idxCache] = clienteAtual;
         atualizarResumoFinanceiro(clientesData);
         
-        atualizarCacheLocal(); // Sincroniza o cache
-        
         renderizarHonorarios(); 
         showToast(`Parcela atualizada para ${novoStatus}!`);
     } catch(err) {
@@ -1339,8 +1268,6 @@ window.removerParcela = async function(index) {
         const idxCache = clientesData.findIndex(c => c.id === clienteAtual.id);
         if (idxCache > -1) clientesData[idxCache] = clienteAtual;
         atualizarResumoFinanceiro(clientesData);
-        
-        atualizarCacheLocal(); // Sincroniza o cache
         
         renderizarHonorarios();
         showToast("Parcela removida!");
@@ -1453,8 +1380,6 @@ window.anexarDocumento = async function() {
         await updateDoc(docRef, { documentos: docsAtuais });
 
         clienteAtual.documentos = docsAtuais;
-        
-        atualizarCacheLocal(); // Sincroniza o cache com o novo documento
         
         document.getElementById('addDocNome').value = "";
         fileInput.value = "";
