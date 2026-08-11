@@ -266,10 +266,14 @@ input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); co
             <option value="hoje" style="background: #0f172a; color: #fff;">Fechados Hoje</option>
             <option value="semana" style="background: #0f172a; color: #fff;">Fechados esta Semana</option>
             <option value="mes" style="background: #0f172a; color: #fff;">Fechados este Mês</option>
-            <option value="data" style="background: #0f172a; color: #fff;">Data Específica</option>
+            <option value="data" style="background: #0f172a; color: #fff;">Período Personalizado</option>
         </select>
 
-        <input type="date" id="filtroDataEspecifica" style="display: none; padding:12px 16px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); border-radius:12px; color:#fff; font-size: 14px; outline: none; backdrop-filter: blur(10px);">
+        <div id="containerDataEspecifica" style="display: none; gap: 10px; align-items: center;">
+            <input type="date" id="filtroDataInicio" style="padding:12px 16px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); border-radius:12px; color:#fff; font-size: 14px; outline: none; backdrop-filter: blur(10px);" title="Data de Início">
+            <span style="color: rgba(255,255,255,0.5); font-weight: 600; font-size: 14px;">até</span>
+            <input type="date" id="filtroDataFim" style="padding:12px 16px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); border-radius:12px; color:#fff; font-size: 14px; outline: none; backdrop-filter: blur(10px);" title="Data de Fim">
+        </div>
     </div>
 
     <div class="container" id="clientesContainer"></div>
@@ -565,7 +569,8 @@ function extrairDocumentos(docsOriginais) {
 // ================= SISTEMA DE BUSCA E FILTROS UNIFICADO =================
 const inputBusca = document.getElementById('buscarCliente');
 const selectPeriodo = document.getElementById('filtroPeriodo');
-const inputDataEspecifica = document.getElementById('filtroDataEspecifica');
+const inputDataInicio = document.getElementById('filtroDataInicio');
+const inputDataFim = document.getElementById('filtroDataFim');
 
 window.toggleFiltroAtrasados = function() {
     filtroAtrasadosAtivo = !filtroAtrasadosAtivo;
@@ -620,7 +625,8 @@ function isSpecificDate(dateString, targetDateStr) {
 window.aplicarFiltros = function() {
     const termo = inputBusca.value.toLowerCase().trim();
     const periodo = selectPeriodo.value;
-    const targetDate = inputDataEspecifica.value;
+    const targetDateInicio = inputDataInicio.value;
+    const targetDateFim = inputDataFim.value;
     
     let filtrados = clientesData;
 
@@ -650,10 +656,21 @@ window.aplicarFiltros = function() {
                 const dataObj = c.dataFechamento?.toDate ? c.dataFechamento.toDate() : c.dataFechamento;
                 return isThisMonth(dataObj);
             });
-        } else if (periodo === "data" && targetDate) {
+        } else if (periodo === "data") {
             filtrados = filtrados.filter(c => {
-                const dataObj = c.dataFechamento?.toDate ? c.dataFechamento.toDate() : c.dataFechamento;
-                return isSpecificDate(dataObj, targetDate);
+                if (!c.dataFechamento) return false;
+                const dataObj = c.dataFechamento?.toDate ? c.dataFechamento.toDate() : new Date(c.dataFechamento);
+                
+                let pass = true;
+                if (targetDateInicio) {
+                    const dataIn = new Date(targetDateInicio + "T00:00:00");
+                    if (dataObj < dataIn) pass = false;
+                }
+                if (targetDateFim) {
+                    const dataFi = new Date(targetDateFim + "T23:59:59");
+                    if (dataObj > dataFi) pass = false;
+                }
+                return pass;
             });
         }
 
@@ -675,17 +692,27 @@ window.aplicarFiltros = function() {
         });
     }
 
+    // ORDENAÇÃO: Mais recentes no topo, mais antigos em baixo
+    filtrados.sort((a, b) => {
+        const getMs = (item) => {
+            if (!item.dataFechamento) return 0;
+            return item.dataFechamento.toDate ? item.dataFechamento.toDate().getTime() : new Date(item.dataFechamento).getTime();
+        };
+        return getMs(b) - getMs(a); // Ordem decrescente
+    });
+
     exibirClientes(filtrados);
 }
 
 inputBusca.addEventListener('input', aplicarFiltros);
-inputDataEspecifica.addEventListener('change', aplicarFiltros);
+inputDataInicio.addEventListener('change', aplicarFiltros);
+inputDataFim.addEventListener('change', aplicarFiltros);
 
 selectPeriodo.addEventListener('change', (e) => {
     if (e.target.value === 'data') {
-        inputDataEspecifica.style.display = 'block';
+        document.getElementById('containerDataEspecifica').style.display = 'flex';
     } else {
-        inputDataEspecifica.style.display = 'none';
+        document.getElementById('containerDataEspecifica').style.display = 'none';
     }
     aplicarFiltros();
 });
