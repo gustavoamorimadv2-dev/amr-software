@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Revisão de Contrato de Veículo</title>
+    <!-- Biblioteca jsPDF para gerar o PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f7f6; padding: 20px; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h2 { text-align: center; color: #2c3e50; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background-color: #2980b9; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 10px; }
+        button:hover { background-color: #3498db; }
+        .btn-pdf { background-color: #27ae60; display: none; }
+        .btn-pdf:hover { background-color: #2ecc71; }
+        #resultado { margin-top: 25px; padding: 15px; border-left: 4px solid #2980b9; background-color: #ebf5fb; display: none; }
+        .highlight { font-weight: bold; color: #c0392b; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Calculadora de Revisão de Financiamento</h2>
+    
+    <div class="form-group">
+        <label for="banco">Banco do Financiamento</label>
+        <input type="text" id="banco" placeholder="Ex: Banco BV, Pan, Santander">
+    </div>
+    
+    <div class="form-group">
+        <label for="dataContrato">Mês/Ano do Contrato</label>
+        <input type="month" id="dataContrato">
+    </div>
+
+    <div class="form-group">
+        <label for="valorFinanciado">Valor Total Financiado (R$)</label>
+        <input type="number" id="valorFinanciado" placeholder="Ex: 45000">
+    </div>
+
+    <div class="form-group">
+        <label for="totalParcelas">Total de Parcelas do Contrato</label>
+        <input type="number" id="totalParcelas" placeholder="Ex: 48">
+    </div>
+
+    <div class="form-group">
+        <label for="parcelasPagas">Quantas parcelas já foram pagas?</label>
+        <input type="number" id="parcelasPagas" placeholder="Ex: 12">
+    </div>
+
+    <div class="form-group">
+        <label for="valorParcelaAtual">Valor Atual da Parcela (R$)</label>
+        <input type="number" id="valorParcelaAtual" placeholder="Ex: 1500">
+    </div>
+
+    <button onclick="calcularRevisao()">Calcular Revisão</button>
+
+    <div id="resultado">
+        <h3>Resumo da Revisão</h3>
+        <p>Taxa Média do Bacen na época: <span id="resTaxaBacen"></span>% a.m.</p>
+        <p>Valor Correto da Parcela: R$ <span id="resParcelaRevisada"></span></p>
+        <p>Valor Cobrado a Maior por Parcela: R$ <span id="resDiferencaParcela" class="highlight"></span></p>
+        <p>Total já pago em excesso (Restituição em dobro/simples): R$ <span id="resExcessoPago" class="highlight"></span></p>
+        <p>Redução no Saldo Devedor Futuro: R$ <span id="resEconomiaFutura" class="highlight"></span></p>
+    </div>
+
+    <button id="btnPdf" class="btn-pdf" onclick="baixarParecer()">Baixar Parecer Técnico (PDF)</button>
+</div>
+
+<script>
+    // 1. MOCK DE DADOS: Aqui você colocará o seu banco de dados de taxas do Bacen (Ano-Mês: Taxa%)
+    // O formato do input type="month" retorna "YYYY-MM"
+    const taxasBacen = {
+        "2023-01": 1.75,
+        "2023-02": 1.78,
+        "2023-03": 1.80,
+        "2023-04": 1.82,
+        "2023-05": 1.85,
+        // Adicione todos os meses necessários aqui...
+    };
+
+    let dadosCalculados = {}; // Variável global para armazenar os dados para o PDF
+
+    function calcularRevisao() {
+        const banco = document.getElementById('banco').value;
+        const dataContrato = document.getElementById('dataContrato').value;
+        const valorFinanciado = parseFloat(document.getElementById('valorFinanciado').value);
+        const totalParcelas = parseInt(document.getElementById('totalParcelas').value);
+        const parcelasPagas = parseInt(document.getElementById('parcelasPagas').value);
+        const valorParcelaAtual = parseFloat(document.getElementById('valorParcelaAtual').value);
+
+        if(!dataContrato || !valorFinanciado || !totalParcelas || !valorParcelaAtual) {
+            alert("Por favor, preencha todos os campos essenciais.");
+            return;
+        }
+
+        // Busca a taxa do Bacen ou usa uma taxa padrão de 1.5% caso não encontre no mock para não travar o teste
+        const taxaBacen = taxasBacen[dataContrato] || 1.50; 
+        const taxaDecimal = taxaBacen / 100;
+
+        // Fórmula da Tabela Price para descobrir a parcela correta
+        // PMT = PV * (i * (1 + i)^n) / ((1 + i)^n - 1)
+        const fator = Math.pow(1 + taxaDecimal, totalParcelas);
+        const parcelaRevisada = valorFinanciado * ((taxaDecimal * fator) / (fator - 1));
+
+        // Cálculos de excesso
+        const diferencaParcela = valorParcelaAtual - parcelaRevisada;
+        
+        if (diferencaParcela <= 0) {
+            alert("A taxa praticada pelo banco está dentro ou abaixo da média do Bacen!");
+            return;
+        }
+
+        const excessoPago = diferencaParcela * parcelasPagas;
+        const parcelasRestantes = totalParcelas - parcelasPagas;
+        const economiaFutura = diferencaParcela * parcelasRestantes;
+
+        // Formatador de Moeda
+        const formataBRL = (valor) => valor.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+        // Exibe os resultados na tela
+        document.getElementById('resTaxaBacen').innerText = formataBRL(taxaBacen);
+        document.getElementById('resParcelaRevisada').innerText = formataBRL(parcelaRevisada);
+        document.getElementById('resDiferencaParcela').innerText = formataBRL(diferencaParcela);
+        document.getElementById('resExcessoPago').innerText = formataBRL(excessoPago);
+        document.getElementById('resEconomiaFutura').innerText = formataBRL(economiaFutura);
+
+        document.getElementById('resultado').style.display = 'block';
+        document.getElementById('btnPdf').style.display = 'block';
+
+        // Salva os dados para o PDF
+        dadosCalculados = {
+            banco, dataContrato, valorFinanciado: formataBRL(valorFinanciado),
+            totalParcelas, parcelasPagas, taxaBacen: formataBRL(taxaBacen),
+            parcelaAtual: formataBRL(valorParcelaAtual),
+            parcelaRevisada: formataBRL(parcelaRevisada),
+            diferencaParcela: formataBRL(diferencaParcela),
+            excessoPago: formataBRL(excessoPago),
+            economiaFutura: formataBRL(economiaFutura)
+        };
+    }
+
+    function baixarParecer() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        // Cabeçalho
+        doc.setFontSize(18);
+        doc.setFont("helvetica", "bold");
+        doc.text("PARECER TÉCNICO PRELIMINAR", 105, 20, { align: "center" });
+        doc.text("REVISÃO DE CONTRATO DE FINANCIAMENTO", 105, 28, { align: "center" });
+
+        // Linha divisória
+        doc.setLineWidth(0.5);
+        doc.line(20, 35, 190, 35);
+
+        // Corpo do texto
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "normal");
+        
+        let y = 45;
+        const linha = (texto) => { doc.text(texto, 20, y); y += 8; };
+
+        linha(`Banco Requerido: ${dadosCalculados.banco}`);
+        linha(`Data Base do Contrato: ${dadosCalculados.dataContrato}`);
+        linha(`Valor Financiado: R$ ${dadosCalculados.valorFinanciado}`);
+        linha(`Quantidade de Parcelas: ${dadosCalculados.totalParcelas} (Pagas: ${dadosCalculados.parcelasPagas})`);
+        
+        y += 5;
+        doc.setFont("helvetica", "bold");
+        linha(`1. ANÁLISE DE TAXAS`);
+        doc.setFont("helvetica", "normal");
+        linha(`Taxa Média do BACEN no período: ${dadosCalculados.taxaBacen}% a.m.`);
+        linha(`Valor da Parcela Cobrada pelo Banco: R$ ${dadosCalculados.parcelaAtual}`);
+        linha(`Valor da Parcela Correta (Taxa Bacen): R$ ${dadosCalculados.parcelaRevisada}`);
+        
+        y += 5;
+        doc.setFont("helvetica", "bold");
+        linha(`2. DEMONSTRATIVO DE INDÉBITO`);
+        doc.setFont("helvetica", "normal");
+        linha(`Valor cobrado a maior por parcela: R$ ${dadosCalculados.diferencaParcela}`);
+        linha(`Valor já pago em excesso (passível de restituição): R$ ${dadosCalculados.excessoPago}`);
+        linha(`Redução projetada no saldo devedor futuro: R$ ${dadosCalculados.economiaFutura}`);
+
+        y += 15;
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(10);
+        doc.text("Este documento é uma simulação matemática preliminar baseada na Tabela Price", 105, y, { align: "center" });
+        doc.text("e nas taxas médias de mercado divulgadas pelo Banco Central do Brasil.", 105, y+5, { align: "center" });
+
+        // Gera e baixa o PDF
+        doc.save("Parecer_Tecnico_Revisional.pdf");
+    }
+</script>
+</body>
+</html>
