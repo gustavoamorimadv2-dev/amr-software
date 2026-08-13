@@ -240,7 +240,10 @@ input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); co
 <div class="main">
     <header>
         <h1>Clientes</h1>
-        <button class="btn primary" onclick="abrirModalNovoCliente()">+ Adicionar Cliente Antigo</button>
+        <div style="display: flex; gap: 15px; align-items: center;">
+            <button class="btn ghost" onclick="forcarAtualizacao()" title="Sincronizar dados com o servidor" style="padding: 10px; font-size: 16px;">🔄</button>
+            <button class="btn primary" onclick="abrirModalNovoCliente()">+ Adicionar Cliente Antigo</button>
+        </div>
     </header>
 
     <div class="resumo-container">
@@ -530,7 +533,6 @@ function atualizarResumoFinanceiro(listaClientes) {
     let totalAtraso = 0;
 
     listaClientes.forEach(cliente => {
-        // Blindagem contra bases antigas onde honorarios não era um Array
         const honorarios = Array.isArray(cliente.honorarios) ? cliente.honorarios : [];
         honorarios.forEach(h => {
             const valor = converterMoedaParaFloat(h.valor);
@@ -551,7 +553,6 @@ function atualizarResumoFinanceiro(listaClientes) {
     document.getElementById('resumoAtraso').textContent = formatarFloatParaMoeda(totalAtraso);
 }
 
-// NOVO: Função para extrair documentos independente do formato no banco (Array ou Objeto)
 function extrairDocumentos(docsOriginais) {
     let listaDocs = [];
     if (Array.isArray(docsOriginais)) {
@@ -564,6 +565,19 @@ function extrairDocumentos(docsOriginais) {
         });
     }
     return listaDocs;
+}
+
+// ================= SISTEMA DE CACHE LOCAL =================
+function atualizarCacheLocal() {
+    localStorage.setItem('amr_crm_clientes_data', JSON.stringify(clientesData));
+    localStorage.setItem('amr_crm_clientes_timestamp', Date.now().toString());
+}
+
+window.forcarAtualizacao = function() {
+    localStorage.removeItem('amr_crm_clientes_data');
+    localStorage.removeItem('amr_crm_clientes_timestamp');
+    showToast("Buscando dados recentes do servidor...");
+    carregarClientes();
 }
 
 // ================= SISTEMA DE BUSCA E FILTROS UNIFICADO =================
@@ -692,13 +706,12 @@ window.aplicarFiltros = function() {
         });
     }
 
-    // ORDENAÇÃO: Mais recentes no topo, mais antigos em baixo
     filtrados.sort((a, b) => {
         const getMs = (item) => {
             if (!item.dataFechamento) return 0;
             return item.dataFechamento.toDate ? item.dataFechamento.toDate().getTime() : new Date(item.dataFechamento).getTime();
         };
-        return getMs(b) - getMs(a); // Ordem decrescente
+        return getMs(b) - getMs(a); 
     });
 
     exibirClientes(filtrados);
@@ -723,6 +736,7 @@ window.deletarCliente = async function(id) {
     try {
         await deleteDoc(doc(db, "clientes", id));
         clientesData = clientesData.filter(c => c.id !== id);
+        atualizarCacheLocal();
         aplicarFiltros();
         showToast("Card excluído com sucesso!");
     } catch(err) {
@@ -749,6 +763,7 @@ window.atualizarSituacao = async function(clienteId, novaSituacao) {
         const idx = clientesData.findIndex(c => c.id === clienteId);
         if (idx > -1) {
             clientesData[idx].situacao = novaSituacao;
+            atualizarCacheLocal();
         }
         
         showToast("Situação da cobrança atualizada!");
@@ -758,14 +773,44 @@ window.atualizarSituacao = async function(clienteId, novaSituacao) {
     }
 };
 
-// ================= CARREGAR E RENDERIZAR CARDS =================
+// ================= CARREGAR E RENDERIZAR CARDS COM CACHE =================
 async function carregarClientes() {
     container.innerHTML = "<p style='color:rgba(255,255,255,0.5);'>Carregando clientes...</p>";
+    
+    const cachedData = localStorage.getItem('amr_crm_clientes_data');
+    const cacheTimestamp = localStorage.getItem('amr_crm_clientes_timestamp');
+    const now = Date.now();
+    
+    // Verifica se existe cache e se é mais novo que 15 minutos (900000 ms)
+    if (cachedData && cacheTimestamp && (now - parseInt(cacheTimestamp) < 900000)) {
+        try {
+            clientesData = JSON.parse(cachedData);
+            aplicarFiltros();
+            return;
+        } catch (e) {
+            console.warn("Erro ao ler cache, buscando do Firestore...", e);
+        }
+    }
+
     try {
         const q = query(collection(db, "clientes"));
         const snapshot = await getDocs(q);
-        clientesData = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
+        
+        clientesData = snapshot.docs.map(docSnap => {
+            let data = docSnap.data();
+            // Padroniza as datas em string ISO para garantir a integridade ao salvar no localStorage
+            if (data.dataFechamento && typeof data.dataFechamento.toDate === 'function') {
+                data.dataFechamento = data.dataFechamento.toDate().toISOString();
+            }
+            if (data.ultimoAndamento && typeof data.ultimoAndamento.toDate === 'function') {
+                data.ultimoAndamento = data.ultimoAndamento.toDate().toISOString();
+            }
+            return { id: docSnap.id, ...data };
+        });
+
+        atualizarCacheLocal();
         aplicarFiltros();
+        
     } catch (error) {
         showToast("Erro ao carregar clientes.");
         console.error(error);
@@ -790,7 +835,6 @@ function exibirClientes(lista) {
         
         let dataFechamentoStr = "";
         
-        // BLINDAGEM CONTRA DATAS QUEBRADAS (Não vai mais travar renderização)
         try {
             if (cliente.dataFechamento) {
                 const dataObj = cliente.dataFechamento.toDate ? cliente.dataFechamento.toDate() : new Date(cliente.dataFechamento);
@@ -805,7 +849,6 @@ function exibirClientes(lista) {
             ? `<span style="background: rgba(16, 185, 129, 0.2); color: #10b981; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; border: 1px solid rgba(16, 185, 129, 0.3);">Fechado</span>`
             : `<span style="background: rgba(59, 130, 246, 0.2); color: #3b82f6; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 600; border: 1px solid rgba(59, 130, 246, 0.3);">Em Andamento</span>`;
 
-        // Agora usamos a função que unifica Objeto e Array
         const documentosArr = extrairDocumentos(cliente.documentos);
         const honorariosArr = Array.isArray(cliente.honorarios) ? cliente.honorarios : [];
 
@@ -944,6 +987,7 @@ window.salvarNovoCliente = async function() {
         novoCliente.id = docRef.id;
         
         clientesData.push(novoCliente);
+        atualizarCacheLocal();
         aplicarFiltros();
         
         fecharModalNovoCliente();
@@ -976,7 +1020,6 @@ window.abrirModalCompleto = function(cliente) {
         <p><strong>CEP:</strong> ${cliente.cep || "Não informado"}</p>
     `;
 
-    // BLINDAGEM MÁXIMA DE ERRO DE CLICK DO CARD
     try {
         if (cliente.dataFechamento) {
             const dataObj = cliente.dataFechamento.toDate ? cliente.dataFechamento.toDate() : new Date(cliente.dataFechamento);
@@ -995,7 +1038,6 @@ window.abrirModalCompleto = function(cliente) {
     document.getElementById('editVendedor').value = cliente.vendedor || "";
     document.getElementById('editObservacoes').value = cliente.observacoes || "";
 
-    // CARREGAR DADOS DO ANDAMENTO PROCESSUAL
     document.getElementById('editTramitacao').value = cliente.tramitacaoProcessual || "";
     try {
         if (cliente.ultimoAndamento) {
@@ -1068,7 +1110,6 @@ window.salvarDetalhesFechamento = async function() {
             clienteAtual.dataFechamento = novaDataFormatada;
         }
 
-        // Gravar dados do Andamento e Observações
         atualizacoes.tramitacaoProcessual = novaTramitacao;
         clienteAtual.tramitacaoProcessual = novaTramitacao;
         
@@ -1090,6 +1131,7 @@ window.salvarDetalhesFechamento = async function() {
         clienteAtual.vendedor = novoVendedor;
         clienteAtual.status = "fechado"; 
         
+        atualizarCacheLocal();
         showToast("Cliente atualizado e salvo com sucesso!");
         btn.textContent = "Salvar Detalhes"; 
         
@@ -1146,6 +1188,7 @@ window.gerarAVista = async function() {
         if (idxCache > -1) clientesData[idxCache] = clienteAtual;
         atualizarResumoFinanceiro(clientesData);
         
+        atualizarCacheLocal();
         renderizarHonorarios();
         showToast("Pagamento à vista registrado com sucesso!");
     } catch(err) {
@@ -1220,6 +1263,7 @@ window.gerarHonorarios = async function() {
         await updateDoc(docRef, { honorarios: novosHonorarios });
         
         clienteAtual.honorarios = novosHonorarios;
+        atualizarCacheLocal();
         renderizarHonorarios();
         showToast("Honorários gerados e salvos!");
     } catch(err) {
@@ -1256,6 +1300,7 @@ window.atualizarDadosParcela = async function(index, campo, valor) {
         if (idxCache > -1) clientesData[idxCache] = clienteAtual;
         atualizarResumoFinanceiro(clientesData);
         
+        atualizarCacheLocal();
         showToast("Parcela atualizada!");
     } catch(err) {
         console.error(err);
@@ -1276,6 +1321,7 @@ window.atualizarStatusParcela = async function(index, novoStatus) {
         if (idxCache > -1) clientesData[idxCache] = clienteAtual;
         atualizarResumoFinanceiro(clientesData);
         
+        atualizarCacheLocal();
         renderizarHonorarios(); 
         showToast(`Parcela atualizada para ${novoStatus}!`);
     } catch(err) {
@@ -1296,6 +1342,7 @@ window.removerParcela = async function(index) {
         if (idxCache > -1) clientesData[idxCache] = clienteAtual;
         atualizarResumoFinanceiro(clientesData);
         
+        atualizarCacheLocal();
         renderizarHonorarios();
         showToast("Parcela removida!");
     } catch(err) {
@@ -1304,10 +1351,8 @@ window.removerParcela = async function(index) {
     }
 };
 
-// FIX: Usando CSS Grid responsivo dentro das parcelas geradas também para evitar cortes
 function renderizarHonorarios() {
     const containerHon = document.getElementById('listaHonorariosGerados');
-    // BLINDAGEM DE ARRAYS AQUI TBM
     const honorarios = Array.isArray(clienteAtual.honorarios) ? clienteAtual.honorarios : [];
     
     if(honorarios.length === 0) {
@@ -1392,14 +1437,12 @@ window.anexarDocumento = async function() {
             dataEnvio: new Date().toISOString()
         };
 
-        // Salva preservando o formato (Array antigo ou Objeto categorizado novo)
         if (Array.isArray(docsAtuais)) {
             docsAtuais.push(novoDocObj);
         } else if (docsAtuais && typeof docsAtuais === 'object') {
             if (!docsAtuais.outros) docsAtuais.outros = [];
             docsAtuais.outros.push(novoDocObj);
         } else {
-            // Se estiver vazio, segue o padrão novo (Objeto)
             docsAtuais = { outros: [novoDocObj] };
         }
 
@@ -1411,6 +1454,7 @@ window.anexarDocumento = async function() {
         document.getElementById('addDocNome').value = "";
         fileInput.value = "";
         
+        atualizarCacheLocal();
         renderizarDocumentos();
         showToast("Documento anexado com sucesso!");
 
@@ -1425,8 +1469,6 @@ window.anexarDocumento = async function() {
 
 function renderizarDocumentos() {
     const containerDocs = document.getElementById('listaDocsContainer');
-    
-    // Extrai unificando os formatos
     const documentos = extrairDocumentos(clienteAtual.documentos);
 
     if (documentos.length === 0) {
