@@ -170,7 +170,7 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     border: 1px solid rgba(255,255,255,0.05);
     backdrop-filter: blur(10px);
     border-radius:20px;
-    padding:15px;
+    padding:20px;
     min-width:400px;
     flex: 1; 
     max-width: 50%;
@@ -188,6 +188,15 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     font-weight: 700;
     letter-spacing: 1px;
     opacity: 0.8;
+}
+
+/* NOVO: Sub-Grid para os cards dentro das colunas */
+.cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 15px;
+    width: 100%;
+    align-items: start;
 }
 
 /* ================= CARDS ================= */
@@ -212,30 +221,33 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     background:rgba(255,255,255,0.1);
 }
 
-/* Indicadores de Cor */
-.aberto { border-top: 4px solid #ef4444; }
+/* Indicadores de Cor - Movido para a esquerda igual à página de clientes */
+.aberto { border-left: 5px solid #ef4444; }
 .aberto:hover { border-color: #f87171; }
 
-.concluido { border-top: 4px solid #10b981; }
+.concluido { border-left: 5px solid #10b981; }
 .concluido:hover { border-color: #34d399; }
 
 .card-header {
     background: rgba(0, 0, 0, 0.1); 
     border-bottom: 1px solid rgba(255,255,255,0.05);
-    padding: 15px 20px;
+    padding: 15px;
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
 }
 
 .card-header h3 {
-    font-size:18px;
-    color:#fff;
+    font-size: 16px;
+    color: #fff;
     font-weight: 700;
-    white-space: nowrap;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     overflow: hidden;
-    text-overflow: ellipsis;
-    padding-right: 15px;
+    width: 100%;
 }
 
 .badge-tempo {
@@ -306,7 +318,7 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 }
 
 .card-footer {
-    padding: 15px 20px;
+    padding: 15px;
     border-top: 1px solid rgba(255,255,255,0.05);
     background: rgba(0,0,0,0.1);
 }
@@ -650,9 +662,18 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     function renderCards(){
-        colAberto.innerHTML = '<h2>ANDAMENTOS EM ABERTO (Aguardando Atualização)</h2>';
-        colConcluido.innerHTML = '<h2>ANDAMENTOS CONCLUÍDOS (Atualizados há menos de 5 dias)</h2>';
+        // Reinserindo o cabeçalho e criando os containers de Grid para cada coluna
+        colAberto.innerHTML = `
+            <h2>ANDAMENTOS EM ABERTO (Aguardando Atualização)</h2>
+            <div class="cards-grid" id="grid-aberto"></div>
+        `;
+        colConcluido.innerHTML = `
+            <h2>ANDAMENTOS CONCLUÍDOS (Atualizados há menos de 5 dias)</h2>
+            <div class="cards-grid" id="grid-concluido"></div>
+        `;
         
+        const gridAberto = document.getElementById('grid-aberto');
+        const gridConcluido = document.getElementById('grid-concluido');
         const qTexto = searchInput.value.toLowerCase();
 
         clientesFechados.forEach(cliente => {
@@ -727,10 +748,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 abrirModal(cliente);
             };
 
+            // Adicionar os cards aos grids, em vez de diretamente à coluna
             if (pendente) {
-                colAberto.appendChild(card);
+                gridAberto.appendChild(card);
             } else {
-                colConcluido.appendChild(card);
+                gridConcluido.appendChild(card);
             }
         });
     }
@@ -796,10 +818,12 @@ document.addEventListener('DOMContentLoaded', () => {
     <div class="kanban-container">
         <main class="kanban" id="kanban">
             <div class="column" id="col-aberto">
-                </div>
+                <!-- Conteúdo renderizado pelo JS -->
+            </div>
 
             <div class="column" id="col-concluido">
-                </div>
+                <!-- Conteúdo renderizado pelo JS -->
+            </div>
         </main>
     </div>
 </div>
