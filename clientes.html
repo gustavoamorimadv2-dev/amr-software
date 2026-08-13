@@ -196,7 +196,6 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 
 label { display:block; margin-bottom:6px; font-size:12px; font-weight:600; color:rgba(255,255,255,0.7); }
 
-/* FIX: Adicionado min-width:0 para evitar que o text suma ou quebre o Flexbox */
 input { width:100%; min-width: 0; padding:10px 14px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:#fff; font-size:13px; outline:none; transition:0.3s; }
 input:focus { background:rgba(255,255,255,0.1); border-color: #10b981; }
 textarea { width:100%; min-width: 0; padding:10px 14px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:10px; color:#fff; font-size:13px; outline:none; transition:0.3s; resize:vertical; font-family: 'Inter', sans-serif;}
@@ -567,15 +566,26 @@ function extrairDocumentos(docsOriginais) {
     return listaDocs;
 }
 
-// ================= SISTEMA DE CACHE LOCAL =================
+// ================= SISTEMA DE CACHE LOCAL (CORRIGIDO) =================
 function atualizarCacheLocal() {
-    localStorage.setItem('amr_crm_clientes_data', JSON.stringify(clientesData));
-    localStorage.setItem('amr_crm_clientes_timestamp', Date.now().toString());
+    try {
+        localStorage.setItem('amr_crm_clientes_data', JSON.stringify(clientesData));
+        localStorage.setItem('amr_crm_clientes_timestamp', Date.now().toString());
+    } catch (e) {
+        console.warn("Limite do cache excedido. A página continuará operando via servidor sem travar.", e);
+        try {
+            // Se der pau por falta de espaço, limpa os registros corrompidos
+            localStorage.removeItem('amr_crm_clientes_data');
+            localStorage.removeItem('amr_crm_clientes_timestamp');
+        } catch(err) {}
+    }
 }
 
 window.forcarAtualizacao = function() {
-    localStorage.removeItem('amr_crm_clientes_data');
-    localStorage.removeItem('amr_crm_clientes_timestamp');
+    try {
+        localStorage.removeItem('amr_crm_clientes_data');
+        localStorage.removeItem('amr_crm_clientes_timestamp');
+    } catch(e) {}
     showToast("Buscando dados recentes do servidor...");
     carregarClientes();
 }
@@ -777,16 +787,24 @@ window.atualizarSituacao = async function(clienteId, novaSituacao) {
 async function carregarClientes() {
     container.innerHTML = "<p style='color:rgba(255,255,255,0.5);'>Carregando clientes...</p>";
     
-    const cachedData = localStorage.getItem('amr_crm_clientes_data');
-    const cacheTimestamp = localStorage.getItem('amr_crm_clientes_timestamp');
+    let cachedData = null;
+    let cacheTimestamp = null;
+    
+    try {
+        cachedData = localStorage.getItem('amr_crm_clientes_data');
+        cacheTimestamp = localStorage.getItem('amr_crm_clientes_timestamp');
+    } catch(e) {}
+    
     const now = Date.now();
     
-    // Verifica se existe cache e se é mais novo que 15 minutos (900000 ms)
     if (cachedData && cacheTimestamp && (now - parseInt(cacheTimestamp) < 900000)) {
         try {
-            clientesData = JSON.parse(cachedData);
-            aplicarFiltros();
-            return;
+            const parsedData = JSON.parse(cachedData);
+            if (Array.isArray(parsedData)) {
+                clientesData = parsedData;
+                aplicarFiltros();
+                return;
+            }
         } catch (e) {
             console.warn("Erro ao ler cache, buscando do Firestore...", e);
         }
@@ -798,13 +816,14 @@ async function carregarClientes() {
         
         clientesData = snapshot.docs.map(docSnap => {
             let data = docSnap.data();
-            // Padroniza as datas em string ISO para garantir a integridade ao salvar no localStorage
-            if (data.dataFechamento && typeof data.dataFechamento.toDate === 'function') {
-                data.dataFechamento = data.dataFechamento.toDate().toISOString();
-            }
-            if (data.ultimoAndamento && typeof data.ultimoAndamento.toDate === 'function') {
-                data.ultimoAndamento = data.ultimoAndamento.toDate().toISOString();
-            }
+            try {
+                if (data.dataFechamento && typeof data.dataFechamento.toDate === 'function') {
+                    data.dataFechamento = data.dataFechamento.toDate().toISOString();
+                }
+                if (data.ultimoAndamento && typeof data.ultimoAndamento.toDate === 'function') {
+                    data.ultimoAndamento = data.ultimoAndamento.toDate().toISOString();
+                }
+            } catch(e) {}
             return { id: docSnap.id, ...data };
         });
 
