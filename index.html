@@ -1871,13 +1871,35 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /* ================= FILTROS ================= */
     function filtragemAplicada(){
-        const q = searchInput.value.toLowerCase();
+        const rawQ = searchInput.value;
+        const q = rawQ.toLowerCase();
         const filterS = filterStatus.value;
+        
         Object.values(cardsMap).forEach(card => {
             const matchSearch = (card.dataset.nome || '').includes(q) || (card.dataset.cpf || '').includes(q) || (card.dataset.processo || '').includes(q);
             const matchStatus = !filterS || card.dataset.status === filterS;
             card.style.display = (matchSearch && matchStatus) ? 'flex' : 'none';
         });
+
+        // NOVA IMPLEMENTAÇÃO: Verificar no cache se o processo já existe (Zero leituras no Firebase)
+        let processoExiste = false;
+        const cleanQ = rawQ.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+
+        if (cleanQ !== '') {
+            processoExiste = todosClientesCache.some(c => {
+                if (!c.processo) return false;
+                const processosCadastrados = c.processo.split(',').map(p => p.replace(/[^a-zA-Z0-9]/g, '').toLowerCase());
+                return processosCadastrados.includes(cleanQ);
+            });
+        }
+
+        if (processoExiste) {
+            searchInput.style.color = '#ef4444'; // Vermelho se existir
+            searchInput.style.fontWeight = '600'; 
+        } else {
+            searchInput.style.color = '#fff'; // Branco padrão
+            searchInput.style.fontWeight = 'normal';
+        }
     }
 
     searchInput.oninput = filtragemAplicada;
