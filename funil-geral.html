@@ -403,13 +403,15 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 </style>
 
 <script type="module">
+// <-- ADICIONADO: Importação do enableIndexedDbPersistence para o cache offline
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
 import {
     getFirestore,
     collection,
     getDocs,
     doc,
-    updateDoc
+    updateDoc,
+    enableIndexedDbPersistence // <-- ADICIONADO
 } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 import {
     getAuth,
@@ -428,6 +430,12 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
+// <-- ADICIONADO: Ativação do cache offline nativo do Firebase
+enableIndexedDbPersistence(db).catch((err) => {
+    console.warn("Aviso de Cache Offline: ", err.message);
+});
+
 const auth = getAuth(app);
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -504,16 +512,31 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             const docRef = doc(db, "clientes", id);
-            
-            await updateDoc(docRef, { 
+            const isoDate = new Date().toISOString();
+            const novoResponsavel = currentUser.email || currentUser.displayName || 'Usuário Autenticado';
+
+            const updates = { 
                 userId: currentUser.uid,
-                responsavel: currentUser.email || currentUser.displayName || 'Usuário Autenticado',
-                dataUltimoResgate: new Date().toISOString(),
+                responsavel: novoResponsavel,
+                dataUltimoResgate: isoDate,
                 status: 'lista-fria' 
-            });
+            };
+            
+            // 1. Salva no banco
+            await updateDoc(docRef, updates);
+            
+            // 2. <-- OTIMIZAÇÃO: Atualiza a memória local para NÃO baixar o banco inteiro de novo (Zero Leituras)
+            const index = todosClientes.findIndex(c => c.id === id);
+            if (index !== -1) {
+                Object.assign(todosClientes[index], updates);
+            }
             
             showToast("🎯 Card resgatado e movido para sua coluna!");
-            fetchTodosClientes(); 
+            
+            // 3. Atualiza a tela baseada na memória local otimizada
+            renderCards(); 
+            // fetchTodosClientes(); <-- REMOVIDO pois gerava vazamento de leituras desnecessárias
+            
         } catch (error) {
             console.error(error);
             showToast("Erro ao resgatar o card.");
