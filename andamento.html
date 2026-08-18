@@ -470,6 +470,7 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 </style>
 
 <script type="module">
+// <-- ADICIONADO: Importação do enableIndexedDbPersistence para o cache offline nativo do firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
 import {
     getFirestore,
@@ -478,7 +479,8 @@ import {
     query,
     where,
     doc,
-    updateDoc
+    updateDoc,
+    enableIndexedDbPersistence // <-- ADICIONADO
 } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 import {
     getAuth,
@@ -497,6 +499,12 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
+// <-- ADICIONADO: Ativação do cache offline
+enableIndexedDbPersistence(db).catch((err) => {
+    console.warn("Aviso de Cache Offline: ", err.message);
+});
+
 const auth = getAuth(app);
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -668,19 +676,47 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="cards-grid" id="grid-aberto"></div>
         `;
         colConcluido.innerHTML = `
-            <h2>ANDAMENTOS CONCLUÍDOS (Atualizados há menos de 5 dias)</h2>
+            <h2>ANDAMENTOS CONCLUÍDOS (Atualizados há menos de 10 dias)</h2>
             <div class="cards-grid" id="grid-concluido"></div>
         `;
         
         const gridAberto = document.getElementById('grid-aberto');
         const gridConcluido = document.getElementById('grid-concluido');
-        const qTexto = searchInput.value.toLowerCase();
+        
+        const rawQ = searchInput.value;
+        const qTexto = rawQ.toLowerCase();
+
+        // <-- ADICIONADO: Lógica do texto vermelho ao encontrar um número de processo via cache local (zero consultas web)
+        let processoExiste = false;
+        const cleanQ = rawQ.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+
+        if (cleanQ !== '') {
+            processoExiste = clientesFechados.some(c => {
+                if (!c.processo) return false;
+                const processosCadastrados = c.processo.split(',').map(p => p.replace(/[^a-zA-Z0-9]/g, '').toLowerCase());
+                return processosCadastrados.includes(cleanQ);
+            });
+        }
+
+        if (processoExiste) {
+            searchInput.style.color = '#ef4444'; // Fica vermelho se encontrar no cache
+            searchInput.style.fontWeight = '600';
+        } else {
+            searchInput.style.color = '#fff';
+            searchInput.style.fontWeight = 'normal';
+        }
 
         clientesFechados.forEach(cliente => {
-            if (cliente.nome && !cliente.nome.toLowerCase().includes(qTexto)) return;
+            // Filtro local melhorado: agora busca por nome, CPF ou processo sem acionar o DB
+            const matchNome = cliente.nome && cliente.nome.toLowerCase().includes(qTexto);
+            const matchCpf = cliente.cpf && cliente.cpf.toLowerCase().includes(qTexto);
+            const matchProcesso = cliente.processo && cliente.processo.toLowerCase().includes(qTexto);
+            
+            if (qTexto !== '' && !(matchNome || matchCpf || matchProcesso)) return;
 
             const diasPassados = calcularDiasAndamento(cliente.dataUltimoAndamento);
-            const pendente = diasPassados >= 5;
+            // <-- ALTERADO: Agora exige 10 dias para retornar para "Em Aberto"
+            const pendente = diasPassados >= 10; 
 
             const card = document.createElement('div');
             card.className = `card ${pendente ? 'aberto' : 'concluido'}`;
@@ -807,12 +843,13 @@ document.addEventListener('DOMContentLoaded', () => {
     <header>
         <h1>Setor de Andamento</h1>
         <div style="font-size: 14px; color: rgba(255,255,255,0.7);">
-            Atualize clientes: Retornam para "Em Aberto" a cada 5 dias.
+            <!-- <-- ALTERADO DE 5 PARA 10 DIAS -->
+            Atualize clientes: Retornam para "Em Aberto" a cada 10 dias.
         </div>
     </header>
 
     <div class="search-bar">
-        <input id="searchInput" placeholder="Buscar cliente por nome..." />
+        <input id="searchInput" placeholder="Buscar cliente por nome, CPF ou processo..." />
     </div>
 
     <div class="kanban-container">
