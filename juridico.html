@@ -299,7 +299,8 @@ textarea { resize: vertical; }
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-import { getFirestore, collection, query, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+// <-- ADICIONADO: Importação do enableIndexedDbPersistence para ativar o cache nativo offline
+import { getFirestore, collection, query, getDocs, doc, updateDoc, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js";
 
 const firebaseConfig = {
@@ -313,6 +314,12 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
+// <-- ADICIONADO: Inicialização do Cache Offline que reduz significativamente o consumo de leituras ao recarregar a página
+enableIndexedDbPersistence(db).catch((err) => {
+    console.warn("Aviso de Cache Offline: ", err.message);
+});
+
 const storage = getStorage(app);
 
 const sidebar = document.querySelector(".sidebar");
