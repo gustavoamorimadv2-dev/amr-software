@@ -203,6 +203,7 @@ textarea { resize: vertical; }
 <div class="main">
     <header>
         <h1>Painel Jurídico - Conferência</h1>
+        <button class="btn blue" onclick="forcarAtualizacao()" title="Sincronizar dados com o servidor" style="width:auto; padding:10px 14px;">🔄 Sincronizar</button>
     </header>
 
     <div class="resumo-container">
@@ -299,8 +300,7 @@ textarea { resize: vertical; }
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-// <-- ADICIONADO: Importação do enableIndexedDbPersistence para ativar o cache nativo offline
-import { getFirestore, collection, query, getDocs, doc, updateDoc, enableIndexedDbPersistence } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+import { getFirestore, collection, query, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js";
 
 const firebaseConfig = {
@@ -315,10 +315,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// <-- ADICIONADO: Inicialização do Cache Offline que reduz significativamente o consumo de leituras ao recarregar a página
-enableIndexedDbPersistence(db).catch((err) => {
-    console.warn("Aviso de Cache Offline: ", err.message);
-});
 
 const storage = getStorage(app);
 
@@ -340,6 +336,166 @@ function showToast(msg) {
     clearTimeout(toastEl._t);
     toastEl._t = setTimeout(() => toastEl.style.display = 'none', 3000);
 }
+
+// ================= CACHE LOCAL ROBUSTO (INDEXEDDB) =================
+// Compartilha o mesmo cache da página Clientes otimizada.
+const CACHE_DB_NAME = 'amr_crm_cache_db';
+const CACHE_DB_VERSION = 1;
+const CACHE_STORE_NAME = 'dados';
+const CACHE_CLIENTES_KEY = 'clientes_data_v2';
+const CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 horas
+const REFRESH_COOLDOWN_MS = 30 * 1000;
+
+let cacheDbPromise = null;
+let carregarClientesPromise = null;
+let ultimaSincronizacaoServidor = 0;
+let timestampBaseCache = 0;
+
+function abrirCacheDB() {
+    if (cacheDbPromise) return cacheDbPromise;
+    cacheDbPromise = new Promise((resolve, reject) => {
+        if (!('indexedDB' in window)) {
+            reject(new Error('IndexedDB não disponível neste navegador.'));
+            return;
+        }
+        const request = indexedDB.open(CACHE_DB_NAME, CACHE_DB_VERSION);
+        request.onupgradeneeded = () => {
+            const dbCache = request.result;
+            if (!dbCache.objectStoreNames.contains(CACHE_STORE_NAME)) {
+                dbCache.createObjectStore(CACHE_STORE_NAME, { keyPath: 'key' });
+            }
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error || new Error('Erro ao abrir o cache local.'));
+    });
+    return cacheDbPromise;
+}
+
+async function lerCacheClientes() {
+    try {
+        const dbCache = await abrirCacheDB();
+        const registro = await new Promise((resolve, reject) => {
+            const tx = dbCache.transaction(CACHE_STORE_NAME, 'readonly');
+            const store = tx.objectStore(CACHE_STORE_NAME);
+            const req = store.get(CACHE_CLIENTES_KEY);
+            req.onsuccess = () => resolve(req.result || null);
+            req.onerror = () => reject(req.error);
+        });
+        if (!registro || !registro.json) return null;
+        const data = JSON.parse(registro.json);
+        if (!Array.isArray(data)) return null;
+        return { data, timestamp: Number(registro.timestamp || 0) };
+    } catch (error) {
+        console.warn('Não foi possível ler o cache IndexedDB:', error);
+        return null;
+    }
+}
+
+async function salvarCacheClientes(lista, timestamp = timestampBaseCache || Date.now()) {
+    try {
+        const dbCache = await abrirCacheDB();
+        const json = JSON.stringify(lista);
+        await new Promise((resolve, reject) => {
+            const tx = dbCache.transaction(CACHE_STORE_NAME, 'readwrite');
+            const store = tx.objectStore(CACHE_STORE_NAME);
+            store.put({ key: CACHE_CLIENTES_KEY, timestamp, json });
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(tx.error);
+            tx.onabort = () => reject(tx.error || new Error('Gravação do cache abortada.'));
+        });
+    } catch (error) {
+        console.warn('Não foi possível salvar o cache IndexedDB:', error);
+    }
+}
+
+async function migrarCacheAntigoSeExistir() {
+    try {
+        const cachedData = localStorage.getItem('amr_crm_clientes_data');
+        const cacheTimestamp = localStorage.getItem('amr_crm_clientes_timestamp');
+        if (!cachedData) return null;
+        const parsedData = JSON.parse(cachedData);
+        if (!Array.isArray(parsedData)) return null;
+        const timestamp = Number(cacheTimestamp || Date.now());
+        timestampBaseCache = timestamp;
+        await salvarCacheClientes(parsedData, timestamp);
+        return { data: parsedData, timestamp };
+    } catch (error) {
+        console.warn('Não foi possível migrar o cache antigo:', error);
+        return null;
+    } finally {
+        try { localStorage.removeItem('amr_crm_clientes_data'); } catch(e) {}
+    }
+}
+
+function atualizarCacheLocal() {
+    salvarCacheClientes(clientesData, timestampBaseCache || Date.now()).catch(error => {
+        console.warn('Falha ao atualizar cache local:', error);
+    });
+}
+
+function normalizarClientesDoSnapshot(snapshot) {
+    return snapshot.docs.map(docSnap => {
+        const data = docSnap.data();
+        try {
+            if (data.dataFechamento && typeof data.dataFechamento.toDate === 'function') {
+                data.dataFechamento = data.dataFechamento.toDate().toISOString();
+            }
+            if (data.ultimoAndamento && typeof data.ultimoAndamento.toDate === 'function') {
+                data.ultimoAndamento = data.ultimoAndamento.toDate().toISOString();
+            }
+            if (data.dataUltimoAndamento && typeof data.dataUltimoAndamento.toDate === 'function') {
+                data.dataUltimoAndamento = data.dataUltimoAndamento.toDate().toISOString();
+            }
+        } catch(e) {}
+        return { id: docSnap.id, ...data };
+    });
+}
+
+async function buscarClientesNoServidor() {
+    // ÚNICA leitura completa da coleção nesta página.
+    const q = query(collection(db, 'clientes'));
+    const snapshot = await getDocs(q);
+    const lista = normalizarClientesDoSnapshot(snapshot);
+    ultimaSincronizacaoServidor = Date.now();
+    timestampBaseCache = ultimaSincronizacaoServidor;
+    await salvarCacheClientes(lista, timestampBaseCache);
+    return lista;
+}
+
+async function executarCargaProtegida(forcarServidor = false) {
+    const executar = async () => {
+        if (!forcarServidor) {
+            let cache = await lerCacheClientes();
+            if (!cache) cache = await migrarCacheAntigoSeExistir();
+            if (cache && Array.isArray(cache.data)) {
+                const idade = Date.now() - Number(cache.timestamp || 0);
+                if (idade >= 0 && idade < CACHE_MAX_AGE_MS) {
+                    timestampBaseCache = cache.timestamp;
+                    return { lista: cache.data, origem: 'cache' };
+                }
+            }
+        }
+        const lista = await buscarClientesNoServidor();
+        return { lista, origem: 'servidor' };
+    };
+
+    // Mesmo lock da página Clientes: duas abas não baixam a coleção inteira juntas.
+    if (navigator.locks && typeof navigator.locks.request === 'function') {
+        return navigator.locks.request('amr_crm_clientes_firestore_sync', executar);
+    }
+    return executar();
+}
+
+window.forcarAtualizacao = async function() {
+    const agora = Date.now();
+    if (agora - ultimaSincronizacaoServidor < REFRESH_COOLDOWN_MS) {
+        showToast('Os dados já foram sincronizados há poucos segundos.');
+        return;
+    }
+    showToast('Buscando dados recentes do servidor...');
+    await carregarClientes({ forcarServidor: true });
+};
+
 
 // Extrai Documentos (Helpers)
 function extrairDocumentos(docsOriginais) {
@@ -425,6 +581,7 @@ window.toggleLancamento = async function(id, currentState) {
         const idx = clientesData.findIndex(c => c.id === id);
         if (idx > -1) {
             clientesData[idx].lancadoSistemaInterno = newState;
+            atualizarCacheLocal();
         }
         
         showToast(newState ? "Card marcado como Lançado!" : "Lançamento desmarcado!");
@@ -438,16 +595,57 @@ window.toggleLancamento = async function(id, currentState) {
 }
 
 // ================= CARREGAR E RENDERIZAR CARDS =================
-async function carregarClientes() {
-    container.innerHTML = "<p style='color:rgba(255,255,255,0.5);'>Carregando base do Jurídico...</p>";
+async function carregarClientes(opcoes = {}) {
+    const forcarServidor = Boolean(opcoes.forcarServidor);
+
+    if (carregarClientesPromise) {
+        if (!forcarServidor) return carregarClientesPromise;
+        try { await carregarClientesPromise; } catch(e) {}
+    }
+
+    carregarClientesPromise = (async () => {
+        container.innerHTML = "<p style='color:rgba(255,255,255,0.5);'>Carregando base do Jurídico...</p>";
+        let cacheAnterior = null;
+
+        if (!forcarServidor) {
+            cacheAnterior = await lerCacheClientes();
+            if (!cacheAnterior) cacheAnterior = await migrarCacheAntigoSeExistir();
+            if (cacheAnterior && Array.isArray(cacheAnterior.data)) {
+                const idade = Date.now() - Number(cacheAnterior.timestamp || 0);
+                if (idade >= 0 && idade < CACHE_MAX_AGE_MS) {
+                    timestampBaseCache = cacheAnterior.timestamp;
+                    clientesData = cacheAnterior.data;
+                    aplicarFiltrosEOrdenacao();
+                    return;
+                }
+            }
+        }
+
+        try {
+            const resultado = await executarCargaProtegida(forcarServidor);
+            clientesData = resultado.lista;
+            aplicarFiltrosEOrdenacao();
+            if (resultado.origem === 'servidor' && forcarServidor) {
+                showToast('Dados sincronizados com o servidor!');
+            }
+        } catch (error) {
+            console.error('Erro ao carregar dados:', error);
+            const fallback = cacheAnterior || await lerCacheClientes();
+            if (fallback && Array.isArray(fallback.data)) {
+                timestampBaseCache = fallback.timestamp;
+                clientesData = fallback.data;
+                aplicarFiltrosEOrdenacao();
+                showToast('Servidor indisponível. Exibindo dados do cache local.');
+                return;
+            }
+            showToast('Erro ao carregar dados.');
+        }
+    })();
+
     try {
-        const q = query(collection(db, "clientes"));
-        const snapshot = await getDocs(q);
-        clientesData = snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() }));
-        aplicarFiltrosEOrdenacao();
-    } catch (error) {
-        showToast("Erro ao carregar dados.");
-        console.error(error);
+        return await carregarClientesPromise;
+    } finally {
+        carregarClientesPromise = null;
     }
 }
 
@@ -603,6 +801,7 @@ window.salvarAlteracoes = async function() {
         Object.assign(clienteAtual, updates);
         const idxCache = clientesData.findIndex(c => c.id === clienteAtual.id);
         if (idxCache > -1) clientesData[idxCache] = clienteAtual;
+        atualizarCacheLocal();
         
         showToast("Informações do cliente atualizadas!");
         aplicarFiltrosEOrdenacao();
@@ -663,6 +862,9 @@ window.anexarDocumento = async function() {
         await updateDoc(docRef, { documentos: docsAtuais });
 
         clienteAtual.documentos = docsAtuais;
+        const idxCache = clientesData.findIndex(c => c.id === clienteAtual.id);
+        if (idxCache > -1) clientesData[idxCache] = clienteAtual;
+        atualizarCacheLocal();
         
         document.getElementById('addDocNome').value = "";
         fileInput.value = "";
