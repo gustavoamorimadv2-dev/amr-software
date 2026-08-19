@@ -470,7 +470,6 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 </style>
 
 <script type="module">
-// <-- ADICIONADO: Importação do enableIndexedDbPersistence para o cache offline nativo do firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
 import {
     getFirestore,
@@ -479,8 +478,7 @@ import {
     query,
     where,
     doc,
-    updateDoc,
-    enableIndexedDbPersistence // <-- ADICIONADO
+    updateDoc
 } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 import {
     getAuth,
@@ -500,10 +498,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// <-- ADICIONADO: Ativação do cache offline
-enableIndexedDbPersistence(db).catch((err) => {
-    console.warn("Aviso de Cache Offline: ", err.message);
-});
 
 const auth = getAuth(app);
 
@@ -541,6 +535,205 @@ document.addEventListener('DOMContentLoaded', () => {
         toastEl._t = setTimeout(() => { toastEl.style.display = 'none'; }, 3000);
     }
 
+    // ================= CACHE LOCAL ROBUSTO (INDEXEDDB) =================
+    // Usa um cache próprio dos clientes fechados e, quando disponível, reaproveita
+    // também o cache completo criado pela página Clientes/Jurídico.
+    const CACHE_DB_NAME = 'amr_crm_cache_db';
+    const CACHE_DB_VERSION = 1;
+    const CACHE_STORE_NAME = 'dados';
+    const CACHE_CLIENTES_ALL_KEY = 'clientes_data_v2';
+    const CACHE_FECHADOS_KEY = 'clientes_fechados_v2';
+    const CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 horas
+    const REFRESH_COOLDOWN_MS = 30 * 1000;
+
+    let cacheDbPromise = null;
+    let fetchClientesPromise = null;
+    let ultimaSincronizacaoServidor = 0;
+    let timestampBaseCache = 0;
+
+    function abrirCacheDB() {
+        if (cacheDbPromise) return cacheDbPromise;
+        cacheDbPromise = new Promise((resolve, reject) => {
+            if (!('indexedDB' in window)) {
+                reject(new Error('IndexedDB não disponível neste navegador.'));
+                return;
+            }
+            const request = indexedDB.open(CACHE_DB_NAME, CACHE_DB_VERSION);
+            request.onupgradeneeded = () => {
+                const dbCache = request.result;
+                if (!dbCache.objectStoreNames.contains(CACHE_STORE_NAME)) {
+                    dbCache.createObjectStore(CACHE_STORE_NAME, { keyPath: 'key' });
+                }
+            };
+            request.onsuccess = () => resolve(request.result);
+            request.onerror = () => reject(request.error || new Error('Erro ao abrir o cache local.'));
+        });
+        return cacheDbPromise;
+    }
+
+    async function lerRegistroCache(key) {
+        try {
+            const dbCache = await abrirCacheDB();
+            const registro = await new Promise((resolve, reject) => {
+                const tx = dbCache.transaction(CACHE_STORE_NAME, 'readonly');
+                const store = tx.objectStore(CACHE_STORE_NAME);
+                const req = store.get(key);
+                req.onsuccess = () => resolve(req.result || null);
+                req.onerror = () => reject(req.error);
+            });
+            if (!registro || !registro.json) return null;
+            const data = JSON.parse(registro.json);
+            if (!Array.isArray(data)) return null;
+            return { data, timestamp: Number(registro.timestamp || 0), key };
+        } catch (error) {
+            console.warn('Não foi possível ler o cache IndexedDB:', error);
+            return null;
+        }
+    }
+
+    async function salvarRegistroCache(key, lista, timestamp) {
+        try {
+            const dbCache = await abrirCacheDB();
+            const json = JSON.stringify(lista);
+            await new Promise((resolve, reject) => {
+                const tx = dbCache.transaction(CACHE_STORE_NAME, 'readwrite');
+                const store = tx.objectStore(CACHE_STORE_NAME);
+                store.put({ key, timestamp, json });
+                tx.oncomplete = () => resolve();
+                tx.onerror = () => reject(tx.error);
+                tx.onabort = () => reject(tx.error || new Error('Gravação do cache abortada.'));
+            });
+        } catch (error) {
+            console.warn('Não foi possível salvar o cache IndexedDB:', error);
+        }
+    }
+
+    function cacheValido(cache) {
+        if (!cache || !Array.isArray(cache.data)) return false;
+        const idade = Date.now() - Number(cache.timestamp || 0);
+        return idade >= 0 && idade < CACHE_MAX_AGE_MS;
+    }
+
+    async function migrarCacheAntigoGlobalSeExistir() {
+        try {
+            const existente = await lerRegistroCache(CACHE_CLIENTES_ALL_KEY);
+            if (existente) return existente;
+            const cachedData = localStorage.getItem('amr_crm_clientes_data');
+            const cacheTimestamp = localStorage.getItem('amr_crm_clientes_timestamp');
+            if (!cachedData) return null;
+            const parsedData = JSON.parse(cachedData);
+            if (!Array.isArray(parsedData)) return null;
+            const timestamp = Number(cacheTimestamp || Date.now());
+            await salvarRegistroCache(CACHE_CLIENTES_ALL_KEY, parsedData, timestamp);
+            return { data: parsedData, timestamp, key: CACHE_CLIENTES_ALL_KEY };
+        } catch (error) {
+            console.warn('Não foi possível migrar o cache antigo:', error);
+            return null;
+        } finally {
+            try { localStorage.removeItem('amr_crm_clientes_data'); } catch(e) {}
+        }
+    }
+
+    async function lerMelhorCacheFechados(aceitarExpirado = false) {
+        const cacheFechados = await lerRegistroCache(CACHE_FECHADOS_KEY);
+        let cacheTodos = await lerRegistroCache(CACHE_CLIENTES_ALL_KEY);
+        if (!cacheTodos) cacheTodos = await migrarCacheAntigoGlobalSeExistir();
+
+        const candidatos = [];
+        if (cacheFechados && (aceitarExpirado || cacheValido(cacheFechados))) {
+            candidatos.push({ data: cacheFechados.data, timestamp: cacheFechados.timestamp, origem: 'cache-fechados' });
+        }
+        if (cacheTodos && (aceitarExpirado || cacheValido(cacheTodos))) {
+            candidatos.push({
+                data: cacheTodos.data.filter(c => c.status === 'fechado'),
+                timestamp: cacheTodos.timestamp,
+                origem: 'cache-global'
+            });
+        }
+
+        if (!candidatos.length) return null;
+        candidatos.sort((a, b) => b.timestamp - a.timestamp);
+        return candidatos[0];
+    }
+
+    function normalizarFechadosDoSnapshot(snapshot) {
+        return snapshot.docs.map(docData => {
+            const data = docData.data();
+            try {
+                if (data.dataFechamento && typeof data.dataFechamento.toDate === 'function') {
+                    data.dataFechamento = data.dataFechamento.toDate().toISOString();
+                }
+                if (data.ultimoAndamento && typeof data.ultimoAndamento.toDate === 'function') {
+                    data.ultimoAndamento = data.ultimoAndamento.toDate().toISOString();
+                }
+                if (data.dataUltimoAndamento && typeof data.dataUltimoAndamento.toDate === 'function') {
+                    data.dataUltimoAndamento = data.dataUltimoAndamento.toDate().toISOString();
+                }
+            } catch(e) {}
+            return { id: docData.id, ...data };
+        });
+    }
+
+    async function atualizarCachesAposGravacao(clienteId, patch) {
+        const idx = clientesFechados.findIndex(c => c.id === clienteId);
+        if (idx > -1) Object.assign(clientesFechados[idx], patch);
+
+        // Atualiza o cache desta página sem renovar artificialmente a validade dos dados.
+        const ts = timestampBaseCache || Date.now();
+        await salvarRegistroCache(CACHE_FECHADOS_KEY, clientesFechados, ts);
+
+        // Se existir cache global, atualiza só este cliente e preserva o timestamp original.
+        const globalCache = await lerRegistroCache(CACHE_CLIENTES_ALL_KEY);
+        if (globalCache && Array.isArray(globalCache.data)) {
+            const globalIdx = globalCache.data.findIndex(c => c.id === clienteId);
+            if (globalIdx > -1) {
+                Object.assign(globalCache.data[globalIdx], patch);
+                await salvarRegistroCache(CACHE_CLIENTES_ALL_KEY, globalCache.data, globalCache.timestamp || ts);
+            }
+        }
+    }
+
+    async function buscarFechadosNoServidor() {
+        // ÚNICA consulta de leitura ao Firestore nesta página.
+        const q = query(collection(db, 'clientes'), where('status', '==', 'fechado'));
+        const snapshot = await getDocs(q);
+        const lista = normalizarFechadosDoSnapshot(snapshot);
+        ultimaSincronizacaoServidor = Date.now();
+        timestampBaseCache = ultimaSincronizacaoServidor;
+        await salvarRegistroCache(CACHE_FECHADOS_KEY, lista, timestampBaseCache);
+        return lista;
+    }
+
+    async function executarCargaProtegida(forcarServidor = false) {
+        const executar = async () => {
+            if (!forcarServidor) {
+                const cache = await lerMelhorCacheFechados(false);
+                if (cache) {
+                    timestampBaseCache = cache.timestamp;
+                    return { lista: cache.data, origem: cache.origem };
+                }
+            }
+            const lista = await buscarFechadosNoServidor();
+            return { lista, origem: 'servidor' };
+        };
+
+        if (navigator.locks && typeof navigator.locks.request === 'function') {
+            return navigator.locks.request('amr_crm_clientes_firestore_sync', executar);
+        }
+        return executar();
+    }
+
+    window.forcarAtualizacao = async function() {
+        const agora = Date.now();
+        if (agora - ultimaSincronizacaoServidor < REFRESH_COOLDOWN_MS) {
+            showToast('Os dados já foram sincronizados há poucos segundos.');
+            return;
+        }
+        showToast('Buscando dados recentes do servidor...');
+        await fetchClientesFechados({ forcarServidor: true });
+    };
+
+
     function calcularDiasAndamento(dataAndamento) {
         if (!dataAndamento) return 999; 
         const data1 = new Date(dataAndamento);
@@ -549,18 +742,52 @@ document.addEventListener('DOMContentLoaded', () => {
         return Math.floor(diffTempo / (1000 * 60 * 60 * 24));
     }
 
-    async function fetchClientesFechados(){
+    async function fetchClientesFechados(opcoes = {}){
+        const forcarServidor = Boolean(opcoes.forcarServidor);
+
+        if (fetchClientesPromise) {
+            if (!forcarServidor) return fetchClientesPromise;
+            try { await fetchClientesPromise; } catch(e) {}
+        }
+
+        fetchClientesPromise = (async () => {
+            let cacheAnterior = null;
+
+            if (!forcarServidor) {
+                cacheAnterior = await lerMelhorCacheFechados(false);
+                if (cacheAnterior) {
+                    timestampBaseCache = cacheAnterior.timestamp;
+                    clientesFechados = cacheAnterior.data;
+                    renderCards();
+                    return;
+                }
+            }
+
+            try {
+                const resultado = await executarCargaProtegida(forcarServidor);
+                clientesFechados = resultado.lista;
+                renderCards();
+                if (resultado.origem === 'servidor' && forcarServidor) {
+                    showToast('Dados sincronizados com o servidor!');
+                }
+            } catch (error) {
+                console.error('Erro ao buscar clientes:', error);
+                const fallback = cacheAnterior || await lerMelhorCacheFechados(true);
+                if (fallback) {
+                    timestampBaseCache = fallback.timestamp;
+                    clientesFechados = fallback.data;
+                    renderCards();
+                    showToast('Servidor indisponível. Exibindo dados do cache local.');
+                    return;
+                }
+                showToast('Erro ao carregar os processos fechados.');
+            }
+        })();
+
         try {
-            const q = query(collection(db, "clientes"), where("status", "==", "fechado"));
-            const snapshot = await getDocs(q);
-            clientesFechados = snapshot.docs.map(docData => ({
-                id: docData.id,
-                ...docData.data()
-            }));
-            renderCards();
-        } catch (error) {
-            console.error("Erro ao buscar clientes:", error);
-            showToast("Erro ao carregar os processos fechados.");
+            return await fetchClientesPromise;
+        } finally {
+            fetchClientesPromise = null;
         }
     }
 
@@ -603,9 +830,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 obs: novaObs
             });
             
+            await atualizarCachesAposGravacao(clienteSelecionado.id, { obs: novaObs });
             clienteSelecionado.obs = novaObs;
+            renderCards();
             showToast("Observação salva com sucesso!");
-            await fetchClientesFechados();
             
         } catch (error) {
             console.error("Erro ao salvar observação:", error);
@@ -645,11 +873,18 @@ document.addEventListener('DOMContentLoaded', () => {
             btnEnviarAndamento.disabled = true;
             btnEnviarAndamento.innerText = "Salvando...";
 
+            const dataAgora = new Date().toISOString();
             const docRef = doc(db, "clientes", clienteSelecionado.id);
             await updateDoc(docRef, { 
-                dataUltimoAndamento: new Date().toISOString(),
+                dataUltimoAndamento: dataAgora,
                 ultimoAndamentoTexto: mensagemFinal,
                 obs: novaObs 
+            });
+
+            await atualizarCachesAposGravacao(clienteSelecionado.id, {
+                dataUltimoAndamento: dataAgora,
+                ultimoAndamentoTexto: mensagemFinal,
+                obs: novaObs
             });
 
             const waUrl = `https://wa.me/55${numeroLimpo}?text=${encodeURIComponent(mensagemFinal)}`;
@@ -657,8 +892,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             showToast("Andamento e observações salvos. WhatsApp aberto!");
             modalBackdrop.style.display = 'none';
-            
-            await fetchClientesFechados();
+            renderCards();
             
         } catch (error) {
             console.error("Erro ao salvar andamento:", error);
@@ -842,9 +1076,12 @@ document.addEventListener('DOMContentLoaded', () => {
 <div class="main">
     <header>
         <h1>Setor de Andamento</h1>
-        <div style="font-size: 14px; color: rgba(255,255,255,0.7);">
-            <!-- <-- ALTERADO DE 5 PARA 10 DIAS -->
-            Atualize clientes: Retornam para "Em Aberto" a cada 10 dias.
+        <div style="display:flex; align-items:center; gap:12px;">
+            <div style="font-size: 14px; color: rgba(255,255,255,0.7);">
+                <!-- <-- ALTERADO DE 5 PARA 10 DIAS -->
+                Atualize clientes: Retornam para "Em Aberto" a cada 10 dias.
+            </div>
+            <button class="btn ghost" onclick="forcarAtualizacao()" title="Sincronizar dados com o servidor" style="width:auto; padding:10px 14px;">🔄 Sincronizar</button>
         </div>
     </header>
 
