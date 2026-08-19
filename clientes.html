@@ -566,28 +566,163 @@ function extrairDocumentos(docsOriginais) {
     return listaDocs;
 }
 
-// ================= SISTEMA DE CACHE LOCAL (CORRIGIDO) =================
-function atualizarCacheLocal() {
+// ================= CACHE LOCAL ROBUSTO (INDEXEDDB) =================
+// O localStorage tem um limite pequeno e não é adequado para milhares de clientes.
+// O IndexedDB suporta um volume muito maior e impede que o CRM precise reler a
+// coleção inteira do Firestore a cada abertura da página.
+const CACHE_DB_NAME = 'amr_crm_cache_db';
+const CACHE_DB_VERSION = 1;
+const CACHE_STORE_NAME = 'dados';
+const CACHE_CLIENTES_KEY = 'clientes_data_v2';
+const CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24 horas
+const REFRESH_COOLDOWN_MS = 30 * 1000; // evita duplo clique = duas consultas grandes
+
+let cacheDbPromise = null;
+let carregarClientesPromise = null;
+let ultimaSincronizacaoServidor = 0;
+
+function abrirCacheDB() {
+    if (cacheDbPromise) return cacheDbPromise;
+
+    cacheDbPromise = new Promise((resolve, reject) => {
+        if (!('indexedDB' in window)) {
+            reject(new Error('IndexedDB não disponível neste navegador.'));
+            return;
+        }
+
+        const request = indexedDB.open(CACHE_DB_NAME, CACHE_DB_VERSION);
+
+        request.onupgradeneeded = () => {
+            const dbCache = request.result;
+            if (!dbCache.objectStoreNames.contains(CACHE_STORE_NAME)) {
+                dbCache.createObjectStore(CACHE_STORE_NAME, { keyPath: 'key' });
+            }
+        };
+
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error || new Error('Erro ao abrir o cache local.'));
+    });
+
+    return cacheDbPromise;
+}
+
+async function lerCacheClientes() {
     try {
-        localStorage.setItem('amr_crm_clientes_data', JSON.stringify(clientesData));
-        localStorage.setItem('amr_crm_clientes_timestamp', Date.now().toString());
-    } catch (e) {
-        console.warn("Limite do cache excedido. A página continuará operando via servidor sem travar.", e);
-        try {
-            // Se der pau por falta de espaço, limpa os registros corrompidos
-            localStorage.removeItem('amr_crm_clientes_data');
-            localStorage.removeItem('amr_crm_clientes_timestamp');
-        } catch(err) {}
+        const dbCache = await abrirCacheDB();
+        const registro = await new Promise((resolve, reject) => {
+            const tx = dbCache.transaction(CACHE_STORE_NAME, 'readonly');
+            const store = tx.objectStore(CACHE_STORE_NAME);
+            const req = store.get(CACHE_CLIENTES_KEY);
+            req.onsuccess = () => resolve(req.result || null);
+            req.onerror = () => reject(req.error);
+        });
+
+        if (!registro || !registro.json) return null;
+
+        const data = JSON.parse(registro.json);
+        if (!Array.isArray(data)) return null;
+
+        return {
+            data,
+            timestamp: Number(registro.timestamp || 0)
+        };
+    } catch (error) {
+        console.warn('Não foi possível ler o cache IndexedDB:', error);
+        return null;
     }
 }
 
-window.forcarAtualizacao = function() {
+async function salvarCacheClientes(lista, timestamp = Date.now()) {
+    try {
+        const dbCache = await abrirCacheDB();
+        const json = JSON.stringify(lista);
+
+        await new Promise((resolve, reject) => {
+            const tx = dbCache.transaction(CACHE_STORE_NAME, 'readwrite');
+            const store = tx.objectStore(CACHE_STORE_NAME);
+            store.put({
+                key: CACHE_CLIENTES_KEY,
+                timestamp,
+                json
+            });
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(tx.error);
+            tx.onabort = () => reject(tx.error || new Error('Gravação do cache abortada.'));
+        });
+
+        // Mantém apenas o timestamp pequeno no localStorage para compatibilidade/diagnóstico.
+        try {
+            localStorage.setItem('amr_crm_clientes_timestamp', String(timestamp));
+            localStorage.removeItem('amr_crm_clientes_data');
+        } catch(e) {}
+    } catch (error) {
+        console.warn('Não foi possível salvar o cache IndexedDB:', error);
+    }
+}
+
+async function apagarCacheClientes() {
+    try {
+        const dbCache = await abrirCacheDB();
+        await new Promise((resolve, reject) => {
+            const tx = dbCache.transaction(CACHE_STORE_NAME, 'readwrite');
+            const store = tx.objectStore(CACHE_STORE_NAME);
+            store.delete(CACHE_CLIENTES_KEY);
+            tx.oncomplete = () => resolve();
+            tx.onerror = () => reject(tx.error);
+        });
+    } catch (error) {
+        console.warn('Não foi possível apagar o cache IndexedDB:', error);
+    }
+
     try {
         localStorage.removeItem('amr_crm_clientes_data');
         localStorage.removeItem('amr_crm_clientes_timestamp');
     } catch(e) {}
-    showToast("Buscando dados recentes do servidor...");
-    carregarClientes();
+}
+
+// Migra automaticamente o cache antigo do localStorage para o IndexedDB.
+// Isso evita uma leitura completa do Firestore logo após instalar esta versão,
+// caso ainda exista um cache válido da versão anterior.
+async function migrarCacheAntigoSeExistir() {
+    try {
+        const cachedData = localStorage.getItem('amr_crm_clientes_data');
+        const cacheTimestamp = localStorage.getItem('amr_crm_clientes_timestamp');
+        if (!cachedData) return null;
+
+        const parsedData = JSON.parse(cachedData);
+        if (!Array.isArray(parsedData)) return null;
+
+        const timestamp = Number(cacheTimestamp || Date.now());
+        await salvarCacheClientes(parsedData, timestamp);
+        return { data: parsedData, timestamp };
+    } catch (error) {
+        console.warn('Não foi possível migrar o cache antigo:', error);
+        return null;
+    } finally {
+        // O array grande não deve continuar no localStorage.
+        try { localStorage.removeItem('amr_crm_clientes_data'); } catch(e) {}
+    }
+}
+
+function atualizarCacheLocal() {
+    // Mantém a mesma assinatura usada no restante do código.
+    // A gravação é local e NÃO gera leituras/escritas no Firestore.
+    salvarCacheClientes(clientesData).catch(error => {
+        console.warn('Falha ao atualizar cache local:', error);
+    });
+}
+
+window.forcarAtualizacao = async function() {
+    const agora = Date.now();
+
+    // Impede que um duplo clique no botão de sincronização gere duas leituras completas.
+    if (agora - ultimaSincronizacaoServidor < REFRESH_COOLDOWN_MS) {
+        showToast('Os dados já foram sincronizados há poucos segundos.');
+        return;
+    }
+
+    showToast('Buscando dados recentes do servidor...');
+    await carregarClientes({ forcarServidor: true });
 }
 
 // ================= SISTEMA DE BUSCA E FILTROS UNIFICADO =================
@@ -784,55 +919,120 @@ window.atualizarSituacao = async function(clienteId, novaSituacao) {
 };
 
 // ================= CARREGAR E RENDERIZAR CARDS COM CACHE =================
-async function carregarClientes() {
-    container.innerHTML = "<p style='color:rgba(255,255,255,0.5);'>Carregando clientes...</p>";
-    
-    let cachedData = null;
-    let cacheTimestamp = null;
-    
-    try {
-        cachedData = localStorage.getItem('amr_crm_clientes_data');
-        cacheTimestamp = localStorage.getItem('amr_crm_clientes_timestamp');
-    } catch(e) {}
-    
-    const now = Date.now();
-    
-    if (cachedData && cacheTimestamp && (now - parseInt(cacheTimestamp) < 900000)) {
+function normalizarClientesDoSnapshot(snapshot) {
+    return snapshot.docs.map(docSnap => {
+        let data = docSnap.data();
         try {
-            const parsedData = JSON.parse(cachedData);
-            if (Array.isArray(parsedData)) {
-                clientesData = parsedData;
-                aplicarFiltros();
-                return;
+            if (data.dataFechamento && typeof data.dataFechamento.toDate === 'function') {
+                data.dataFechamento = data.dataFechamento.toDate().toISOString();
             }
-        } catch (e) {
-            console.warn("Erro ao ler cache, buscando do Firestore...", e);
+            if (data.ultimoAndamento && typeof data.ultimoAndamento.toDate === 'function') {
+                data.ultimoAndamento = data.ultimoAndamento.toDate().toISOString();
+            }
+        } catch(e) {}
+        return { id: docSnap.id, ...data };
+    });
+}
+
+async function buscarClientesNoServidor() {
+    // ATENÇÃO: esta é a única leitura completa da coleção nesta página.
+    // Ela só roda quando não existe cache local utilizável ou quando o usuário
+    // clica explicitamente no botão de sincronização.
+    const q = query(collection(db, 'clientes'));
+    const snapshot = await getDocs(q);
+    const lista = normalizarClientesDoSnapshot(snapshot);
+
+    ultimaSincronizacaoServidor = Date.now();
+    await salvarCacheClientes(lista, ultimaSincronizacaoServidor);
+    return lista;
+}
+
+async function executarCargaProtegida(forcarServidor = false) {
+    const executar = async () => {
+        // Depois de obter o lock, verifica o cache novamente. Se outra aba acabou
+        // de sincronizar, esta aba reutiliza os mesmos dados e não lê o Firestore.
+        if (!forcarServidor) {
+            let cache = await lerCacheClientes();
+            if (!cache) cache = await migrarCacheAntigoSeExistir();
+
+            if (cache && Array.isArray(cache.data)) {
+                const idade = Date.now() - Number(cache.timestamp || 0);
+                if (idade >= 0 && idade < CACHE_MAX_AGE_MS) {
+                    return { lista: cache.data, origem: 'cache' };
+                }
+            }
         }
+
+        const lista = await buscarClientesNoServidor();
+        return { lista, origem: 'servidor' };
+    };
+
+    // Web Locks evita que duas abas do mesmo navegador façam a mesma consulta
+    // enorme simultaneamente. Em navegadores sem suporte, a página continua normal.
+    if (navigator.locks && typeof navigator.locks.request === 'function') {
+        return navigator.locks.request('amr_crm_clientes_firestore_sync', executar);
     }
 
-    try {
-        const q = query(collection(db, "clientes"));
-        const snapshot = await getDocs(q);
-        
-        clientesData = snapshot.docs.map(docSnap => {
-            let data = docSnap.data();
-            try {
-                if (data.dataFechamento && typeof data.dataFechamento.toDate === 'function') {
-                    data.dataFechamento = data.dataFechamento.toDate().toISOString();
-                }
-                if (data.ultimoAndamento && typeof data.ultimoAndamento.toDate === 'function') {
-                    data.ultimoAndamento = data.ultimoAndamento.toDate().toISOString();
-                }
-            } catch(e) {}
-            return { id: docSnap.id, ...data };
-        });
+    return executar();
+}
 
-        atualizarCacheLocal();
-        aplicarFiltros();
-        
-    } catch (error) {
-        showToast("Erro ao carregar clientes.");
-        console.error(error);
+async function carregarClientes(opcoes = {}) {
+    const forcarServidor = Boolean(opcoes.forcarServidor);
+
+    // Evita chamadas duplicadas dentro da própria aba.
+    if (carregarClientesPromise) {
+        if (!forcarServidor) return carregarClientesPromise;
+        try { await carregarClientesPromise; } catch(e) {}
+    }
+
+    carregarClientesPromise = (async () => {
+        container.innerHTML = "<p style='color:rgba(255,255,255,0.5);'>Carregando clientes...</p>";
+
+        // Para abertura normal, tenta primeiro o IndexedDB sem tocar no Firestore.
+        let cacheAnterior = null;
+        if (!forcarServidor) {
+            cacheAnterior = await lerCacheClientes();
+            if (!cacheAnterior) cacheAnterior = await migrarCacheAntigoSeExistir();
+
+            if (cacheAnterior && Array.isArray(cacheAnterior.data)) {
+                const idade = Date.now() - Number(cacheAnterior.timestamp || 0);
+                if (idade >= 0 && idade < CACHE_MAX_AGE_MS) {
+                    clientesData = cacheAnterior.data;
+                    aplicarFiltros();
+                    return;
+                }
+            }
+        }
+
+        try {
+            const resultado = await executarCargaProtegida(forcarServidor);
+            clientesData = resultado.lista;
+            aplicarFiltros();
+
+            if (resultado.origem === 'servidor' && forcarServidor) {
+                showToast('Dados sincronizados com o servidor!');
+            }
+        } catch (error) {
+            console.error('Erro ao carregar clientes:', error);
+
+            // Se o servidor estiver indisponível, usa até cache antigo/expirado.
+            // Isso mantém o CRM funcional sem gerar novas tentativas em loop.
+            const fallback = cacheAnterior || await lerCacheClientes();
+            if (fallback && Array.isArray(fallback.data)) {
+                clientesData = fallback.data;
+                aplicarFiltros();
+                showToast('Servidor indisponível. Exibindo dados do cache local.');
+                return;
+            }
+
+            showToast('Erro ao carregar clientes.');
+        }
+    })();
+
+    try {
+        return await carregarClientesPromise;
+    } finally {
+        carregarClientesPromise = null;
     }
 }
 
