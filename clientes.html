@@ -468,20 +468,28 @@ input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); co
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
 import { getFirestore, collection, query, getDocs, doc, updateDoc, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAFJJAqVf3ge0WDHBpmS9E6sXKvnjuFkhw",
     authDomain: "dapapp-38637.firebaseapp.com",
     projectId: "dapapp-38637",
-    storageBucket: "dapapp-38637.appspot.com",
+    storageBucket: "dapapp-38637.firebasestorage.app",
     messagingSenderId: "628852295313",
     appId: "1:628852295313:web:1234567890abcdef123456"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const storage = getStorage(app);
+const auth = getAuth(app);
+let storage = null;
+
+try {
+    storage = getStorage(app);
+} catch (error) {
+    console.error("Storage indisponível:", error);
+}
 
 const sidebar = document.querySelector(".sidebar");
 const mainContent = document.querySelector(".main");
@@ -500,6 +508,26 @@ function showToast(msg) {
     toastEl.style.display = 'block';
     clearTimeout(toastEl._t);
     toastEl._t = setTimeout(() => toastEl.style.display = 'none', 3000);
+}
+
+function obterUsuarioAutenticado() {
+    if (auth.currentUser) return Promise.resolve(auth.currentUser);
+
+    return new Promise((resolve) => {
+        let unsubscribe = null;
+        unsubscribe = onAuthStateChanged(
+            auth,
+            (user) => {
+                if (unsubscribe) unsubscribe();
+                resolve(user);
+            },
+            (error) => {
+                console.error("Erro ao verificar autenticação:", error);
+                if (unsubscribe) unsubscribe();
+                resolve(null);
+            }
+        );
+    });
 }
 
 // ================= HELPERS (LÓGICA FINANCEIRA E DATAS) =================
@@ -1623,7 +1651,7 @@ function renderizarHonorarios() {
     `}).join('');
 }
 
-// ================= LÓGICA DE DOCUMENTOS (STORAGE) CORRIGIDA =================
+// ================= LÓGICA DE DOCUMENTOS (STORAGE) =================
 window.anexarDocumento = async function() {
     if(!clienteAtual) return;
 
@@ -1631,6 +1659,17 @@ window.anexarDocumento = async function() {
     const fileInput = document.getElementById('addDocFile');
     const file = fileInput.files[0];
     const btn = document.getElementById('btnAnexarDoc');
+
+    if(!storage) {
+        showToast("Erro: serviço de arquivos do Firebase não configurado.");
+        return;
+    }
+
+    const currentUser = await obterUsuarioAutenticado();
+    if(!currentUser) {
+        showToast("Sua sessão expirou. Entre novamente para anexar documentos.");
+        return;
+    }
 
     if(!file) {
         showToast("Selecione um arquivo para anexar.");
@@ -1645,14 +1684,16 @@ window.anexarDocumento = async function() {
     btn.disabled = true;
 
     try {
-        const storageRef = ref(storage, `documentos_clientes/${clienteAtual.id}/${Date.now()}_${file.name}`);
-        
-        // Uso direto e simples de uploadBytes para evitar o travamento
-        const snapshot = await uploadBytes(storageRef, file);
-        const downloadURL = await getDownloadURL(snapshot.ref);
+        // Mesmo motor de upload utilizado pela página CRM.html.
+        // O caminho inclui o UID autenticado para respeitar as regras do Firebase Storage.
+        const uniqueName = `${Date.now()}_${file.name}`;
+        const storageRef = ref(storage, `documentos/${currentUser.uid}/${uniqueName}`);
+        await uploadBytes(storageRef, file);
+        const downloadURL = await getDownloadURL(storageRef);
 
         let docsAtuais = clienteAtual.documentos;
         const novoDocObj = {
+            name: nomeInput,
             nome: nomeInput,
             url: downloadURL,
             dataEnvio: new Date().toISOString()
@@ -1681,7 +1722,8 @@ window.anexarDocumento = async function() {
 
     } catch (error) {
         console.error("Erro no upload:", error);
-        showToast("Erro ao anexar arquivo. Verifique regras do Storage.");
+        const detalhe = error && error.code ? ` (${error.code})` : "";
+        showToast(`Erro ao anexar arquivo${detalhe}.`);
     } finally {
         btn.textContent = "Anexar Documento";
         btn.disabled = false;
@@ -1698,7 +1740,7 @@ function renderizarDocumentos() {
     }
 
     containerDocs.innerHTML = documentos.map(doc => {
-        let nomeDoArquivo = doc.nome;
+        let nomeDoArquivo = doc.nome || doc.name;
         if (!nomeDoArquivo || nomeDoArquivo === 'undefined') {
             try {
                 const urlDecodificada = decodeURIComponent(doc.url.split('?')[0]);
