@@ -129,31 +129,140 @@ button:disabled { background: #ccc; cursor: not-allowed; }
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, collection, query, where, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
+import {
+  getFirestore,
+  doc,
+  setDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+  deleteDoc
+} from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
-const firebaseConfig = {
+/* =========================================================
+   ESCRITÓRIO 1 - CONFIGURAÇÃO ATUAL
+   Mantém exatamente o Firebase que a página já utilizava.
+   ========================================================= */
+const firebaseConfigEscritorio1 = {
   apiKey: "AIzaSyAFJJAqVf3ge0WDHBpmS9E6sXKvnjuFkhw",
   authDomain: "dapapp-38637.firebaseapp.com",
   projectId: "dapapp-38637",
-  storageBucket: "dapapp-38637.firebasestorage.app", 
+  storageBucket: "dapapp-38637.firebasestorage.app",
   messagingSenderId: "628852295313",
   appId: "1:628852295313:web:1234567890abcdef123456"
 };
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+/* =========================================================
+   ESCRITÓRIO 2 - RSW CONSULTORIA
+   Auth do novo projeto usado pelo CRM rodriguesamorim.html.
+   ========================================================= */
+const firebaseConfigEscritorio2 = {
+  apiKey: "AIzaSyAVaWq65gTmrMH99a4QJHs8I8DoSpQbvFo",
+  authDomain: "rsw-consultoria.firebaseapp.com",
+  projectId: "rsw-consultoria",
+  storageBucket: "rsw-consultoria.firebasestorage.app",
+  messagingSenderId: "872728271248",
+  appId: "1:872728271248:web:d67949ed4fd7d1c0d87b15",
+  measurementId: "G-R9H446B3BX"
+};
 
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    const email=(user.email||"").toLowerCase();
-    if(email==="gruponascimentoesouza@gmail.com"){
-      window.location.replace("adm.html");
-    }else{
-      window.location.replace("index.html");
-    }
+// Dois apps Firebase independentes na mesma página.
+const appEscritorio1 = initializeApp(firebaseConfigEscritorio1, "escritorio1");
+const appEscritorio2 = initializeApp(firebaseConfigEscritorio2, "escritorio2");
+
+const authEscritorio1 = getAuth(appEscritorio1);
+const authEscritorio2 = getAuth(appEscritorio2);
+
+// O banco abaixo continua sendo o banco do Escritório 1 para preservar
+// o fluxo já existente de pré-cadastro/convites dessa página.
+const dbEscritorio1 = getFirestore(appEscritorio1);
+
+const EMAIL_ADMIN_MESTRE = "gruponascimentoesouza@gmail.com";
+
+function isErroCredencial(error) {
+  const code = (error?.code || "").toLowerCase();
+  const message = (error?.message || "").toLowerCase();
+
+  return (
+    code.includes("invalid-credential") ||
+    code.includes("invalid-login-credentials") ||
+    code.includes("user-not-found") ||
+    code.includes("wrong-password") ||
+    message.includes("invalid-credential") ||
+    message.includes("invalid-login-credentials")
+  );
+}
+
+function destinoEscritorio1(email) {
+  if ((email || "").toLowerCase() === EMAIL_ADMIN_MESTRE) {
+    return "adm.html";
   }
+  return "index.html";
+}
+
+function destinoEscritorio2() {
+  return "rodriguesamorim.html";
+}
+
+async function encerrarOutroAuth(auth) {
+  try {
+    if (auth.currentUser) {
+      await signOut(auth);
+    }
+  } catch (e) {
+    console.warn("Não foi possível limpar a outra sessão Firebase:", e);
+  }
+}
+
+/* =========================================================
+   AUTO-REDIRECIONAMENTO
+   Se o usuário já estiver logado em algum dos dois projetos,
+   a página reconhece a sessão e manda para o CRM correto.
+   Escritório 1 tem prioridade se houver duas sessões antigas.
+   ========================================================= */
+let estadoInicial1Resolvido = false;
+let estadoInicial2Resolvido = false;
+let usuarioInicial1 = null;
+let usuarioInicial2 = null;
+let redirecionamentoInicialExecutado = false;
+
+function verificarSessaoInicial() {
+  if (redirecionamentoInicialExecutado) return;
+  if (!estadoInicial1Resolvido || !estadoInicial2Resolvido) return;
+
+  if (usuarioInicial1) {
+    redirecionamentoInicialExecutado = true;
+    const email = (usuarioInicial1.email || "").toLowerCase();
+    window.location.replace(destinoEscritorio1(email));
+    return;
+  }
+
+  if (usuarioInicial2) {
+    redirecionamentoInicialExecutado = true;
+    window.location.replace(destinoEscritorio2());
+  }
+}
+
+const unsubscribeInicial1 = onAuthStateChanged(authEscritorio1, (user) => {
+  usuarioInicial1 = user;
+  estadoInicial1Resolvido = true;
+  verificarSessaoInicial();
+  unsubscribeInicial1();
+});
+
+const unsubscribeInicial2 = onAuthStateChanged(authEscritorio2, (user) => {
+  usuarioInicial2 = user;
+  estadoInicial2Resolvido = true;
+  verificarSessaoInicial();
+  unsubscribeInicial2();
 });
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -186,122 +295,178 @@ document.addEventListener("DOMContentLoaded", () => {
     btnSubmit.disabled = false;
   }
 
+  async function loginNoEscritorio1(email, senha) {
+    try {
+      const credencial = await signInWithEmailAndPassword(authEscritorio1, email, senha);
+      await encerrarOutroAuth(authEscritorio2);
+      return { sucesso: true, user: credencial.user };
+    } catch (error) {
+      return { sucesso: false, error };
+    }
+  }
+
+  async function loginNoEscritorio2(email, senha) {
+    try {
+      const credencial = await signInWithEmailAndPassword(authEscritorio2, email, senha);
+      await encerrarOutroAuth(authEscritorio1);
+      return { sucesso: true, user: credencial.user };
+    } catch (error) {
+      return { sucesso: false, error };
+    }
+  }
+
+  async function tentarFluxoConviteEscritorio1(email, senha) {
+    try {
+      btnSubmit.innerText = "Verificando convite...";
+
+      const qPre = query(
+        collection(dbEscritorio1, "pre_cadastros"),
+        where("email", "==", email),
+        where("senhaPadrao", "==", senha)
+      );
+
+      const preSnap = await getDocs(qPre);
+
+      if (preSnap.empty) {
+        return { sucesso: false, motivo: "sem-convite" };
+      }
+
+      const docDados = preSnap.docs[0];
+      const dadosFunc = docDados.data();
+
+      showToast("Configurando seu primeiro acesso...");
+      btnSubmit.innerText = "Criando conta...";
+
+      const userCredential = await createUserWithEmailAndPassword(authEscritorio1, email, senha);
+      const novoUid = userCredential.user.uid;
+
+      await setDoc(doc(dbEscritorio1, "funcionarios", novoUid), {
+        nome: dadosFunc.nome || "Usuário",
+        email: email,
+        criadoEm: new Date().toISOString()
+      });
+
+      await deleteDoc(doc(dbEscritorio1, "pre_cadastros", docDados.id));
+      await encerrarOutroAuth(authEscritorio2);
+
+      return { sucesso: true, user: userCredential.user };
+
+    } catch (error) {
+      return { sucesso: false, error, motivo: "erro" };
+    }
+  }
+
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     errorMsg.style.display = "none";
-    
-    // Força o minúsculo para evitar bugs com letras maiúsculas
+
     const email = emailInput.value.trim().toLowerCase();
     const senha = passwordInput.value;
 
     btnSubmit.innerText = "Autenticando...";
     btnSubmit.disabled = true;
 
-    try {
-      // 1. TENTA O LOGIN NORMAL
-      await signInWithEmailAndPassword(auth, email, senha);
+    // =====================================================
+    // 1) PRIMEIRO TENTA O AUTH DO ESCRITÓRIO 1
+    // =====================================================
+    const tentativa1 = await loginNoEscritorio1(email, senha);
+
+    if (tentativa1.sucesso) {
       showToast("Login realizado com sucesso!");
-      
-      // Redirecionamento condicional (Admin x Funcionário)
-      if (email === "gruponascimentoesouza@gmail.com") {
-        setTimeout(() => window.location.replace("adm.html"), 1000);
-      } else {
-        setTimeout(() => window.location.replace("index.html"), 1000);
-      }
+      setTimeout(() => {
+        window.location.replace(destinoEscritorio1(email));
+      }, 700);
+      return;
+    }
 
-    } catch (error) {
-      console.log("Falha no Auth, verificando convites...", error);
-      
-      const errorCode = error.code || "";
-      const errorMsgText = error.message || "";
+    // Se foi um erro diferente de credencial, ainda tentamos o segundo Auth.
+    console.log("Escritório 1 não autenticou:", tentativa1.error);
 
-      // 2. PASSE LIVRE PARA O ADMINISTRADOR MESTRE
-      if (email === "gruponascimentoesouza@gmail.com") {
-        try {
-          btnSubmit.innerText = "Criando conta Admin...";
-          // Tenta criar a conta
-          const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
-          const novoUid = userCredential.user.uid;
-          
-          // Salva o admin no banco de dados
-          await setDoc(doc(db, "funcionarios", novoUid), {
-            nome: "Administrador Mestre",
-            email: email,
-            criadoEm: new Date().toISOString()
-          });
-          
-          showToast("Conta Mestre configurada! Redirecionando...");
-          setTimeout(() => window.location.replace("adm.html"), 1500);
-          return; 
-        } catch (adminErr) {
-          if (adminErr.code === 'auth/email-already-in-use') {
-            resetBotao("Senha incorreta para o Administrador.");
-          } else {
-            resetBotao("Erro ao configurar Admin: " + adminErr.message);
-          }
-          return; 
+    // =====================================================
+    // 2) SE NÃO ACHOU NO PRIMEIRO, TENTA RSW-CONSULTORIA
+    // =====================================================
+    btnSubmit.innerText = "Verificando segundo escritório...";
+    const tentativa2 = await loginNoEscritorio2(email, senha);
+
+    if (tentativa2.sucesso) {
+      showToast("Login realizado com sucesso!");
+      setTimeout(() => {
+        window.location.replace(destinoEscritorio2());
+      }, 700);
+      return;
+    }
+
+    console.log("Escritório 2 não autenticou:", tentativa2.error);
+
+    // =====================================================
+    // 3) MANTÉM O FLUXO ANTIGO DO ADMIN MESTRE
+    //    SOMENTE NO ESCRITÓRIO 1
+    // =====================================================
+    if (email === EMAIL_ADMIN_MESTRE && isErroCredencial(tentativa1.error)) {
+      try {
+        btnSubmit.innerText = "Criando conta Admin...";
+
+        const userCredential = await createUserWithEmailAndPassword(
+          authEscritorio1,
+          email,
+          senha
+        );
+
+        const novoUid = userCredential.user.uid;
+
+        await setDoc(doc(dbEscritorio1, "funcionarios", novoUid), {
+          nome: "Administrador Mestre",
+          email: email,
+          criadoEm: new Date().toISOString()
+        });
+
+        await encerrarOutroAuth(authEscritorio2);
+        showToast("Conta Mestre configurada! Redirecionando...");
+        setTimeout(() => window.location.replace("adm.html"), 1200);
+        return;
+
+      } catch (adminErr) {
+        if (adminErr.code === 'auth/email-already-in-use') {
+          resetBotao("Senha incorreta para o Administrador.");
+        } else {
+          resetBotao("Erro ao configurar Admin: " + adminErr.message);
         }
-      }
-
-      // 3. FLUXO NORMAL DE FUNCIONÁRIOS
-      if (
-        errorCode.includes('invalid-credential') || 
-        errorCode.includes('invalid-login-credentials') || 
-        errorCode.includes('user-not-found') || 
-        errorCode.includes('wrong-password') ||
-        errorMsgText.includes('invalid-credential') ||
-        errorMsgText.includes('invalid-login-credentials')
-      ) {
-        try {
-          btnSubmit.innerText = "Verificando convite...";
-          
-          const qPre = query(
-            collection(db, "pre_cadastros"), 
-            where("email", "==", email), 
-            where("senhaPadrao", "==", senha)
-          );
-          
-          const preSnap = await getDocs(qPre);
-
-          if (!preSnap.empty) {
-            const docDados = preSnap.docs[0];
-            const dadosFunc = docDados.data();
-
-            showToast("Configurando seu primeiro acesso...");
-            btnSubmit.innerText = "Criando conta...";
-
-            // Cria o usuário na Autenticação (Auth)
-            const userCredential = await createUserWithEmailAndPassword(auth, email, senha);
-            const novoUid = userCredential.user.uid;
-
-            // Salva os dados dele no banco
-            await setDoc(doc(db, "funcionarios", novoUid), {
-              nome: dadosFunc.nome || "Usuário",
-              email: email,
-              criadoEm: new Date().toISOString()
-            });
-
-            // Limpa a fila de pré-cadastro
-            await deleteDoc(doc(db, "pre_cadastros", docDados.id));
-
-            showToast("Tudo pronto! Redirecionando...");
-            setTimeout(() => window.location.replace("index.html"), 1500);
-          } else {
-            resetBotao("E-mail ou senha inválidos. Não foi encontrado nenhum convite para este e-mail.");
-          }
-        } catch (errDb) {
-          console.error("Erro no fluxo de convite: ", errDb);
-          if(errDb.code === 'permission-denied') {
-            resetBotao("As regras de banco de dados do Firebase bloquearam a criação da conta. Avise o Administrador.");
-          } else {
-            resetBotao("Erro de conexão ao configurar a conta. Tente novamente.");
-          }
-        }
-      } else {
-        // Erro genérico
-        resetBotao("Erro no acesso: " + error.message);
+        return;
       }
     }
+
+    // =====================================================
+    // 4) PRESERVA O FLUXO ANTIGO DE CONVITES DO ESCRITÓRIO 1
+    //    Só roda quando os dois Auths recusaram a credencial.
+    // =====================================================
+    if (isErroCredencial(tentativa1.error) && isErroCredencial(tentativa2.error)) {
+      const convite = await tentarFluxoConviteEscritorio1(email, senha);
+
+      if (convite.sucesso) {
+        showToast("Tudo pronto! Redirecionando...");
+        setTimeout(() => window.location.replace("index.html"), 1200);
+        return;
+      }
+
+      if (convite.error?.code === 'permission-denied') {
+        resetBotao("As regras de banco de dados do Firebase bloquearam a criação da conta. Avise o Administrador.");
+        return;
+      }
+
+      if (convite.motivo === "erro" && convite.error) {
+        console.error("Erro no fluxo de convite:", convite.error);
+      }
+
+      resetBotao("E-mail ou senha inválidos nos dois escritórios.");
+      return;
+    }
+
+    // Se um dos projetos respondeu com erro técnico, mostramos uma mensagem genérica.
+    const erroTecnico = !isErroCredencial(tentativa1.error)
+      ? tentativa1.error
+      : tentativa2.error;
+
+    resetBotao("Erro no acesso: " + (erroTecnico?.message || "Não foi possível autenticar."));
   });
 });
 </script>
