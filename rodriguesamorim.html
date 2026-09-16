@@ -687,7 +687,11 @@ const firebaseConfig = {
   measurementId: "G-R9H446B3BX"
 };
 
-const app = initializeApp(firebaseConfig);
+// IMPORTANTE: este nome precisa ser o MESMO usado na página login.html
+// para o segundo escritório. O Firebase Auth grava a sessão usando também
+// o nome do app; se aqui ficar como [DEFAULT], a sessão de "escritorio2"
+// não é encontrada e a página entra em loop voltando para login.html.
+const app = initializeApp(firebaseConfig, "escritorio2");
 const db = getFirestore(app);
 
 // <-- ADICIONADO: Habilita cache offline para economizar requisições e leituras
