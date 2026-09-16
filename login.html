@@ -68,6 +68,48 @@ button {
 button:hover { background:#eaeaea; }
 button:disabled { background: #ccc; cursor: not-allowed; }
 
+/* LOGIN COM GOOGLE */
+.divider {
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin:18px 0;
+  color:#8f8f9d;
+  font-size:12px;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+
+.divider::before,
+.divider::after {
+  content:"";
+  flex:1;
+  height:1px;
+  background:rgba(255,255,255,.14);
+}
+
+.google-login-btn {
+  width:100%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  background:#fff;
+  color:#202124;
+  font-weight:600;
+  border:1px solid rgba(0,0,0,.12);
+}
+
+.google-login-btn:hover {
+  background:#f5f5f5;
+}
+
+.google-login-btn svg {
+  width:20px;
+  height:20px;
+  flex:0 0 20px;
+}
+
 .error {
   color:#ff7675;
   font-size:13px;
@@ -134,7 +176,9 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   onAuthStateChanged,
-  signOut
+  signOut,
+  GoogleAuthProvider,
+  signInWithPopup
 } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
 import {
   getFirestore,
@@ -186,6 +230,17 @@ const authEscritorio2 = getAuth(appEscritorio2);
 const dbEscritorio1 = getFirestore(appEscritorio1);
 
 const EMAIL_ADMIN_MESTRE = "gruponascimentoesouza@gmail.com";
+
+/* =========================================================
+   GOOGLE - RSW CONSULTORIA
+   O botão Google autentica no segundo projeto (rsw-consultoria).
+   Isso mantém o Auth antigo intacto e evita criar usuários Google
+   acidentalmente no Firebase do primeiro escritório.
+   ========================================================= */
+const googleProviderEscritorio2 = new GoogleAuthProvider();
+googleProviderEscritorio2.setCustomParameters({
+  prompt: "select_account"
+});
 
 function isErroCredencial(error) {
   const code = (error?.code || "").toLowerCase();
@@ -273,6 +328,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const toast = document.getElementById("toast");
   const video = document.getElementById("bgVideo");
   const btnSubmit = form.querySelector("button[type='submit']");
+  const btnGoogle = document.getElementById("btnGoogle");
 
   video.muted = true;
   video.play().catch(() => {
@@ -293,6 +349,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     btnSubmit.innerText = "Entrar";
     btnSubmit.disabled = false;
+    if (btnGoogle) btnGoogle.disabled = false;
   }
 
   async function loginNoEscritorio1(email, senha) {
@@ -356,6 +413,66 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  async function loginGoogleEscritorio2() {
+    errorMsg.style.display = "none";
+
+    if (!btnGoogle) return;
+
+    const textoOriginal = btnGoogle.innerHTML;
+    btnGoogle.disabled = true;
+    btnSubmit.disabled = true;
+    btnGoogle.textContent = "Abrindo Google...";
+
+    try {
+      // IMPORTANTE: Google entra somente no Auth do RSW Consultoria.
+      const resultado = await signInWithPopup(
+        authEscritorio2,
+        googleProviderEscritorio2
+      );
+
+      // Garante que não fique uma sessão antiga do outro escritório ativa.
+      await encerrarOutroAuth(authEscritorio1);
+
+      const emailGoogle = (resultado.user?.email || "").toLowerCase();
+      showToast(emailGoogle
+        ? `Login Google realizado: ${emailGoogle}`
+        : "Login com Google realizado com sucesso!"
+      );
+
+      // Usa exatamente a mesma sessão 'escritorio2' que
+      // rodriguesamorim.html reconhece.
+      window.location.replace(destinoEscritorio2());
+
+    } catch (error) {
+      console.error("Erro no login Google:", error);
+
+      const code = (error?.code || "").toLowerCase();
+
+      if (code.includes("popup-closed-by-user")) {
+        errorMsg.innerText = "Login com Google cancelado.";
+      } else if (code.includes("popup-blocked")) {
+        errorMsg.innerText = "O navegador bloqueou a janela do Google. Libere pop-ups e tente novamente.";
+      } else if (code.includes("unauthorized-domain")) {
+        errorMsg.innerText = "Este domínio ainda não está autorizado no Firebase Authentication. Adicione o domínio do CRM em Authentication > Configurações > Domínios autorizados.";
+      } else if (code.includes("operation-not-allowed")) {
+        errorMsg.innerText = "O login Google não está habilitado neste projeto Firebase.";
+      } else if (code.includes("account-exists-with-different-credential")) {
+        errorMsg.innerText = "Este e-mail já possui outra forma de login. Entre primeiro com e-mail e senha.";
+      } else {
+        errorMsg.innerText = "Não foi possível entrar com Google: " + (error?.message || "erro desconhecido");
+      }
+
+      errorMsg.style.display = "block";
+      btnGoogle.innerHTML = textoOriginal;
+      btnGoogle.disabled = false;
+      btnSubmit.disabled = false;
+    }
+  }
+
+  if (btnGoogle) {
+    btnGoogle.addEventListener("click", loginGoogleEscritorio2);
+  }
+
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     errorMsg.style.display = "none";
@@ -365,6 +482,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     btnSubmit.innerText = "Autenticando...";
     btnSubmit.disabled = true;
+    if (btnGoogle) btnGoogle.disabled = true;
 
     // =====================================================
     // 1) PRIMEIRO TENTA O AUTH DO ESCRITÓRIO 1
@@ -480,6 +598,16 @@ document.addEventListener("DOMContentLoaded", () => {
       <input type="password" id="password" placeholder="Senha" required />
       <span id="errorMsg" class="error"></span>
       <button type="submit">Entrar</button>
+      <div class="divider"><span>ou</span></div>
+      <button type="button" id="btnGoogle" class="google-login-btn" aria-label="Continuar com Google">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path fill="#4285F4" d="M21.805 10.023h-9.18v3.955h5.28c-.228 1.273-.912 2.352-1.945 3.078v2.56h3.145c1.84-1.695 2.9-4.196 2.9-7.17 0-.813-.073-1.596-.2-2.423z"/>
+          <path fill="#34A853" d="M12.625 22c2.625 0 4.828-.87 6.437-2.384l-3.145-2.56c-.87.585-1.985.93-3.292.93-2.53 0-4.675-1.71-5.445-4.008H3.93v2.64A9.727 9.727 0 0 0 12.625 22z"/>
+          <path fill="#FBBC05" d="M7.18 13.978a5.89 5.89 0 0 1 0-3.756V7.58H3.93a9.74 9.74 0 0 0 0 9.038l3.25-2.64z"/>
+          <path fill="#EA4335" d="M12.625 6.214c1.427 0 2.708.49 3.715 1.45l2.79-2.79C17.448 3.306 15.247 2.35 12.625 2.35A9.727 9.727 0 0 0 3.93 7.58l3.25 2.642c.77-2.298 2.915-4.008 5.445-4.008z"/>
+        </svg>
+        <span>Continuar com Google</span>
+      </button>
     </form>
   </div>
 
