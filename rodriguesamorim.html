@@ -700,12 +700,30 @@ enableIndexedDbPersistence(db).catch((err) => {
 });
 
 const auth = getAuth(app);
-let storage;
+
+/* ================= STORAGE COMPARTILHADO =================
+   O Firestore e o Authentication continuam no projeto rsw-consultoria.
+   Somente os arquivos/documentos são enviados para o bucket já usado
+   pelo outro escritório (projeto dapapp-38637).
+========================================================== */
+
+const sharedStorageConfig = {
+  apiKey: "AIzaSyAFJJAqVf3ge0WDHBpmS9E6sXKvnjuFkhw",
+  authDomain: "dapapp-38637.firebaseapp.com",
+  projectId: "dapapp-38637",
+  storageBucket: "dapapp-38637.firebasestorage.app",
+  messagingSenderId: "628852295313",
+  appId: "1:628852295313:web:1234567890abcdef123456"
+};
+
+let storage = null;
 
 try {
-    storage = getStorage(app);
+    const sharedStorageApp = initializeApp(sharedStorageConfig, "storageCompartilhado");
+    storage = getStorage(sharedStorageApp);
+    console.log("Storage compartilhado ativo:", sharedStorageConfig.storageBucket);
 } catch (error) {
-    console.error("Storage indisponível:", error);
+    console.error("Storage compartilhado indisponível:", error);
 }
 
 window.firebaseDB = db;
@@ -1104,7 +1122,12 @@ document.addEventListener('DOMContentLoaded', () => {
             for (let file of files) {
                 try {
                     const uniqueName = Date.now() + "_" + file.name;
-                    const storageRef = ref(storage, `documentos/${currentUser.uid}/${uniqueName}`);
+                    // Salva no bucket compartilhado, em uma pasta própria da RSW para
+                    // não misturar fisicamente os arquivos dos dois escritórios.
+                    const storageRef = ref(
+                        storage,
+                        `documentos/rsw-consultoria/${currentUser.uid}/${uniqueName}`
+                    );
                     await uploadBytes(storageRef, file);
                     const url = await getDownloadURL(storageRef);
                     
@@ -1113,9 +1136,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     currentDocs[docId].push({ name: file.name, url: url });
 
                 } catch (error) {
-                    console.error("Erro no upload:", error);
+                    console.error("Erro no upload para o bucket compartilhado:", error);
                     errorOccurred = true;
-                    showToast("Erro ao enviar: " + file.name);
+
+                    if (error && (
+                        error.code === "storage/unauthorized" ||
+                        error.code === "storage/unauthenticated"
+                    )) {
+                        showToast("O bucket compartilhado bloqueou o envio pelas regras de acesso.");
+                    } else {
+                        showToast("Erro ao enviar: " + file.name);
+                    }
                 }
             }
         } finally {
