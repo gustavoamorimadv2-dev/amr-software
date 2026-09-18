@@ -310,7 +310,11 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebas
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
 
-const firebaseConfig = {
+/* =========================================================
+   FIREBASE - ESCRITÓRIO 1
+   Mesmo nome de app usado pela página de login.
+   ========================================================= */
+const firebaseConfigEscritorio1 = {
     apiKey: "AIzaSyAFJJAqVf3ge0WDHBpmS9E6sXKvnjuFkhw",
     authDomain: "dapapp-38637.firebaseapp.com",
     projectId: "dapapp-38637",
@@ -319,9 +323,28 @@ const firebaseConfig = {
     appId: "1:628852295313:web:1234567890abcdef123456"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+/* =========================================================
+   FIREBASE - ESCRITÓRIO 2 / RSW CONSULTORIA
+   Mesmo app "escritorio2" usado pelo login com Google.
+   ========================================================= */
+const firebaseConfigEscritorio2 = {
+    apiKey: "AIzaSyAVaWq65gTmrMH99a4QJHs8I8DoSpQbvFo",
+    authDomain: "rsw-consultoria.firebaseapp.com",
+    projectId: "rsw-consultoria",
+    storageBucket: "rsw-consultoria.firebasestorage.app",
+    messagingSenderId: "872728271248",
+    appId: "1:872728271248:web:d67949ed4fd7d1c0d87b15",
+    measurementId: "G-R9H446B3BX"
+};
+
+const appEscritorio1 = initializeApp(firebaseConfigEscritorio1, "escritorio1");
+const appEscritorio2 = initializeApp(firebaseConfigEscritorio2, "escritorio2");
+
+const dbEscritorio1 = getFirestore(appEscritorio1);
+const dbEscritorio2 = getFirestore(appEscritorio2);
+
+const authEscritorio1 = getAuth(appEscritorio1);
+const authEscritorio2 = getAuth(appEscritorio2);
 
 document.addEventListener('DOMContentLoaded', () => {
     const sidebar = document.querySelector(".sidebar");
@@ -344,28 +367,57 @@ document.addEventListener('DOMContentLoaded', () => {
     // Ao clicar em Filtrar
     btnFiltrar.onclick = () => aplicarFiltros();
 
-    // Puxa todos os cards do banco globalmente e já remove os com status 'fechado'
-    async function carregarTodosCards() {
-        containerCards.innerHTML = '<p class="empty-msg">Carregando painel de cards...</p>';
+    let avisoCarregamentoBancos = "";
+
+    async function lerClientesDoBanco(db, nomeBanco) {
         try {
             const snap = await getDocs(collection(db, "clientes"));
-            const rawClientes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            
-            // Filtra removendo permanentemente os clientes com status "fechado" da exibição
-            todosClientes = rawClientes.filter(c => {
-                const status = c.status ? String(c.status).toLowerCase().trim() : '';
-                return status !== 'fechado';
-            });
-            
-            // Popula os selects com dados dinâmicos
-            preencherFiltrosDinamicos();
+            const clientes = snap.docs.map(d => ({
+                id: d.id,
+                __banco: nomeBanco,
+                ...d.data()
+            }));
 
-            // Renderiza tudo inicialmente
-            aplicarFiltros();
+            return { sucesso: true, nomeBanco, clientes };
         } catch (error) {
-            console.error(error);
-            containerCards.innerHTML = '<p class="empty-msg" style="color: #ef4444;">Erro ao carregar dados do Firebase.</p>';
+            console.error(`Erro ao carregar ${nomeBanco}:`, error);
+            return { sucesso: false, nomeBanco, clientes: [], error };
         }
+    }
+
+    // Carrega os cards dos DOIS Firestore e exclui somente status "fechado".
+    async function carregarTodosCards() {
+        containerCards.innerHTML = '<p class="empty-msg">Carregando cards dos dois bancos...</p>';
+
+        const resultados = await Promise.all([
+            lerClientesDoBanco(dbEscritorio1, "Escritório 1"),
+            lerClientesDoBanco(dbEscritorio2, "RSW Consultoria")
+        ]);
+
+        const bancosComSucesso = resultados.filter(r => r.sucesso);
+        const bancosComErro = resultados.filter(r => !r.sucesso);
+
+        if (bancosComSucesso.length === 0) {
+            containerCards.innerHTML =
+                '<p class="empty-msg" style="color:#ef4444;">Não foi possível carregar os cards de nenhum banco. Verifique a autenticação e as regras do Firestore.</p>';
+            return;
+        }
+
+        const rawClientes = bancosComSucesso.flatMap(r => r.clientes);
+
+        todosClientes = rawClientes.filter(c => {
+            const status = c.status ? String(c.status).toLowerCase().trim() : '';
+            return status !== 'fechado';
+        });
+
+        avisoCarregamentoBancos = bancosComErro.length
+            ? "Atenção: não foi possível ler " +
+              bancosComErro.map(r => r.nomeBanco).join(" e ") +
+              ". Os cards dos bancos acessíveis continuam sendo exibidos."
+            : "";
+
+        preencherFiltrosDinamicos();
+        aplicarFiltros();
     }
 
     function preencherFiltrosDinamicos() {
@@ -477,18 +529,36 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderizarCards(lista) {
         containerCards.innerHTML = '';
 
+        if (avisoCarregamentoBancos) {
+            const aviso = document.createElement('div');
+            aviso.style.cssText = [
+                'margin-bottom:18px',
+                'padding:12px 14px',
+                'border-radius:10px',
+                'background:rgba(245,158,11,0.12)',
+                'border:1px solid rgba(245,158,11,0.35)',
+                'color:#fbbf24',
+                'font-size:13px'
+            ].join(';');
+            aviso.textContent = avisoCarregamentoBancos;
+            containerCards.appendChild(aviso);
+        }
+
         if (lista.length === 0) {
-            containerCards.innerHTML = '<p class="empty-msg">Nenhum card encontrado com esses filtros.</p>';
+            const vazio = document.createElement('p');
+            vazio.className = 'empty-msg';
+            vazio.textContent = 'Nenhum card encontrado com esses filtros.';
+            containerCards.appendChild(vazio);
             return;
         }
 
         const grid = document.createElement('div');
         grid.className = 'grid-cards';
-        
+
         lista.forEach(c => {
             grid.appendChild(criarElementoCard(c));
         });
-        
+
         containerCards.appendChild(grid);
     }
 
@@ -626,14 +696,45 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.removeChild(link);
     };
 
-    // Monitoramento de Autenticação Básica
-    onAuthStateChanged(auth, user => {
-        if(user){
-            carregarTodosCards();
-        }else{
-            window.location.href = "login.html";
+    /* =========================================================
+       AUTENTICAÇÃO DUPLA
+       Aceita usuário autenticado em qualquer um dos dois Auths.
+       Login Google do RSW é uma sessão normal do authEscritorio2.
+       Só redireciona depois de checar os dois, evitando loop.
+       ========================================================= */
+    function aguardarEstadoInicial(auth) {
+        return new Promise((resolve) => {
+            let unsubscribe = () => {};
+            unsubscribe = onAuthStateChanged(
+                auth,
+                (user) => {
+                    unsubscribe();
+                    resolve(user || null);
+                },
+                (error) => {
+                    console.error("Erro ao verificar autenticação:", error);
+                    unsubscribe();
+                    resolve(null);
+                }
+            );
+        });
+    }
+
+    async function iniciarPagina() {
+        const [usuarioEscritorio1, usuarioEscritorio2] = await Promise.all([
+            aguardarEstadoInicial(authEscritorio1),
+            aguardarEstadoInicial(authEscritorio2)
+        ]);
+
+        if (!usuarioEscritorio1 && !usuarioEscritorio2) {
+            window.location.replace("login.html");
+            return;
         }
-    });
+
+        await carregarTodosCards();
+    }
+
+    iniciarPagina();
 });
 </script>
 </head>
@@ -663,7 +764,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <header>
         <h1>Painel Global de Cards</h1>
         <div style="font-size: 14px; color: rgba(255,255,255,0.6);">
-            Visualização unificada e filtro de transmissão de leads.
+            Visualização unificada dos dois bancos, exceto cards fechados.
         </div>
     </header>
 
