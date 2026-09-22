@@ -835,10 +835,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function buscarFechadosNoServidor() {
-        // ÚNICA consulta de leitura ao Firestore nesta página.
-        const q = query(collection(db, 'clientes'), where('status', '==', 'fechado'));
-        const snapshot = await getDocs(q);
-        const lista = normalizarFechadosDoSnapshot(snapshot);
+        // Busca os clientes e normaliza o status para evitar problemas com
+        // "fechado", "Fechado", "FECHADO" ou espaços no cadastro.
+        const snapshot = await getDocs(collection(db, 'clientes'));
+
+        const lista = normalizarFechadosDoSnapshot(snapshot).filter(cliente => {
+            const status = String(cliente.status || '').trim().toLowerCase();
+            return status === 'fechado';
+        });
+
         ultimaSincronizacaoServidor = Date.now();
         timestampBaseCache = ultimaSincronizacaoServidor;
         await salvarRegistroCache(CACHE_FECHADOS_KEY, lista, timestampBaseCache);
@@ -849,7 +854,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const executar = async () => {
             if (!forcarServidor) {
                 const cache = await lerMelhorCacheFechados(false);
-                if (cache) {
+                if (cache && Array.isArray(cache.data) && cache.data.length > 0) {
                     timestampBaseCache = cache.timestamp;
                     return { lista: cache.data, origem: cache.origem };
                 }
@@ -896,17 +901,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!forcarServidor) {
                 cacheAnterior = await lerMelhorCacheFechados(false);
-                if (cacheAnterior) {
+
+                // Cache vazio não bloqueia a primeira sincronização.
+                // Se houver clientes no Firestore, eles serão carregados normalmente.
+                if (cacheAnterior && Array.isArray(cacheAnterior.data) && cacheAnterior.data.length > 0) {
                     timestampBaseCache = cacheAnterior.timestamp;
                     clientesFechados = cacheAnterior.data;
                     montarFila();
                     renderCards();
-                    return;
                 }
             }
 
             try {
-                const resultado = await executarCargaProtegida(forcarServidor);
+                const resultado = await executarCargaProtegida(true);
                 clientesFechados = resultado.lista;
                 montarFila();
                 renderCards();
@@ -924,7 +931,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     showToast('Servidor indisponível. Exibindo dados do cache local.');
                     return;
                 }
-                showToast('Erro ao carregar os processos fechados.');
+                const filaStatus = document.getElementById('filaStatus');
+                if (filaStatus) {
+                    filaStatus.textContent = 'Erro ao carregar clientes do Firebase. Abra o Console (F12) para ver o erro.';
+                    filaStatus.style.color = '#fca5a5';
+                }
+                showToast('Erro ao carregar os processos fechados. Verifique o Console.');
             }
         })();
 
@@ -1252,7 +1264,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div style="display:flex; align-items:center; gap:12px;">
             <div style="font-size: 14px; color: rgba(255,255,255,0.7);">
                 <!-- <-- ALTERADO DE 5 PARA 10 DIAS -->
-                Fila automática: cada cliente volta para a fila após 10 dias e, ao receber andamento, vai para o final do ciclo.
+                Fila automática: clientes com 10 dias sem andamento entram na fila; ao passar, vão para o final do ciclo.
             </div>
             <button class="btn ghost" onclick="forcarAtualizacao()" title="Sincronizar dados com o servidor" style="width:auto; padding:10px 14px;">🔄 Sincronizar</button>
         </div>
@@ -1284,6 +1296,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="stat-value" id="statExcluidos">0</div>
                 <div class="stat-sub">revogado, arquivado ou inadimplente</div>
             </div>
+        </div>
+
+        <div id="filaStatus" style="margin-top:8px;font-size:11px;color:rgba(255,255,255,.45);">
+            Carregando clientes do Firebase...
         </div>
 
         <div class="queue-toolbar">
