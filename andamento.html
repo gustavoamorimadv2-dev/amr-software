@@ -468,129 +468,134 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     font-weight: 500;
 }
 
-/* ================= NOVO: PAINEL DE FILA ================= */
-.queue-dashboard {
-    padding: 18px 30px 0;
-    flex-shrink: 0;
+/* ===== PAINEL DE FILA DE ANDAMENTO ===== */
+.queue-dashboard{
+    padding:16px 30px 0;
+    flex-shrink:0;
 }
-.queue-stats {
+.queue-stats{
     display:grid;
-    grid-template-columns:repeat(4,minmax(170px,1fr));
+    grid-template-columns:repeat(4,minmax(160px,1fr));
     gap:12px;
 }
-.stat-card {
-    background:rgba(255,255,255,0.06);
-    border:1px solid rgba(255,255,255,0.08);
+.stat-card{
+    background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.08);
     border-radius:14px;
-    padding:14px 16px;
-    backdrop-filter:blur(12px);
+    padding:13px 15px;
 }
-.stat-card .stat-label {
-    font-size:11px;
-    color:rgba(255,255,255,0.6);
+.stat-label{
+    font-size:10px;
+    color:rgba(255,255,255,.58);
     text-transform:uppercase;
     letter-spacing:.6px;
-    font-weight:700;
-}
-.stat-card .stat-value {
-    margin-top:5px;
-    font-size:25px;
     font-weight:800;
 }
-.stat-card .stat-sub {
-    margin-top:3px;
-    font-size:11px;
-    color:rgba(255,255,255,.55);
+.stat-value{
+    font-size:25px;
+    font-weight:800;
+    margin-top:4px;
 }
-.queue-toolbar {
+.stat-sub{
+    font-size:10px;
+    color:rgba(255,255,255,.5);
+    margin-top:2px;
+}
+.queue-toolbar{
     display:flex;
     align-items:center;
     gap:10px;
-    margin-top:12px;
+    margin-top:10px;
 }
-.queue-toolbar select {
-    padding:10px 12px;
+.queue-toolbar select{
+    padding:9px 11px;
     background:rgba(255,255,255,.08);
     border:1px solid rgba(255,255,255,.1);
     border-radius:10px;
     color:#fff;
     outline:none;
 }
-.queue-toolbar select option { background:#0f172a; color:#fff; }
-.queue-note {
-    font-size:12px;
-    color:rgba(255,255,255,.55);
+.queue-toolbar select option{
+    background:#111827;
+    color:#fff;
 }
-.excluded-panel {
-    margin-top:12px;
-    padding:12px 14px;
+.queue-note{
+    font-size:11px;
+    color:rgba(255,255,255,.52);
+}
+.excluded-panel{
+    margin-top:10px;
+    padding:11px 13px;
     border-radius:14px;
-    background:rgba(245,158,11,.08);
-    border:1px solid rgba(245,158,11,.18);
+    background:rgba(245,158,11,.07);
+    border:1px solid rgba(245,158,11,.2);
 }
-.excluded-panel-header {
+.excluded-panel-header{
     display:flex;
-    align-items:center;
     justify-content:space-between;
-    gap:10px;
+    align-items:center;
 }
-.excluded-title {
-    font-size:12px;
+.excluded-title{
+    font-size:11px;
     font-weight:800;
     text-transform:uppercase;
     letter-spacing:.6px;
 }
-.excluded-count {
-    font-size:11px;
+.excluded-count{
     padding:4px 8px;
     border-radius:8px;
     background:rgba(245,158,11,.15);
     color:#fcd34d;
+    font-size:10px;
+    font-weight:800;
 }
-.excluded-list {
+.excluded-list{
     display:flex;
     gap:8px;
     overflow-x:auto;
-    padding-top:10px;
+    padding-top:9px;
 }
-.excluded-chip {
+.excluded-list:empty{
+    display:none;
+}
+.excluded-chip{
     min-width:180px;
-    padding:9px 10px;
-    border-radius:10px;
+    padding:8px 9px;
+    border-radius:9px;
     background:rgba(0,0,0,.18);
     border:1px solid rgba(255,255,255,.07);
 }
-.excluded-chip strong {
+.excluded-chip strong{
     display:block;
-    font-size:12px;
+    font-size:11px;
     white-space:nowrap;
     overflow:hidden;
     text-overflow:ellipsis;
 }
-.excluded-chip span {
+.excluded-chip span{
     display:block;
     margin-top:3px;
-    font-size:10px;
-    color:rgba(255,255,255,.55);
+    font-size:9px;
+    color:rgba(255,255,255,.5);
 }
-.excluded-chip select {
-    margin-top:7px;
+.excluded-chip select{
     width:100%;
-    padding:5px 7px;
-    border-radius:7px;
+    margin-top:6px;
+    padding:5px;
+    border-radius:6px;
     background:#111827;
     color:#fff;
     border:1px solid rgba(255,255,255,.1);
-    font-size:10px;
+    font-size:9px;
 }
-.queue-position {
-    margin-top:8px;
+.queue-position{
     font-size:10px;
-    color:rgba(255,255,255,.5);
+    color:rgba(255,255,255,.45);
+    margin-top:7px;
 }
-@media (max-width: 900px) {
-    .queue-stats { grid-template-columns:repeat(2,minmax(140px,1fr)); }
-    .queue-dashboard { padding-left:15px; padding-right:15px; }
+@media(max-width:900px){
+    .queue-stats{grid-template-columns:repeat(2,minmax(140px,1fr));}
+    .queue-dashboard{padding-left:15px;padding-right:15px;}
 }
 
 </style>
@@ -649,18 +654,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let clientesFechados = [];
     let clienteSelecionado = null;
 
-    // ================= FILA DE ANDAMENTO =================
-    // A fila é persistida no próprio documento do cliente.
-    // Quando o cliente recebe andamento, ele vai para o FINAL da fila.
-    // Após 10 dias, volta a ficar pendente. Se vários clientes vencerem,
-    // a ordenação é pelo momento em que ficaram elegíveis, não pela posição antiga.
     const STATUS_EXCLUIDOS = {
         revogado: 'Revogado',
         arquivado: 'Arquivado',
         inadimplente: 'Inadimplente'
     };
 
-    let filaModo = 'automatico'; // automatico | inicio
+    let filaModo = 'automatico';
     let clientesExcluidos = [];
     let filaAtiva = []; 
 
@@ -835,15 +835,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function buscarFechadosNoServidor() {
-        // Busca os clientes e normaliza o status para evitar problemas com
-        // "fechado", "Fechado", "FECHADO" ou espaços no cadastro.
-        const snapshot = await getDocs(collection(db, 'clientes'));
-
-        const lista = normalizarFechadosDoSnapshot(snapshot).filter(cliente => {
-            const status = String(cliente.status || '').trim().toLowerCase();
-            return status === 'fechado';
-        });
-
+        // ÚNICA consulta de leitura ao Firestore nesta página.
+        const q = query(collection(db, 'clientes'), where('status', '==', 'fechado'));
+        const snapshot = await getDocs(q);
+        const lista = normalizarFechadosDoSnapshot(snapshot);
         ultimaSincronizacaoServidor = Date.now();
         timestampBaseCache = ultimaSincronizacaoServidor;
         await salvarRegistroCache(CACHE_FECHADOS_KEY, lista, timestampBaseCache);
@@ -854,7 +849,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const executar = async () => {
             if (!forcarServidor) {
                 const cache = await lerMelhorCacheFechados(false);
-                if (cache && Array.isArray(cache.data) && cache.data.length > 0) {
+                if (cache) {
                     timestampBaseCache = cache.timestamp;
                     return { lista: cache.data, origem: cache.origem };
                 }
@@ -901,19 +896,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!forcarServidor) {
                 cacheAnterior = await lerMelhorCacheFechados(false);
-
-                // Cache vazio não bloqueia a primeira sincronização.
-                // Se houver clientes no Firestore, eles serão carregados normalmente.
-                if (cacheAnterior && Array.isArray(cacheAnterior.data) && cacheAnterior.data.length > 0) {
+                if (cacheAnterior) {
                     timestampBaseCache = cacheAnterior.timestamp;
                     clientesFechados = cacheAnterior.data;
                     montarFila();
                     renderCards();
+                    return;
                 }
             }
 
             try {
-                const resultado = await executarCargaProtegida(true);
+                const resultado = await executarCargaProtegida(forcarServidor);
                 clientesFechados = resultado.lista;
                 montarFila();
                 renderCards();
@@ -931,12 +924,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     showToast('Servidor indisponível. Exibindo dados do cache local.');
                     return;
                 }
-                const filaStatus = document.getElementById('filaStatus');
-                if (filaStatus) {
-                    filaStatus.textContent = 'Erro ao carregar clientes do Firebase. Abra o Console (F12) para ver o erro.';
-                    filaStatus.style.color = '#fca5a5';
-                }
-                showToast('Erro ao carregar os processos fechados. Verifique o Console.');
+                showToast('Erro ao carregar os processos fechados.');
             }
         })();
 
@@ -964,7 +952,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <p style="grid-column: span 2; word-break: break-all;"><strong>Processo(s):</strong> ${cliente.processo || 'Não informado'}</p>
             <p style="grid-column:span 2;">
                 <strong>Status da fila:</strong>
-                <select id="modalStatusFila" style="margin-left:8px;padding:6px 8px;background:#111827;color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:7px;">
+                <select id="modalStatusFila"
+                    style="margin-left:8px;padding:6px 8px;background:#111827;color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:7px;">
                     <option value="">Na fila</option>
                     <option value="revogado">Revogado</option>
                     <option value="arquivado">Arquivado</option>
@@ -976,8 +965,10 @@ document.addEventListener('DOMContentLoaded', () => {
         modalBackdrop.style.display = 'flex';
 
         const statusSelect = document.getElementById('modalStatusFila');
-        if (statusSelect) {
-            statusSelect.value = normalizarStatusOperacional(cliente);
+
+        if(statusSelect){
+            statusSelect.value = statusFila(cliente);
+
             statusSelect.onchange = async () => {
                 await alterarStatusFila(cliente, statusSelect.value);
                 modalBackdrop.style.display = 'none';
@@ -1050,7 +1041,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const dataAgora = new Date().toISOString();
             const docRef = doc(db, "clientes", clienteSelecionado.id);
-            await updateDoc(docRef, { 
+            await updateDoc(docRef, {
                 dataUltimoAndamento: dataAgora,
                 ultimoAndamentoTexto: mensagemFinal,
                 obs: novaObs,
@@ -1062,10 +1053,7 @@ document.addEventListener('DOMContentLoaded', () => {
             await atualizarCachesAposGravacao(clienteSelecionado.id, {
                 dataUltimoAndamento: dataAgora,
                 ultimoAndamentoTexto: mensagemFinal,
-                obs: novaObs,
-                statusAndamento: '',
-                filaUltimaPassagem: dataAgora,
-                filaUltimaPassagemPor: currentUser?.email || ''
+                obs: novaObs
             });
 
             const waUrl = `https://wa.me/55${numeroLimpo}?text=${encodeURIComponent(mensagemFinal)}`;
@@ -1089,130 +1077,176 @@ document.addEventListener('DOMContentLoaded', () => {
         atualizarPainelFila();
 
         colAberto.innerHTML = `
-            <h2>FILA — PENDENTES (10 DIAS OU MAIS)</h2>
+            <h2>FILA — CLIENTES QUE PRECISAM DE ANDAMENTO</h2>
             <div class="cards-grid" id="grid-aberto"></div>
         `;
+
         colConcluido.innerHTML = `
-            <h2>ATUALIZADOS — AGUARDANDO NOVO CICLO</h2>
+            <h2>JÁ PASSARAM — AGUARDANDO 10 DIAS</h2>
             <div class="cards-grid" id="grid-concluido"></div>
         `;
 
         const gridAberto = document.getElementById('grid-aberto');
         const gridConcluido = document.getElementById('grid-concluido');
 
-        const rawQ = searchInput.value || '';
-        const qTexto = rawQ.toLowerCase();
-        let processoExiste = false;
-        const cleanQ = rawQ.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+        const qTexto = (searchInput.value || '').toLowerCase();
 
-        if (cleanQ !== '') {
+        let processoExiste = false;
+        const cleanQ = (searchInput.value || '')
+            .replace(/[^a-zA-Z0-9]/g,'')
+            .toLowerCase();
+
+        if(cleanQ){
             processoExiste = clientesFechados.some(c => {
-                if (!c.processo) return false;
-                const processosCadastrados = String(c.processo).split(',')
-                    .map(p => p.replace(/[^a-zA-Z0-9]/g, '').toLowerCase());
-                return processosCadastrados.includes(cleanQ);
+                if(!c.processo) return false;
+
+                return String(c.processo)
+                    .split(',')
+                    .map(p => p.replace(/[^a-zA-Z0-9]/g,'').toLowerCase())
+                    .includes(cleanQ);
             });
         }
 
         searchInput.style.color = processoExiste ? '#ef4444' : '#fff';
         searchInput.style.fontWeight = processoExiste ? '600' : 'normal';
 
-        const listaOrdenada = filaAtiva;
-        listaOrdenada.forEach((cliente, index) => {
-            const matchNome = cliente.nome && String(cliente.nome).toLowerCase().includes(qTexto);
-            const matchCpf = cliente.cpf && String(cliente.cpf).toLowerCase().includes(qTexto);
-            const matchProcesso = cliente.processo && String(cliente.processo).toLowerCase().includes(qTexto);
+        const pendentes = filaAtiva.filter(c =>
+            calcularDiasAndamento(c.dataUltimoAndamento) >= 10
+        );
 
-            if (qTexto !== '' && !(matchNome || matchCpf || matchProcesso)) return;
+        const atualizados = filaAtiva.filter(c =>
+            calcularDiasAndamento(c.dataUltimoAndamento) < 10
+        );
+
+        const desenhar = (cliente, destino, posicao) => {
+            const matchNome = cliente.nome &&
+                String(cliente.nome).toLowerCase().includes(qTexto);
+
+            const matchCpf = cliente.cpf &&
+                String(cliente.cpf).toLowerCase().includes(qTexto);
+
+            const matchProcesso = cliente.processo &&
+                String(cliente.processo).toLowerCase().includes(qTexto);
+
+            if(qTexto && !(matchNome || matchCpf || matchProcesso)) return;
 
             const diasPassados = calcularDiasAndamento(cliente.dataUltimoAndamento);
             const pendente = diasPassados >= 10;
+
             const card = document.createElement('div');
             card.className = `card ${pendente ? 'aberto' : 'concluido'}`;
 
             const cpf = cliente.cpf || 'Não informado';
             const estado = cliente.estado || 'Não informado';
-            const todosProcessos = cliente.processo || 'Não informado';
-            const textoAndamento = cliente.ultimoAndamentoTexto || '';
-            const textoObs = cliente.obs || 'Nenhuma observação registrada.';
-            const badgeTexto = pendente
-                ? `Pendente — ${diasPassados === 999 ? 'sem andamento' : diasPassados + 'd'}`
-                : `Atualizado (${diasPassados === 0 ? 'Hoje' : diasPassados + 'd atrás'})`;
+            const processo = cliente.processo || 'Não informado';
+            const andamento = cliente.ultimoAndamentoTexto || '';
+            const obs = cliente.obs || 'Nenhuma observação registrada.';
 
-            const badgeColor = pendente ? '#fca5a5' : '#6ee7b7';
-            const badgeBg = pendente ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)';
+            const badgeTexto = pendente
+                ? 'PENDENTE'
+                : `ATUALIZADO — ${diasPassados === 0 ? 'HOJE' : diasPassados + 'd'}`;
 
             card.innerHTML = `
                 <div class="card-header">
-                    <h3 title="${String(cliente.nome || '').replace(/"/g,'&quot;')}">${cliente.nome || 'Sem nome'}</h3>
-                    <span class="badge-tempo" style="color:${badgeColor};background:${badgeBg};">${badgeTexto}</span>
+                    <h3 title="${String(cliente.nome || '').replace(/"/g,'&quot;')}">
+                        ${cliente.nome || 'Sem nome'}
+                    </h3>
+
+                    <span class="badge-tempo"
+                        style="
+                            color:${pendente ? '#fca5a5' : '#6ee7b7'};
+                            background:${pendente ? 'rgba(239,68,68,.15)' : 'rgba(16,185,129,.15)'};
+                        ">
+                        ${badgeTexto}
+                    </span>
                 </div>
+
                 <div class="card-content">
                     <p><strong>CPF/CNPJ:</strong> ${cpf}</p>
                     <p><strong>Estado:</strong> ${estado}</p>
-                    <p style="word-break:break-all;"><strong>Processo:</strong> ${todosProcessos}</p>
+                    <p style="word-break:break-all;"><strong>Processo:</strong> ${processo}</p>
 
-                    <div class="queue-position">${renderFilaPosition(cliente,index,listaOrdenada.length)}</div>
+                    <div class="queue-position">
+                        ${pendente ? `Posição na fila: ${posicao + 1}` : 'Aguardando completar 10 dias'}
+                    </div>
 
                     <div class="card-observacao">
                         <strong>Observações Internas</strong>
-                        <p title="${String(textoObs).replace(/"/g,'&quot;')}">${textoObs}</p>
+                        <p>${obs}</p>
                     </div>
 
-                    ${textoAndamento ? `
-                    <div class="ultimo-andamento">
-                        <strong>Último Andamento Enviado</strong>
-                        <p title="${String(textoAndamento).replace(/"/g,'&quot;')}">${textoAndamento}</p>
-                    </div>` : `
-                    <div class="ultimo-andamento" style="opacity:.5;">
-                        <strong>Último Andamento Enviado</strong>
-                        <p style="font-style:italic;">Nenhum andamento registrado ainda no sistema.</p>
-                    </div>`}
+                    ${andamento ? `
+                        <div class="ultimo-andamento">
+                            <strong>Último Andamento Enviado</strong>
+                            <p>${andamento}</p>
+                        </div>
+                    ` : `
+                        <div class="ultimo-andamento" style="opacity:.5;">
+                            <strong>Último Andamento Enviado</strong>
+                            <p style="font-style:italic;">
+                                Nenhum andamento registrado ainda.
+                            </p>
+                        </div>
+                    `}
                 </div>
+
                 <div class="card-footer">
                     <div style="display:flex;gap:8px;">
                         <button class="btn ${pendente ? 'btn-blue' : 'btn-green'} btn-abrir-andamento">
                             💬 ${pendente ? 'Passar Andamento' : 'Novo Andamento'}
                         </button>
-                        <button class="btn ghost btn-status" style="width:auto;" title="Retirar da fila">⋮</button>
+
+                        <button class="btn ghost btn-retirar-fila"
+                            style="width:auto;"
+                            title="Retirar da fila">
+                            ⋮
+                        </button>
                     </div>
                 </div>
             `;
 
-            const btnAbrir = card.querySelector('.btn-abrir-andamento');
-            btnAbrir.onclick = e => {
+            card.querySelector('.btn-abrir-andamento').onclick = e => {
                 e.stopPropagation();
                 abrirModal(cliente);
             };
 
-            const btnStatus = card.querySelector('.btn-status');
-            btnStatus.onclick = async e => {
+            card.querySelector('.btn-retirar-fila').onclick = async e => {
                 e.stopPropagation();
+
                 const escolha = prompt(
-                    `Retirar "${cliente.nome}" da fila.\nDigite:\n1 = Revogado\n2 = Arquivado\n3 = Inadimplente\nou Cancelar.`
+                    `Retirar ${cliente.nome || 'cliente'} da fila.\n\n` +
+                    `1 - Revogado\n` +
+                    `2 - Arquivado\n` +
+                    `3 - Inadimplente\n\n` +
+                    `Cancelar = não alterar`
                 );
-                const mapa = { '1':'revogado', '2':'arquivado', '3':'inadimplente' };
-                if (mapa[escolha]) await alterarStatusFila(cliente, mapa[escolha]);
+
+                const mapa = {
+                    '1':'revogado',
+                    '2':'arquivado',
+                    '3':'inadimplente'
+                };
+
+                if(mapa[escolha]){
+                    await alterarStatusFila(cliente, mapa[escolha]);
+                }
             };
 
             card.onclick = () => abrirModal(cliente);
 
-            if (pendente) gridAberto.appendChild(card);
-            else gridConcluido.appendChild(card);
-        });
+            destino.appendChild(card);
+        };
+
+        pendentes.forEach((cliente,index) =>
+            desenhar(cliente, gridAberto, index)
+        );
+
+        atualizados.forEach((cliente,index) =>
+            desenhar(cliente, gridConcluido, index)
+        );
     }
 
     searchInput.oninput = renderCards;
-
-    const filaModoEl = document.getElementById('filaModo');
-    if (filaModoEl) {
-        filaModoEl.value = filaModo;
-        filaModoEl.onchange = () => {
-            filaModo = filaModoEl.value;
-            montarFila();
-            renderCards();
-        };
-    }
 
     /* ================= LOGIN ================= */
     onAuthStateChanged(auth, user => {
@@ -1264,7 +1298,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div style="display:flex; align-items:center; gap:12px;">
             <div style="font-size: 14px; color: rgba(255,255,255,0.7);">
                 <!-- <-- ALTERADO DE 5 PARA 10 DIAS -->
-                Fila automática: clientes com 10 dias sem andamento entram na fila; ao passar, vão para o final do ciclo.
+                Atualize clientes: Retornam para "Em Aberto" a cada 10 dias.
             </div>
             <button class="btn ghost" onclick="forcarAtualizacao()" title="Sincronizar dados com o servidor" style="width:auto; padding:10px 14px;">🔄 Sincronizar</button>
         </div>
@@ -1276,50 +1310,56 @@ document.addEventListener('DOMContentLoaded', () => {
 
     <section class="queue-dashboard">
         <div class="queue-stats">
+
             <div class="stat-card">
                 <div class="stat-label">Clientes na fila</div>
                 <div class="stat-value" id="statTotal">0</div>
-                <div class="stat-sub">não retirados do andamento</div>
+                <div class="stat-sub">clientes ativos no andamento</div>
             </div>
+
             <div class="stat-card">
                 <div class="stat-label">Faltam passar</div>
                 <div class="stat-value" id="statPendentes">0</div>
                 <div class="stat-sub">10 dias ou mais sem andamento</div>
             </div>
+
             <div class="stat-card">
                 <div class="stat-label">Já passaram</div>
-                <div class="stat-value" id="statPassados">0</div>
-                <div class="stat-sub">aguardando o próximo ciclo</div>
+                <div class="stat-value" id="statPassaram">0</div>
+                <div class="stat-sub">aguardando novo ciclo</div>
             </div>
+
             <div class="stat-card">
                 <div class="stat-label">Fora da fila</div>
                 <div class="stat-value" id="statExcluidos">0</div>
                 <div class="stat-sub">revogado, arquivado ou inadimplente</div>
             </div>
-        </div>
 
-        <div id="filaStatus" style="margin-top:8px;font-size:11px;color:rgba(255,255,255,.45);">
-            Carregando clientes do Firebase...
         </div>
 
         <div class="queue-toolbar">
-            <select id="filaModo" title="Ordenação da fila">
+            <select id="filaModo">
                 <option value="automatico">Fila automática — mais antigo primeiro</option>
-                <option value="inicio">Fila — início por data</option>
             </select>
+
             <span class="queue-note">
-                Ao passar o andamento, o cliente é colocado no fim do ciclo. Quando completar 10 dias, volta automaticamente para a fila de pendentes.
+                Ao passar o andamento, o cliente vai para o final da fila. Após 10 dias, volta para os pendentes.
             </span>
         </div>
 
         <div class="excluded-panel">
             <div class="excluded-panel-header">
-                <div class="excluded-title">Lista fixa — não precisam mais de andamento</div>
+                <div class="excluded-title">
+                    Lista fixa — não precisam mais de andamento
+                </div>
+
                 <div class="excluded-count" id="excludedCountBadge">0</div>
             </div>
+
             <div class="excluded-list" id="excludedList"></div>
         </div>
     </section>
+
 
     <div class="kanban-container">
         <main class="kanban" id="kanban">
