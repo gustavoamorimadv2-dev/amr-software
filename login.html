@@ -227,8 +227,9 @@ const appEscritorio2 = initializeApp(firebaseConfigEscritorio2, "escritorio2");
 const authEscritorio1 = getAuth(appEscritorio1);
 const authEscritorio2 = getAuth(appEscritorio2);
 
-// O banco abaixo continua sendo o banco do Escritório 1 para preservar
-// o fluxo já existente de pré-cadastro/convites dessa página.
+// E-mail e senha utilizam exclusivamente o Auth e o Firestore do DAP.
+// O login Google utiliza exclusivamente o Auth do RSW e abre a página
+// rodriguesamorim.html, que trabalha com o Firestore do projeto RSW.
 const dbEscritorio1 = getFirestore(appEscritorio1);
 
 const EMAIL_ADMIN_MESTRE = "gruponascimentoesouza@gmail.com";
@@ -273,6 +274,12 @@ function destinoEscritorio1(email) {
 
 function destinoEscritorio2() {
   return "rodriguesamorim.html";
+}
+
+function usuarioAutenticadoComGoogle(user) {
+  return Boolean(user?.providerData?.some(
+    (provider) => provider.providerId === "google.com"
+  ));
 }
 
 async function encerrarOutroAuth(auth) {
@@ -359,8 +366,16 @@ async function redirecionarSessaoExistente() {
     if (loginEmAndamento || redirecionamentoExecutado) return;
 
     const usuario1 = authEscritorio1.currentUser;
-    const usuario2 = authEscritorio2.currentUser;
+    let usuario2 = authEscritorio2.currentUser;
     const ultimoEscritorio = obterUltimoEscritorio();
+
+    // Versões antigas desta página permitiam e-mail/senha no RSW. Caso uma
+    // sessão antiga desse tipo ainda exista no navegador, ela é descartada.
+    // No RSW, esta tela aceita exclusivamente contas autenticadas pelo Google.
+    if (usuario2 && !usuarioAutenticadoComGoogle(usuario2)) {
+      await signOut(authEscritorio2);
+      usuario2 = null;
+    }
 
     if (usuario1 && usuario2) {
       if (ultimoEscritorio === "escritorio2") {
@@ -423,16 +438,6 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const credencial = await signInWithEmailAndPassword(authEscritorio1, email, senha);
       await encerrarOutroAuth(authEscritorio2);
-      return { sucesso: true, user: credencial.user };
-    } catch (error) {
-      return { sucesso: false, error };
-    }
-  }
-
-  async function loginNoEscritorio2(email, senha) {
-    try {
-      const credencial = await signInWithEmailAndPassword(authEscritorio2, email, senha);
-      await encerrarOutroAuth(authEscritorio1);
       return { sucesso: true, user: credencial.user };
     } catch (error) {
       return { sucesso: false, error };
@@ -571,7 +576,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // =====================================================
-    // 1) PRIMEIRO TENTA O AUTH DO ESCRITÓRIO 1
+    // E-MAIL E SENHA: SOMENTE AUTH + FIRESTORE DO DAP
+    // Nunca tenta essas credenciais no projeto RSW.
     // =====================================================
     const tentativa1 = await loginNoEscritorio1(email, senha);
 
@@ -581,26 +587,10 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Se foi um erro diferente de credencial, ainda tentamos o segundo Auth.
-    console.log("Escritório 1 não autenticou:", tentativa1.error);
+    console.log("DAP não autenticou:", tentativa1.error);
 
     // =====================================================
-    // 2) SE NÃO ACHOU NO PRIMEIRO, TENTA RSW-CONSULTORIA
-    // =====================================================
-    btnSubmit.innerText = "Verificando segundo escritório...";
-    const tentativa2 = await loginNoEscritorio2(email, senha);
-
-    if (tentativa2.sucesso) {
-      showToast("Login realizado com sucesso!");
-      redirecionarUmaVez(destinoEscritorio2(), "escritorio2");
-      return;
-    }
-
-    console.log("Escritório 2 não autenticou:", tentativa2.error);
-
-    // =====================================================
-    // 3) MANTÉM O FLUXO ANTIGO DO ADMIN MESTRE
-    //    SOMENTE NO ESCRITÓRIO 1
+    // MANTÉM O FLUXO ANTIGO DO ADMIN MESTRE NO DAP
     // =====================================================
     if (email === EMAIL_ADMIN_MESTRE && isErroCredencial(tentativa1.error)) {
       try {
@@ -636,10 +626,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // =====================================================
-    // 4) PRESERVA O FLUXO ANTIGO DE CONVITES DO ESCRITÓRIO 1
-    //    Só roda quando os dois Auths recusaram a credencial.
+    // PRESERVA O FLUXO DE CONVITES NO FIRESTORE DO DAP
+    // Só roda quando o Auth DAP recusa a credencial.
     // =====================================================
-    if (isErroCredencial(tentativa1.error) && isErroCredencial(tentativa2.error)) {
+    if (isErroCredencial(tentativa1.error)) {
       const convite = await tentarFluxoConviteEscritorio1(email, senha);
 
       if (convite.sucesso) {
@@ -657,16 +647,11 @@ document.addEventListener("DOMContentLoaded", () => {
         console.error("Erro no fluxo de convite:", convite.error);
       }
 
-      resetBotao("E-mail ou senha inválidos nos dois escritórios.");
+      resetBotao("E-mail ou senha inválidos.");
       return;
     }
 
-    // Se um dos projetos respondeu com erro técnico, mostramos uma mensagem genérica.
-    const erroTecnico = !isErroCredencial(tentativa1.error)
-      ? tentativa1.error
-      : tentativa2.error;
-
-    resetBotao("Erro no acesso: " + (erroTecnico?.message || "Não foi possível autenticar."));
+    resetBotao("Erro no acesso ao DAP: " + (tentativa1.error?.message || "Não foi possível autenticar."));
   });
 
   redirecionarSessaoExistente();
