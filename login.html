@@ -176,7 +176,6 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   onAuthStateChanged,
-  signOut,
   setPersistence,
   browserLocalPersistence,
   GoogleAuthProvider,
@@ -194,10 +193,11 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
 /* =========================================================
-   ESCRITÓRIO 1 - CONFIGURAÇÃO ATUAL
-   Mantém exatamente o Firebase que a página já utilizava.
+   FIREBASE ÚNICO - DAP
+   Todos os métodos de login e todo o banco desta página usam
+   exclusivamente este projeto.
    ========================================================= */
-const firebaseConfigEscritorio1 = {
+const firebaseConfigDAP = {
   apiKey: "AIzaSyAFJJAqVf3ge0WDHBpmS9E6sXKvnjuFkhw",
   authDomain: "dapapp-38637.firebaseapp.com",
   projectId: "dapapp-38637",
@@ -206,48 +206,22 @@ const firebaseConfigEscritorio1 = {
   appId: "1:628852295313:web:1234567890abcdef123456"
 };
 
-/* =========================================================
-   ESCRITÓRIO 2 - RSW CONSULTORIA
-   Auth do novo projeto usado pelo CRM rodriguesamorim.html.
-   ========================================================= */
-const firebaseConfigEscritorio2 = {
-  apiKey: "AIzaSyAVaWq65gTmrMH99a4QJHs8I8DoSpQbvFo",
-  authDomain: "rsw-consultoria.firebaseapp.com",
-  projectId: "rsw-consultoria",
-  storageBucket: "rsw-consultoria.firebasestorage.app",
-  messagingSenderId: "872728271248",
-  appId: "1:872728271248:web:d67949ed4fd7d1c0d87b15",
-  measurementId: "G-R9H446B3BX"
-};
-
-// Dois apps Firebase independentes na mesma página.
-const appEscritorio1 = initializeApp(firebaseConfigEscritorio1, "escritorio1");
-const appEscritorio2 = initializeApp(firebaseConfigEscritorio2, "escritorio2");
-
-const authEscritorio1 = getAuth(appEscritorio1);
-const authEscritorio2 = getAuth(appEscritorio2);
-
-// E-mail e senha utilizam exclusivamente o Auth e o Firestore do DAP.
-// O login Google utiliza exclusivamente o Auth do RSW e abre a página
-// rodriguesamorim.html, que trabalha com o Firestore do projeto RSW.
-const dbEscritorio1 = getFirestore(appEscritorio1);
+// Usa o app Firebase PADRÃO. Isso é essencial para que a sessão criada aqui
+// seja reconhecida pelas páginas internas do CRM, que também usam o app padrão.
+const appDAP = initializeApp(firebaseConfigDAP);
+const authDAP = getAuth(appDAP);
+const dbDAP = getFirestore(appDAP);
 
 const EMAIL_ADMIN_MESTRE = "gruponascimentoesouza@gmail.com";
-const CHAVE_ULTIMO_ESCRITORIO = "crm_ultimo_escritorio";
 
 // Estas travas impedem que a restauração automática das sessões e um login
 // iniciado pelo usuário tentem redirecionar a página ao mesmo tempo.
 let loginEmAndamento = false;
 let redirecionamentoExecutado = false;
 
-/* =========================================================
-   GOOGLE - RSW CONSULTORIA
-   O botão Google autentica no segundo projeto (rsw-consultoria).
-   Isso mantém o Auth antigo intacto e evita criar usuários Google
-   acidentalmente no Firebase do primeiro escritório.
-   ========================================================= */
-const googleProviderEscritorio2 = new GoogleAuthProvider();
-googleProviderEscritorio2.setCustomParameters({
+/* GOOGLE TAMBÉM AUTENTICA EXCLUSIVAMENTE NO DAP. */
+const googleProviderDAP = new GoogleAuthProvider();
+googleProviderDAP.setCustomParameters({
   prompt: "select_account"
 });
 
@@ -265,64 +239,24 @@ function isErroCredencial(error) {
   );
 }
 
-function destinoEscritorio1(email) {
+function destinoDAP(email) {
   if ((email || "").toLowerCase() === EMAIL_ADMIN_MESTRE) {
     return "adm.html";
   }
   return "index.html";
 }
 
-function destinoEscritorio2() {
-  return "rodriguesamorim.html";
-}
-
-function usuarioAutenticadoComGoogle(user) {
-  return Boolean(user?.providerData?.some(
-    (provider) => provider.providerId === "google.com"
-  ));
-}
-
-async function encerrarOutroAuth(auth) {
-  try {
-    if (auth.currentUser) {
-      await signOut(auth);
-    }
-  } catch (e) {
-    console.warn("Não foi possível limpar a outra sessão Firebase:", e);
-  }
-}
-
 /* =========================================================
    AUTO-REDIRECIONAMENTO
-   Primeiro aguarda os dois Firebase Auth restaurarem completamente
-   as sessões persistidas. Só depois decide se deve redirecionar.
+   Aguarda o Firebase Auth DAP restaurar completamente a sessão.
+   Só depois decide se deve redirecionar.
    Isso evita o ciclo visual "login > CRM > login".
    ========================================================= */
-function salvarUltimoEscritorio(escritorio) {
-  try {
-    localStorage.setItem(CHAVE_ULTIMO_ESCRITORIO, escritorio);
-  } catch (e) {
-    console.warn("Não foi possível salvar a preferência de acesso:", e);
-  }
-}
-
-function obterUltimoEscritorio() {
-  try {
-    return localStorage.getItem(CHAVE_ULTIMO_ESCRITORIO);
-  } catch (e) {
-    return null;
-  }
-}
-
-function redirecionarUmaVez(destino, escritorio) {
+function redirecionarUmaVez(destino) {
   if (redirecionamentoExecutado) return;
 
   redirecionamentoExecutado = true;
   loginEmAndamento = true;
-
-  if (escritorio) {
-    salvarUltimoEscritorio(escritorio);
-  }
 
   window.location.replace(destino);
 }
@@ -349,52 +283,22 @@ function aguardarEstadoInicial(auth) {
   });
 }
 
-const autenticacoesProntas = Promise.all([
-  setPersistence(authEscritorio1, browserLocalPersistence),
-  setPersistence(authEscritorio2, browserLocalPersistence)
-]).then(() => Promise.all([
-  aguardarEstadoInicial(authEscritorio1),
-  aguardarEstadoInicial(authEscritorio2)
-]));
+const autenticacaoPronta = setPersistence(authDAP, browserLocalPersistence)
+  .then(() => aguardarEstadoInicial(authDAP));
 
 async function redirecionarSessaoExistente() {
   try {
-    await autenticacoesProntas;
+    await autenticacaoPronta;
 
     // Se o usuário já apertou Entrar, somente o fluxo do formulário pode
     // escolher o destino. A restauração automática não interfere mais.
     if (loginEmAndamento || redirecionamentoExecutado) return;
 
-    const usuario1 = authEscritorio1.currentUser;
-    let usuario2 = authEscritorio2.currentUser;
-    const ultimoEscritorio = obterUltimoEscritorio();
+    const usuario = authDAP.currentUser;
 
-    // Versões antigas desta página permitiam e-mail/senha no RSW. Caso uma
-    // sessão antiga desse tipo ainda exista no navegador, ela é descartada.
-    // No RSW, esta tela aceita exclusivamente contas autenticadas pelo Google.
-    if (usuario2 && !usuarioAutenticadoComGoogle(usuario2)) {
-      await signOut(authEscritorio2);
-      usuario2 = null;
-    }
-
-    if (usuario1 && usuario2) {
-      if (ultimoEscritorio === "escritorio2") {
-        redirecionarUmaVez(destinoEscritorio2(), "escritorio2");
-      } else {
-        const email = (usuario1.email || "").toLowerCase();
-        redirecionarUmaVez(destinoEscritorio1(email), "escritorio1");
-      }
-      return;
-    }
-
-    if (usuario1) {
-      const email = (usuario1.email || "").toLowerCase();
-      redirecionarUmaVez(destinoEscritorio1(email), "escritorio1");
-      return;
-    }
-
-    if (usuario2) {
-      redirecionarUmaVez(destinoEscritorio2(), "escritorio2");
+    if (usuario) {
+      const email = (usuario.email || "").toLowerCase();
+      redirecionarUmaVez(destinoDAP(email));
     }
   } catch (error) {
     console.error("Não foi possível restaurar a sessão:", error);
@@ -434,22 +338,21 @@ document.addEventListener("DOMContentLoaded", () => {
     if (btnGoogle) btnGoogle.disabled = false;
   }
 
-  async function loginNoEscritorio1(email, senha) {
+  async function loginNoDAP(email, senha) {
     try {
-      const credencial = await signInWithEmailAndPassword(authEscritorio1, email, senha);
-      await encerrarOutroAuth(authEscritorio2);
+      const credencial = await signInWithEmailAndPassword(authDAP, email, senha);
       return { sucesso: true, user: credencial.user };
     } catch (error) {
       return { sucesso: false, error };
     }
   }
 
-  async function tentarFluxoConviteEscritorio1(email, senha) {
+  async function tentarFluxoConviteDAP(email, senha) {
     try {
       btnSubmit.innerText = "Verificando convite...";
 
       const qPre = query(
-        collection(dbEscritorio1, "pre_cadastros"),
+        collection(dbDAP, "pre_cadastros"),
         where("email", "==", email),
         where("senhaPadrao", "==", senha)
       );
@@ -466,17 +369,16 @@ document.addEventListener("DOMContentLoaded", () => {
       showToast("Configurando seu primeiro acesso...");
       btnSubmit.innerText = "Criando conta...";
 
-      const userCredential = await createUserWithEmailAndPassword(authEscritorio1, email, senha);
+      const userCredential = await createUserWithEmailAndPassword(authDAP, email, senha);
       const novoUid = userCredential.user.uid;
 
-      await setDoc(doc(dbEscritorio1, "funcionarios", novoUid), {
+      await setDoc(doc(dbDAP, "funcionarios", novoUid), {
         nome: dadosFunc.nome || "Usuário",
         email: email,
         criadoEm: new Date().toISOString()
       });
 
-      await deleteDoc(doc(dbEscritorio1, "pre_cadastros", docDados.id));
-      await encerrarOutroAuth(authEscritorio2);
+      await deleteDoc(doc(dbDAP, "pre_cadastros", docDados.id));
 
       return { sucesso: true, user: userCredential.user };
 
@@ -485,7 +387,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  async function loginGoogleEscritorio2() {
+  async function loginGoogleDAP() {
     errorMsg.style.display = "none";
 
     if (!btnGoogle || loginEmAndamento || redirecionamentoExecutado) return;
@@ -498,16 +400,13 @@ document.addEventListener("DOMContentLoaded", () => {
     btnGoogle.textContent = "Abrindo Google...";
 
     try {
-      await autenticacoesProntas;
+      await autenticacaoPronta;
 
-      // IMPORTANTE: Google entra somente no Auth do RSW Consultoria.
+      // Google entra no mesmo Auth DAP usado pelo e-mail e senha.
       const resultado = await signInWithPopup(
-        authEscritorio2,
-        googleProviderEscritorio2
+        authDAP,
+        googleProviderDAP
       );
-
-      // Garante que não fique uma sessão antiga do outro escritório ativa.
-      await encerrarOutroAuth(authEscritorio1);
 
       const emailGoogle = (resultado.user?.email || "").toLowerCase();
       showToast(emailGoogle
@@ -515,9 +414,7 @@ document.addEventListener("DOMContentLoaded", () => {
         : "Login com Google realizado com sucesso!"
       );
 
-      // Usa exatamente a mesma sessão 'escritorio2' que
-      // rodriguesamorim.html reconhece.
-      redirecionarUmaVez(destinoEscritorio2(), "escritorio2");
+      redirecionarUmaVez(destinoDAP(emailGoogle));
 
     } catch (error) {
       console.error("Erro no login Google:", error);
@@ -531,7 +428,7 @@ document.addEventListener("DOMContentLoaded", () => {
       } else if (code.includes("unauthorized-domain")) {
         errorMsg.innerText = "Este domínio ainda não está autorizado no Firebase Authentication. Adicione o domínio do CRM em Authentication > Configurações > Domínios autorizados.";
       } else if (code.includes("operation-not-allowed")) {
-        errorMsg.innerText = "O login Google não está habilitado neste projeto Firebase.";
+        errorMsg.innerText = "O login Google não está habilitado no projeto DAP.";
       } else if (code.includes("account-exists-with-different-credential")) {
         errorMsg.innerText = "Este e-mail já possui outra forma de login. Entre primeiro com e-mail e senha.";
       } else {
@@ -547,7 +444,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   if (btnGoogle) {
-    btnGoogle.addEventListener("click", loginGoogleEscritorio2);
+    btnGoogle.addEventListener("click", loginGoogleDAP);
   }
 
   form.addEventListener("submit", async (e) => {
@@ -565,10 +462,10 @@ document.addEventListener("DOMContentLoaded", () => {
     btnSubmit.disabled = true;
     if (btnGoogle) btnGoogle.disabled = true;
 
-    // Não inicia nenhuma tentativa enquanto os dois Auths ainda estiverem
-    // restaurando sessões antigas do navegador.
+    // Não inicia a tentativa enquanto o Auth DAP estiver restaurando
+    // a sessão persistida no navegador.
     try {
-      await autenticacoesProntas;
+      await autenticacaoPronta;
     } catch (error) {
       console.error("Erro ao preparar o Firebase Authentication:", error);
       resetBotao("Não foi possível iniciar a autenticação. Atualize a página e tente novamente.");
@@ -577,13 +474,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // =====================================================
     // E-MAIL E SENHA: SOMENTE AUTH + FIRESTORE DO DAP
-    // Nunca tenta essas credenciais no projeto RSW.
+    // Nunca tenta essas credenciais em outro projeto Firebase.
     // =====================================================
-    const tentativa1 = await loginNoEscritorio1(email, senha);
+    const tentativa1 = await loginNoDAP(email, senha);
 
     if (tentativa1.sucesso) {
       showToast("Login realizado com sucesso!");
-      redirecionarUmaVez(destinoEscritorio1(email), "escritorio1");
+      redirecionarUmaVez(destinoDAP(email));
       return;
     }
 
@@ -597,22 +494,21 @@ document.addEventListener("DOMContentLoaded", () => {
         btnSubmit.innerText = "Criando conta Admin...";
 
         const userCredential = await createUserWithEmailAndPassword(
-          authEscritorio1,
+          authDAP,
           email,
           senha
         );
 
         const novoUid = userCredential.user.uid;
 
-        await setDoc(doc(dbEscritorio1, "funcionarios", novoUid), {
+        await setDoc(doc(dbDAP, "funcionarios", novoUid), {
           nome: "Administrador Mestre",
           email: email,
           criadoEm: new Date().toISOString()
         });
 
-        await encerrarOutroAuth(authEscritorio2);
         showToast("Conta Mestre configurada! Redirecionando...");
-        redirecionarUmaVez("adm.html", "escritorio1");
+        redirecionarUmaVez("adm.html");
         return;
 
       } catch (adminErr) {
@@ -630,11 +526,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // Só roda quando o Auth DAP recusa a credencial.
     // =====================================================
     if (isErroCredencial(tentativa1.error)) {
-      const convite = await tentarFluxoConviteEscritorio1(email, senha);
+      const convite = await tentarFluxoConviteDAP(email, senha);
 
       if (convite.sucesso) {
         showToast("Tudo pronto! Redirecionando...");
-        redirecionarUmaVez("index.html", "escritorio1");
+        redirecionarUmaVez("index.html");
         return;
       }
 
