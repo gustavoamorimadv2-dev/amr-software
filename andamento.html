@@ -468,135 +468,8 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     font-weight: 500;
 }
 
-/* ===== PAINEL DE FILA DE ANDAMENTO ===== */
-.queue-dashboard{
-    padding:16px 30px 0;
-    flex-shrink:0;
-}
-.queue-stats{
-    display:grid;
-    grid-template-columns:repeat(4,minmax(160px,1fr));
-    gap:12px;
-}
-.stat-card{
-    background:rgba(255,255,255,.06);
-    border:1px solid rgba(255,255,255,.08);
-    border-radius:14px;
-    padding:13px 15px;
-}
-.stat-label{
-    font-size:10px;
-    color:rgba(255,255,255,.58);
-    text-transform:uppercase;
-    letter-spacing:.6px;
-    font-weight:800;
-}
-.stat-value{
-    font-size:25px;
-    font-weight:800;
-    margin-top:4px;
-}
-.stat-sub{
-    font-size:10px;
-    color:rgba(255,255,255,.5);
-    margin-top:2px;
-}
-.queue-toolbar{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    margin-top:10px;
-}
-.queue-toolbar select{
-    padding:9px 11px;
-    background:rgba(255,255,255,.08);
-    border:1px solid rgba(255,255,255,.1);
-    border-radius:10px;
-    color:#fff;
-    outline:none;
-}
-.queue-toolbar select option{
-    background:#111827;
-    color:#fff;
-}
-.queue-note{
-    font-size:11px;
-    color:rgba(255,255,255,.52);
-}
-.excluded-panel{
-    margin-top:10px;
-    padding:11px 13px;
-    border-radius:14px;
-    background:rgba(245,158,11,.07);
-    border:1px solid rgba(245,158,11,.2);
-}
-.excluded-panel-header{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-}
-.excluded-title{
-    font-size:11px;
-    font-weight:800;
-    text-transform:uppercase;
-    letter-spacing:.6px;
-}
-.excluded-count{
-    padding:4px 8px;
-    border-radius:8px;
-    background:rgba(245,158,11,.15);
-    color:#fcd34d;
-    font-size:10px;
-    font-weight:800;
-}
-.excluded-list{
-    display:flex;
-    gap:8px;
-    overflow-x:auto;
-    padding-top:9px;
-}
-.excluded-list:empty{
-    display:none;
-}
-.excluded-chip{
-    min-width:180px;
-    padding:8px 9px;
-    border-radius:9px;
-    background:rgba(0,0,0,.18);
-    border:1px solid rgba(255,255,255,.07);
-}
-.excluded-chip strong{
-    display:block;
-    font-size:11px;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-}
-.excluded-chip span{
-    display:block;
-    margin-top:3px;
-    font-size:9px;
-    color:rgba(255,255,255,.5);
-}
-.excluded-chip select{
-    width:100%;
-    margin-top:6px;
-    padding:5px;
-    border-radius:6px;
-    background:#111827;
-    color:#fff;
-    border:1px solid rgba(255,255,255,.1);
-    font-size:9px;
-}
-.queue-position{
-    font-size:10px;
-    color:rgba(255,255,255,.45);
-    margin-top:7px;
-}
-@media(max-width:900px){
-    .queue-stats{grid-template-columns:repeat(2,minmax(140px,1fr));}
-    .queue-dashboard{padding-left:15px;padding-right:15px;}
-}
+/* ===== FILA DE ANDAMENTO — ADIÇÃO SEM ALTERAR A ESTRUTURA EXISTENTE ===== */
+.queue-panel{padding:14px 30px 0;flex-shrink:0}.queue-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.queue-stat{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 14px}.queue-stat-label{font-size:10px;text-transform:uppercase;font-weight:800;letter-spacing:.5px;color:rgba(255,255,255,.55)}.queue-stat-value{font-size:24px;font-weight:800;margin-top:3px}.queue-stat-sub{font-size:10px;color:rgba(255,255,255,.45);margin-top:2px}.queue-controls{display:flex;align-items:center;gap:9px;margin-top:9px}.queue-controls select{background:rgba(255,255,255,.07);color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:8px 10px;outline:none}.queue-controls option{background:#111827;color:#fff}.queue-help{font-size:11px;color:rgba(255,255,255,.48)}.queue-fixed{margin-top:9px;padding:10px 12px;border:1px solid rgba(245,158,11,.22);background:rgba(245,158,11,.055);border-radius:12px}.queue-fixed-head{display:flex;align-items:center;justify-content:space-between}.queue-fixed-title{font-size:10px;text-transform:uppercase;font-weight:800;letter-spacing:.5px}.queue-fixed-count{font-size:10px;padding:3px 7px;border-radius:7px;background:rgba(245,158,11,.15);color:#fcd34d}.queue-fixed-list{display:flex;gap:7px;overflow-x:auto;margin-top:8px}.queue-fixed-item{min-width:175px;padding:7px 8px;border-radius:8px;background:rgba(0,0,0,.16);border:1px solid rgba(255,255,255,.06)}.queue-fixed-item strong{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.queue-fixed-item span{display:block;font-size:9px;color:rgba(255,255,255,.48);margin-top:2px}.queue-fixed-item select{width:100%;margin-top:5px;padding:4px 5px;background:#111827;color:#fff;border:1px solid rgba(255,255,255,.1);border-radius:6px;font-size:9px}.queue-pos{font-size:10px;color:rgba(255,255,255,.42);margin-top:7px}.queue-pass-button{display:flex;gap:7px}.queue-status-button{width:auto!important;padding-left:10px!important;padding-right:10px!important}.queue-empty{padding:25px;text-align:center;color:rgba(255,255,255,.4);font-size:12px}@media(max-width:900px){.queue-stats{grid-template-columns:repeat(2,1fr)}.queue-panel{padding-left:15px;padding-right:15px}}
 
 </style>
 
@@ -654,15 +527,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let clientesFechados = [];
     let clienteSelecionado = null;
 
-    const STATUS_EXCLUIDOS = {
-        revogado: 'Revogado',
-        arquivado: 'Arquivado',
-        inadimplente: 'Inadimplente'
-    };
-
-    let filaModo = 'automatico';
-    let clientesExcluidos = [];
-    let filaAtiva = []; 
+    // Fila: os campos abaixo são adicionados somente aos documentos quando o
+    // cliente passa pelo andamento. O restante do CRM continua intacto.
+    let filaRetornoModo = 'final';
+    let filaAtiva = [];
+    let clientesForaFila = [];
 
     if(sidebar){
         sidebar.addEventListener('mouseenter', () => sidebar.classList.add('expanded'));
@@ -875,6 +744,126 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
 
+
+    function statusFila(cliente){
+        const valor = String(cliente.statusAndamento || '').trim().toLowerCase();
+        return ['revogado','arquivado','inadimplente'].includes(valor) ? valor : '';
+    }
+
+    function estaForaDaFila(cliente){ return !!statusFila(cliente); }
+
+    function numeroFila(cliente, fallback){
+        const n = Number(cliente.filaOrdem);
+        return Number.isFinite(n) && n > 0 ? n : fallback;
+    }
+
+    function montarFila(){
+        clientesForaFila = clientesFechados.filter(estaForaDaFila);
+        const ativos = clientesFechados.filter(c => !estaForaDaFila(c));
+
+        // A primeira carga usa a ordem que já veio do sistema. Depois que um
+        // cliente passa, filaOrdem recebe o maior número + 1, portanto ele
+        // nunca volta para a posição antiga.
+        filaAtiva = ativos.map((c,i) => ({cliente:c,ordem:numeroFila(c,i+1)}));
+        filaAtiva.sort((a,b) => a.ordem - b.ordem);
+        filaAtiva = filaAtiva.map(x => x.cliente);
+    }
+
+    function clienteEstaPendente(cliente){
+        return calcularDiasAndamento(cliente.dataUltimoAndamento) >= 10;
+    }
+
+    function ordemParaFila(cliente, index){
+        const temPassagem = !!cliente.filaUltimaPassagem;
+        const pendente = clienteEstaPendente(cliente);
+
+        // Sem passagem anterior: mantém a ordem inicial.
+        if(!temPassagem) return numeroFila(cliente,index+1);
+
+        // Se já passou e ainda está no ciclo de 10 dias, permanece atrás dos
+        // clientes que precisam ser atendidos.
+        if(!pendente) return numeroFila(cliente,index+1);
+
+        // Ao completar 10 dias ele entra novamente na fila. No modo FINAL,
+        // clientes que estão retornando ficam depois dos que ainda não passaram.
+        // No modo INÍCIO, entram antes.
+        const base = numeroFila(cliente,index+1);
+        if(filaRetornoModo === 'inicio') return -1000000000 + base;
+        return 1000000000 + base;
+    }
+
+    function montarFilaOrdenada(){
+        const itens = filaAtiva.map((cliente,index) => ({
+            cliente,
+            ordem: ordemParaFila(cliente,index),
+            pendente: clienteEstaPendente(cliente)
+        }));
+
+        // Primeiro os que precisam de andamento; depois os que já passaram.
+        // Dentro dos pendentes, respeita a posição mecânica da fila.
+        itens.sort((a,b) => {
+            if(a.pendente !== b.pendente) return a.pendente ? -1 : 1;
+            return a.ordem - b.ordem;
+        });
+
+        return itens;
+    }
+
+    function atualizarPainelFila(){
+        const ativos = clientesFechados.filter(c => !estaForaDaFila(c));
+        const pendentes = ativos.filter(clienteEstaPendente);
+        const passaram = ativos.length - pendentes.length;
+
+        const total = document.getElementById('queueTotal');
+        const faltam = document.getElementById('queueFaltam');
+        const passaramEl = document.getElementById('queuePassaram');
+        const fora = document.getElementById('queueFora');
+        const fixedCount = document.getElementById('queueFixedCount');
+
+        if(total) total.textContent = ativos.length;
+        if(faltam) faltam.textContent = pendentes.length;
+        if(passaramEl) passaramEl.textContent = passaram;
+        if(fora) fora.textContent = clientesForaFila.length;
+        if(fixedCount) fixedCount.textContent = clientesForaFila.length;
+
+        const lista = document.getElementById('queueFixedList');
+        if(!lista) return;
+        lista.innerHTML = '';
+
+        clientesForaFila.slice().sort((a,b) => String(a.nome||'').localeCompare(String(b.nome||''))).forEach(cliente => {
+            const item = document.createElement('div');
+            item.className = 'queue-fixed-item';
+            item.innerHTML = `<strong title="${String(cliente.nome||'').replace(/"/g,'&quot;')}">${cliente.nome || 'Sem nome'}</strong><span>${cliente.processo || cliente.cpf || 'Sem identificação'}</span>`;
+            const select = document.createElement('select');
+            select.innerHTML = `<option value="revogado">Revogado</option><option value="arquivado">Arquivado</option><option value="inadimplente">Inadimplente</option><option value="">Voltar para fila</option>`;
+            select.value = statusFila(cliente);
+            select.onchange = async () => await alterarStatusFila(cliente,select.value);
+            item.appendChild(select);
+            lista.appendChild(item);
+        });
+    }
+
+    async function alterarStatusFila(cliente,novoStatus){
+        try{
+            const patch = {statusAndamento: novoStatus || ''};
+            await updateDoc(doc(db,'clientes',cliente.id),patch);
+            Object.assign(cliente,patch);
+            await atualizarCachesAposGravacao(cliente.id,patch);
+            montarFila();
+            renderCards();
+            showToast(novoStatus ? `Cliente marcado como ${novoStatus}.` : 'Cliente voltou para a fila.');
+        }catch(error){
+            console.error('Erro ao alterar status da fila:',error);
+            showToast('Erro ao alterar o status da fila.');
+        }
+    }
+
+    function marcarFilaRetorno(){
+        const select = document.getElementById('filaRetornoModo');
+        if(select) filaRetornoModo = select.value || 'final';
+        renderCards();
+    }
+
     function calcularDiasAndamento(dataAndamento) {
         if (!dataAndamento) return 999; 
         const data1 = new Date(dataAndamento);
@@ -899,7 +888,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (cacheAnterior) {
                     timestampBaseCache = cacheAnterior.timestamp;
                     clientesFechados = cacheAnterior.data;
-                    montarFila();
                     renderCards();
                     return;
                 }
@@ -908,7 +896,6 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const resultado = await executarCargaProtegida(forcarServidor);
                 clientesFechados = resultado.lista;
-                montarFila();
                 renderCards();
                 if (resultado.origem === 'servidor' && forcarServidor) {
                     showToast('Dados sincronizados com o servidor!');
@@ -919,7 +906,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (fallback) {
                     timestampBaseCache = fallback.timestamp;
                     clientesFechados = fallback.data;
-                    montarFila();
                     renderCards();
                     showToast('Servidor indisponível. Exibindo dados do cache local.');
                     return;
@@ -950,10 +936,9 @@ document.addEventListener('DOMContentLoaded', () => {
             <p><strong>Estado:</strong> ${cliente.estado || 'Não informado'}</p>
             <p><strong>Classe:</strong> ${cliente.classe || 'Não informado'}</p>
             <p style="grid-column: span 2; word-break: break-all;"><strong>Processo(s):</strong> ${cliente.processo || 'Não informado'}</p>
-            <p style="grid-column:span 2;">
+            <p style="grid-column: span 2;">
                 <strong>Status da fila:</strong>
-                <select id="modalStatusFila"
-                    style="margin-left:8px;padding:6px 8px;background:#111827;color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:7px;">
+                <select id="modalStatusFila" style="margin-left:8px;padding:5px 7px;background:#111827;color:#fff;border:1px solid rgba(255,255,255,.15);border-radius:7px;">
                     <option value="">Na fila</option>
                     <option value="revogado">Revogado</option>
                     <option value="arquivado">Arquivado</option>
@@ -965,12 +950,10 @@ document.addEventListener('DOMContentLoaded', () => {
         modalBackdrop.style.display = 'flex';
 
         const statusSelect = document.getElementById('modalStatusFila');
-
         if(statusSelect){
             statusSelect.value = statusFila(cliente);
-
             statusSelect.onchange = async () => {
-                await alterarStatusFila(cliente, statusSelect.value);
+                await alterarStatusFila(cliente,statusSelect.value);
                 modalBackdrop.style.display = 'none';
                 clienteSelecionado = null;
             };
@@ -1041,11 +1024,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const dataAgora = new Date().toISOString();
             const docRef = doc(db, "clientes", clienteSelecionado.id);
-            await updateDoc(docRef, {
+            // Sempre que passa, recebe uma nova posição no FINAL da fila.
+            // Isso é o que impede o cliente de voltar para o mesmo lugar.
+            const maiorOrdem = clientesFechados.reduce((maior,c) => {
+                const n = Number(c.filaOrdem);
+                return Number.isFinite(n) ? Math.max(maior,n) : maior;
+            }, clientesFechados.length);
+            const novaFilaOrdem = maiorOrdem + 1;
+
+            await updateDoc(docRef, { 
                 dataUltimoAndamento: dataAgora,
                 ultimoAndamentoTexto: mensagemFinal,
                 obs: novaObs,
                 statusAndamento: '',
+                filaOrdem: novaFilaOrdem,
                 filaUltimaPassagem: dataAgora,
                 filaUltimaPassagemPor: currentUser?.email || ''
             });
@@ -1053,7 +1045,11 @@ document.addEventListener('DOMContentLoaded', () => {
             await atualizarCachesAposGravacao(clienteSelecionado.id, {
                 dataUltimoAndamento: dataAgora,
                 ultimoAndamentoTexto: mensagemFinal,
-                obs: novaObs
+                obs: novaObs,
+                statusAndamento: '',
+                filaOrdem: novaFilaOrdem,
+                filaUltimaPassagem: dataAgora,
+                filaUltimaPassagemPor: currentUser?.email || ''
             });
 
             const waUrl = `https://wa.me/55${numeroLimpo}?text=${encodeURIComponent(mensagemFinal)}`;
@@ -1076,174 +1072,87 @@ document.addEventListener('DOMContentLoaded', () => {
         montarFila();
         atualizarPainelFila();
 
-        colAberto.innerHTML = `
-            <h2>FILA — CLIENTES QUE PRECISAM DE ANDAMENTO</h2>
-            <div class="cards-grid" id="grid-aberto"></div>
-        `;
-
-        colConcluido.innerHTML = `
-            <h2>JÁ PASSARAM — AGUARDANDO 10 DIAS</h2>
-            <div class="cards-grid" id="grid-concluido"></div>
-        `;
+        colAberto.innerHTML = `<h2>ANDAMENTOS EM ABERTO — FILA DE ATENDIMENTO</h2><div class="cards-grid" id="grid-aberto"></div>`;
+        colConcluido.innerHTML = `<h2>JÁ PASSARAM — AGUARDANDO 10 DIAS</h2><div class="cards-grid" id="grid-concluido"></div>`;
 
         const gridAberto = document.getElementById('grid-aberto');
         const gridConcluido = document.getElementById('grid-concluido');
-
-        const qTexto = (searchInput.value || '').toLowerCase();
+        const rawQ = searchInput.value || '';
+        const qTexto = rawQ.toLowerCase();
 
         let processoExiste = false;
-        const cleanQ = (searchInput.value || '')
-            .replace(/[^a-zA-Z0-9]/g,'')
-            .toLowerCase();
-
+        const cleanQ = rawQ.replace(/[^a-zA-Z0-9]/g,'').toLowerCase();
         if(cleanQ){
             processoExiste = clientesFechados.some(c => {
                 if(!c.processo) return false;
-
-                return String(c.processo)
-                    .split(',')
-                    .map(p => p.replace(/[^a-zA-Z0-9]/g,'').toLowerCase())
-                    .includes(cleanQ);
+                return String(c.processo).split(',').map(p => p.replace(/[^a-zA-Z0-9]/g,'').toLowerCase()).includes(cleanQ);
             });
         }
-
         searchInput.style.color = processoExiste ? '#ef4444' : '#fff';
         searchInput.style.fontWeight = processoExiste ? '600' : 'normal';
 
-        const pendentes = filaAtiva.filter(c =>
-            calcularDiasAndamento(c.dataUltimoAndamento) >= 10
-        );
+        const ordenados = montarFilaOrdenada();
+        let pendenteCount = 0;
 
-        const atualizados = filaAtiva.filter(c =>
-            calcularDiasAndamento(c.dataUltimoAndamento) < 10
-        );
+        ordenados.forEach((item,index) => {
+            const cliente = item.cliente;
+            const pendente = item.pendente;
+            if(pendente) pendenteCount++;
 
-        const desenhar = (cliente, destino, posicao) => {
-            const matchNome = cliente.nome &&
-                String(cliente.nome).toLowerCase().includes(qTexto);
-
-            const matchCpf = cliente.cpf &&
-                String(cliente.cpf).toLowerCase().includes(qTexto);
-
-            const matchProcesso = cliente.processo &&
-                String(cliente.processo).toLowerCase().includes(qTexto);
-
+            const matchNome = cliente.nome && String(cliente.nome).toLowerCase().includes(qTexto);
+            const matchCpf = cliente.cpf && String(cliente.cpf).toLowerCase().includes(qTexto);
+            const matchProcesso = cliente.processo && String(cliente.processo).toLowerCase().includes(qTexto);
             if(qTexto && !(matchNome || matchCpf || matchProcesso)) return;
 
             const diasPassados = calcularDiasAndamento(cliente.dataUltimoAndamento);
-            const pendente = diasPassados >= 10;
-
             const card = document.createElement('div');
             card.className = `card ${pendente ? 'aberto' : 'concluido'}`;
 
             const cpf = cliente.cpf || 'Não informado';
             const estado = cliente.estado || 'Não informado';
-            const processo = cliente.processo || 'Não informado';
-            const andamento = cliente.ultimoAndamentoTexto || '';
-            const obs = cliente.obs || 'Nenhuma observação registrada.';
+            const todosProcessos = cliente.processo || 'Não informado';
+            const textoAndamento = cliente.ultimoAndamentoTexto || '';
+            const textoObs = cliente.obs || 'Nenhuma observação registrada.';
+            const posicao = pendente ? ordenados.filter(x => x.pendente).findIndex(x => x.cliente.id === cliente.id) + 1 : 0;
 
-            const badgeTexto = pendente
-                ? 'PENDENTE'
-                : `ATUALIZADO — ${diasPassados === 0 ? 'HOJE' : diasPassados + 'd'}`;
+            const badgeTexto = pendente ? `Falta passar — ${diasPassados}d` : `Já passou — ${diasPassados === 0 ? 'hoje' : diasPassados + 'd'}`;
+            const badgeColor = pendente ? '#fca5a5' : '#6ee7b7';
+            const badgeBg = pendente ? 'rgba(239,68,68,.15)' : 'rgba(16,185,129,.15)';
 
             card.innerHTML = `
                 <div class="card-header">
-                    <h3 title="${String(cliente.nome || '').replace(/"/g,'&quot;')}">
-                        ${cliente.nome || 'Sem nome'}
-                    </h3>
-
-                    <span class="badge-tempo"
-                        style="
-                            color:${pendente ? '#fca5a5' : '#6ee7b7'};
-                            background:${pendente ? 'rgba(239,68,68,.15)' : 'rgba(16,185,129,.15)'};
-                        ">
-                        ${badgeTexto}
-                    </span>
+                    <h3 title="${String(cliente.nome||'').replace(/"/g,'&quot;')}">${cliente.nome || 'Sem nome'}</h3>
+                    <span class="badge-tempo" style="color:${badgeColor};background:${badgeBg};">${badgeTexto}</span>
                 </div>
-
                 <div class="card-content">
                     <p><strong>CPF/CNPJ:</strong> ${cpf}</p>
                     <p><strong>Estado:</strong> ${estado}</p>
-                    <p style="word-break:break-all;"><strong>Processo:</strong> ${processo}</p>
-
-                    <div class="queue-position">
-                        ${pendente ? `Posição na fila: ${posicao + 1}` : 'Aguardando completar 10 dias'}
-                    </div>
-
-                    <div class="card-observacao">
-                        <strong>Observações Internas</strong>
-                        <p>${obs}</p>
-                    </div>
-
-                    ${andamento ? `
-                        <div class="ultimo-andamento">
-                            <strong>Último Andamento Enviado</strong>
-                            <p>${andamento}</p>
-                        </div>
-                    ` : `
-                        <div class="ultimo-andamento" style="opacity:.5;">
-                            <strong>Último Andamento Enviado</strong>
-                            <p style="font-style:italic;">
-                                Nenhum andamento registrado ainda.
-                            </p>
-                        </div>
-                    `}
+                    <p style="word-break:break-all;"><strong>Processo:</strong> ${todosProcessos}</p>
+                    <div class="queue-pos">${pendente ? `Posição na fila: ${posicao}º` : 'Aguardando completar 10 dias para retornar à fila'}</div>
+                    <div class="card-observacao"><strong>Observações Internas</strong><p title="${String(textoObs).replace(/"/g,'&quot;')}">${textoObs}</p></div>
+                    ${textoAndamento ? `<div class="ultimo-andamento"><strong>Último Andamento Enviado</strong><p title="${String(textoAndamento).replace(/"/g,'&quot;')}">${textoAndamento}</p></div>` : `<div class="ultimo-andamento" style="opacity:.5;"><strong>Último Andamento Enviado</strong><p style="font-style:italic;">Nenhum andamento registrado ainda no sistema.</p></div>`}
                 </div>
-
                 <div class="card-footer">
-                    <div style="display:flex;gap:8px;">
-                        <button class="btn ${pendente ? 'btn-blue' : 'btn-green'} btn-abrir-andamento">
-                            💬 ${pendente ? 'Passar Andamento' : 'Novo Andamento'}
-                        </button>
-
-                        <button class="btn ghost btn-retirar-fila"
-                            style="width:auto;"
-                            title="Retirar da fila">
-                            ⋮
-                        </button>
+                    <div class="queue-pass-button">
+                        <button class="btn ${pendente ? 'btn-blue' : 'btn-green'} btn-abrir-andamento">💬 ${pendente ? 'Escrever Andamento' : 'Novo Andamento'}</button>
+                        <button class="btn ghost queue-status-button btn-retirar-fila" title="Retirar da fila">⋮</button>
                     </div>
-                </div>
-            `;
+                </div>`;
 
-            card.querySelector('.btn-abrir-andamento').onclick = e => {
-                e.stopPropagation();
-                abrirModal(cliente);
-            };
-
+            card.querySelector('.btn-abrir-andamento').onclick = e => { e.stopPropagation(); abrirModal(cliente); };
             card.querySelector('.btn-retirar-fila').onclick = async e => {
                 e.stopPropagation();
-
-                const escolha = prompt(
-                    `Retirar ${cliente.nome || 'cliente'} da fila.\n\n` +
-                    `1 - Revogado\n` +
-                    `2 - Arquivado\n` +
-                    `3 - Inadimplente\n\n` +
-                    `Cancelar = não alterar`
-                );
-
-                const mapa = {
-                    '1':'revogado',
-                    '2':'arquivado',
-                    '3':'inadimplente'
-                };
-
-                if(mapa[escolha]){
-                    await alterarStatusFila(cliente, mapa[escolha]);
-                }
+                const escolha = prompt(`Retirar "${cliente.nome || 'cliente'}" da fila.\n\n1 - Revogado\n2 - Arquivado\n3 - Inadimplente\n\nCancelar = não alterar`);
+                const mapa = {'1':'revogado','2':'arquivado','3':'inadimplente'};
+                if(mapa[escolha]) await alterarStatusFila(cliente,mapa[escolha]);
             };
-
             card.onclick = () => abrirModal(cliente);
 
-            destino.appendChild(card);
-        };
+            if(pendente) gridAberto.appendChild(card); else gridConcluido.appendChild(card);
+        });
 
-        pendentes.forEach((cliente,index) =>
-            desenhar(cliente, gridAberto, index)
-        );
-
-        atualizados.forEach((cliente,index) =>
-            desenhar(cliente, gridConcluido, index)
-        );
+        if(!gridAberto.children.length) gridAberto.innerHTML = `<div class="queue-empty">Nenhum cliente precisa de andamento neste momento.</div>`;
+        if(!gridConcluido.children.length) gridConcluido.innerHTML = `<div class="queue-empty">Nenhum cliente está aguardando o próximo ciclo.</div>`;
     }
 
     searchInput.oninput = renderCards;
@@ -1298,7 +1207,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div style="display:flex; align-items:center; gap:12px;">
             <div style="font-size: 14px; color: rgba(255,255,255,0.7);">
                 <!-- <-- ALTERADO DE 5 PARA 10 DIAS -->
-                Atualize clientes: Retornam para "Em Aberto" a cada 10 dias.
+                Fila automática: ao passar, o cliente vai para o final; após 10 dias, retorna ao ciclo.
             </div>
             <button class="btn ghost" onclick="forcarAtualizacao()" title="Sincronizar dados com o servidor" style="width:auto; padding:10px 14px;">🔄 Sincronizar</button>
         </div>
@@ -1308,58 +1217,26 @@ document.addEventListener('DOMContentLoaded', () => {
         <input id="searchInput" placeholder="Buscar cliente por nome, CPF ou processo..." />
     </div>
 
-    <section class="queue-dashboard">
+    <section class="queue-panel">
         <div class="queue-stats">
-
-            <div class="stat-card">
-                <div class="stat-label">Clientes na fila</div>
-                <div class="stat-value" id="statTotal">0</div>
-                <div class="stat-sub">clientes ativos no andamento</div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-label">Faltam passar</div>
-                <div class="stat-value" id="statPendentes">0</div>
-                <div class="stat-sub">10 dias ou mais sem andamento</div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-label">Já passaram</div>
-                <div class="stat-value" id="statPassaram">0</div>
-                <div class="stat-sub">aguardando novo ciclo</div>
-            </div>
-
-            <div class="stat-card">
-                <div class="stat-label">Fora da fila</div>
-                <div class="stat-value" id="statExcluidos">0</div>
-                <div class="stat-sub">revogado, arquivado ou inadimplente</div>
-            </div>
-
+            <div class="queue-stat"><div class="queue-stat-label">Clientes na fila</div><div class="queue-stat-value" id="queueTotal">0</div><div class="queue-stat-sub">clientes ativos</div></div>
+            <div class="queue-stat"><div class="queue-stat-label">Faltam passar</div><div class="queue-stat-value" id="queueFaltam">0</div><div class="queue-stat-sub">precisam de andamento</div></div>
+            <div class="queue-stat"><div class="queue-stat-label">Já passaram</div><div class="queue-stat-value" id="queuePassaram">0</div><div class="queue-stat-sub">aguardando 10 dias</div></div>
+            <div class="queue-stat"><div class="queue-stat-label">Fora da fila</div><div class="queue-stat-value" id="queueFora">0</div><div class="queue-stat-sub">revogado, arquivado ou inadimplente</div></div>
         </div>
-
-        <div class="queue-toolbar">
-            <select id="filaModo">
-                <option value="automatico">Fila automática — mais antigo primeiro</option>
+        <div class="queue-controls">
+            <label style="font-size:11px;color:rgba(255,255,255,.55);">Quando completar 10 dias:</label>
+            <select id="filaRetornoModo" onchange="marcarFilaRetorno()">
+                <option value="final" selected>voltar para o FINAL da fila</option>
+                <option value="inicio">voltar para o INÍCIO da fila</option>
             </select>
-
-            <span class="queue-note">
-                Ao passar o andamento, o cliente vai para o final da fila. Após 10 dias, volta para os pendentes.
-            </span>
+            <span class="queue-help">A posição anterior não é preservada.</span>
         </div>
-
-        <div class="excluded-panel">
-            <div class="excluded-panel-header">
-                <div class="excluded-title">
-                    Lista fixa — não precisam mais de andamento
-                </div>
-
-                <div class="excluded-count" id="excludedCountBadge">0</div>
-            </div>
-
-            <div class="excluded-list" id="excludedList"></div>
+        <div class="queue-fixed">
+            <div class="queue-fixed-head"><div class="queue-fixed-title">Lista fixa — não precisam mais de andamento</div><div class="queue-fixed-count" id="queueFixedCount">0</div></div>
+            <div class="queue-fixed-list" id="queueFixedList"></div>
         </div>
     </section>
-
 
     <div class="kanban-container">
         <main class="kanban" id="kanban">
