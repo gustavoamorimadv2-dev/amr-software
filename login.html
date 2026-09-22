@@ -177,6 +177,8 @@ import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
   signOut,
+  setPersistence,
+  browserLocalPersistence,
   GoogleAuthProvider,
   signInWithPopup
 } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
@@ -230,6 +232,12 @@ const authEscritorio2 = getAuth(appEscritorio2);
 const dbEscritorio1 = getFirestore(appEscritorio1);
 
 const EMAIL_ADMIN_MESTRE = "gruponascimentoesouza@gmail.com";
+const CHAVE_ULTIMO_ESCRITORIO = "crm_ultimo_escritorio";
+
+// Estas travas impedem que a restauração automática das sessões e um login
+// iniciado pelo usuário tentem redirecionar a página ao mesmo tempo.
+let loginEmAndamento = false;
+let redirecionamentoExecutado = false;
 
 /* =========================================================
    GOOGLE - RSW CONSULTORIA
@@ -279,46 +287,104 @@ async function encerrarOutroAuth(auth) {
 
 /* =========================================================
    AUTO-REDIRECIONAMENTO
-   Se o usuário já estiver logado em algum dos dois projetos,
-   a página reconhece a sessão e manda para o CRM correto.
-   Escritório 1 tem prioridade se houver duas sessões antigas.
+   Primeiro aguarda os dois Firebase Auth restaurarem completamente
+   as sessões persistidas. Só depois decide se deve redirecionar.
+   Isso evita o ciclo visual "login > CRM > login".
    ========================================================= */
-let estadoInicial1Resolvido = false;
-let estadoInicial2Resolvido = false;
-let usuarioInicial1 = null;
-let usuarioInicial2 = null;
-let redirecionamentoInicialExecutado = false;
-
-function verificarSessaoInicial() {
-  if (redirecionamentoInicialExecutado) return;
-  if (!estadoInicial1Resolvido || !estadoInicial2Resolvido) return;
-
-  if (usuarioInicial1) {
-    redirecionamentoInicialExecutado = true;
-    const email = (usuarioInicial1.email || "").toLowerCase();
-    window.location.replace(destinoEscritorio1(email));
-    return;
-  }
-
-  if (usuarioInicial2) {
-    redirecionamentoInicialExecutado = true;
-    window.location.replace(destinoEscritorio2());
+function salvarUltimoEscritorio(escritorio) {
+  try {
+    localStorage.setItem(CHAVE_ULTIMO_ESCRITORIO, escritorio);
+  } catch (e) {
+    console.warn("Não foi possível salvar a preferência de acesso:", e);
   }
 }
 
-const unsubscribeInicial1 = onAuthStateChanged(authEscritorio1, (user) => {
-  usuarioInicial1 = user;
-  estadoInicial1Resolvido = true;
-  verificarSessaoInicial();
-  unsubscribeInicial1();
-});
+function obterUltimoEscritorio() {
+  try {
+    return localStorage.getItem(CHAVE_ULTIMO_ESCRITORIO);
+  } catch (e) {
+    return null;
+  }
+}
 
-const unsubscribeInicial2 = onAuthStateChanged(authEscritorio2, (user) => {
-  usuarioInicial2 = user;
-  estadoInicial2Resolvido = true;
-  verificarSessaoInicial();
-  unsubscribeInicial2();
-});
+function redirecionarUmaVez(destino, escritorio) {
+  if (redirecionamentoExecutado) return;
+
+  redirecionamentoExecutado = true;
+  loginEmAndamento = true;
+
+  if (escritorio) {
+    salvarUltimoEscritorio(escritorio);
+  }
+
+  window.location.replace(destino);
+}
+
+function aguardarEstadoInicial(auth) {
+  if (typeof auth.authStateReady === "function") {
+    return auth.authStateReady();
+  }
+
+  // Compatibilidade de segurança caso o navegador esteja usando uma versão
+  // em cache do SDK que ainda não possua authStateReady().
+  return new Promise((resolve) => {
+    const unsubscribe = onAuthStateChanged(
+      auth,
+      () => {
+        unsubscribe();
+        resolve();
+      },
+      () => {
+        unsubscribe();
+        resolve();
+      }
+    );
+  });
+}
+
+const autenticacoesProntas = Promise.all([
+  setPersistence(authEscritorio1, browserLocalPersistence),
+  setPersistence(authEscritorio2, browserLocalPersistence)
+]).then(() => Promise.all([
+  aguardarEstadoInicial(authEscritorio1),
+  aguardarEstadoInicial(authEscritorio2)
+]));
+
+async function redirecionarSessaoExistente() {
+  try {
+    await autenticacoesProntas;
+
+    // Se o usuário já apertou Entrar, somente o fluxo do formulário pode
+    // escolher o destino. A restauração automática não interfere mais.
+    if (loginEmAndamento || redirecionamentoExecutado) return;
+
+    const usuario1 = authEscritorio1.currentUser;
+    const usuario2 = authEscritorio2.currentUser;
+    const ultimoEscritorio = obterUltimoEscritorio();
+
+    if (usuario1 && usuario2) {
+      if (ultimoEscritorio === "escritorio2") {
+        redirecionarUmaVez(destinoEscritorio2(), "escritorio2");
+      } else {
+        const email = (usuario1.email || "").toLowerCase();
+        redirecionarUmaVez(destinoEscritorio1(email), "escritorio1");
+      }
+      return;
+    }
+
+    if (usuario1) {
+      const email = (usuario1.email || "").toLowerCase();
+      redirecionarUmaVez(destinoEscritorio1(email), "escritorio1");
+      return;
+    }
+
+    if (usuario2) {
+      redirecionarUmaVez(destinoEscritorio2(), "escritorio2");
+    }
+  } catch (error) {
+    console.error("Não foi possível restaurar a sessão:", error);
+  }
+}
 
 document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("loginForm");
@@ -343,6 +409,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function resetBotao(mensagemErro = null) {
+    loginEmAndamento = false;
     if(mensagemErro) {
       errorMsg.innerText = mensagemErro;
       errorMsg.style.display = "block";
@@ -416,7 +483,9 @@ document.addEventListener("DOMContentLoaded", () => {
   async function loginGoogleEscritorio2() {
     errorMsg.style.display = "none";
 
-    if (!btnGoogle) return;
+    if (!btnGoogle || loginEmAndamento || redirecionamentoExecutado) return;
+
+    loginEmAndamento = true;
 
     const textoOriginal = btnGoogle.innerHTML;
     btnGoogle.disabled = true;
@@ -424,6 +493,8 @@ document.addEventListener("DOMContentLoaded", () => {
     btnGoogle.textContent = "Abrindo Google...";
 
     try {
+      await autenticacoesProntas;
+
       // IMPORTANTE: Google entra somente no Auth do RSW Consultoria.
       const resultado = await signInWithPopup(
         authEscritorio2,
@@ -441,7 +512,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Usa exatamente a mesma sessão 'escritorio2' que
       // rodriguesamorim.html reconhece.
-      window.location.replace(destinoEscritorio2());
+      redirecionarUmaVez(destinoEscritorio2(), "escritorio2");
 
     } catch (error) {
       console.error("Erro no login Google:", error);
@@ -463,6 +534,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       errorMsg.style.display = "block";
+      loginEmAndamento = false;
       btnGoogle.innerHTML = textoOriginal;
       btnGoogle.disabled = false;
       btnSubmit.disabled = false;
@@ -475,6 +547,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
+
+    if (loginEmAndamento || redirecionamentoExecutado) return;
+
+    loginEmAndamento = true;
     errorMsg.style.display = "none";
 
     const email = emailInput.value.trim().toLowerCase();
@@ -484,6 +560,16 @@ document.addEventListener("DOMContentLoaded", () => {
     btnSubmit.disabled = true;
     if (btnGoogle) btnGoogle.disabled = true;
 
+    // Não inicia nenhuma tentativa enquanto os dois Auths ainda estiverem
+    // restaurando sessões antigas do navegador.
+    try {
+      await autenticacoesProntas;
+    } catch (error) {
+      console.error("Erro ao preparar o Firebase Authentication:", error);
+      resetBotao("Não foi possível iniciar a autenticação. Atualize a página e tente novamente.");
+      return;
+    }
+
     // =====================================================
     // 1) PRIMEIRO TENTA O AUTH DO ESCRITÓRIO 1
     // =====================================================
@@ -491,9 +577,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (tentativa1.sucesso) {
       showToast("Login realizado com sucesso!");
-      setTimeout(() => {
-        window.location.replace(destinoEscritorio1(email));
-      }, 700);
+      redirecionarUmaVez(destinoEscritorio1(email), "escritorio1");
       return;
     }
 
@@ -508,9 +592,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (tentativa2.sucesso) {
       showToast("Login realizado com sucesso!");
-      setTimeout(() => {
-        window.location.replace(destinoEscritorio2());
-      }, 700);
+      redirecionarUmaVez(destinoEscritorio2(), "escritorio2");
       return;
     }
 
@@ -540,7 +622,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         await encerrarOutroAuth(authEscritorio2);
         showToast("Conta Mestre configurada! Redirecionando...");
-        setTimeout(() => window.location.replace("adm.html"), 1200);
+        redirecionarUmaVez("adm.html", "escritorio1");
         return;
 
       } catch (adminErr) {
@@ -562,7 +644,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (convite.sucesso) {
         showToast("Tudo pronto! Redirecionando...");
-        setTimeout(() => window.location.replace("index.html"), 1200);
+        redirecionarUmaVez("index.html", "escritorio1");
         return;
       }
 
@@ -586,6 +668,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     resetBotao("Erro no acesso: " + (erroTecnico?.message || "Não foi possível autenticar."));
   });
+
+  redirecionarSessaoExistente();
 });
 </script>
 </head>
