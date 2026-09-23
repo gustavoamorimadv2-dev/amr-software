@@ -295,9 +295,7 @@ textarea { resize: vertical; }
                 <h4 class="section-title">Documentação</h4>
                 
                 <div style="background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 15px;">
-                    <label style="margin-top:0;">Nome do Documento</label>
-                    <input type="text" id="addDocNome" placeholder="Opcional (Usa nome do arquivo se vazio)" style="margin-bottom:10px;">
-                    <label>Arquivo</label>
+                    <label style="margin-top:0;">Arquivo</label>
                     <input type="file" id="addDocFile" style="margin-bottom:10px; font-size: 12px;">
                     <button class="btn blue" style="width: 100%;" onclick="anexarDocumento()" id="btnAnexarDoc">Anexar Documento</button>
                 </div>
@@ -844,7 +842,6 @@ window.salvarAlteracoes = async function() {
 window.anexarDocumento = async function() {
     if(!clienteAtual) return;
 
-    let nomeInput = document.getElementById('addDocNome').value.trim();
     const fileInput = document.getElementById('addDocFile');
     const file = fileInput.files[0];
     const btn = document.getElementById('btnAnexarDoc');
@@ -854,10 +851,6 @@ window.anexarDocumento = async function() {
         return;
     }
     
-    if(!nomeInput) {
-        nomeInput = file.name;
-    }
-
     btn.textContent = "Enviando...";
     btn.disabled = true;
 
@@ -868,7 +861,13 @@ window.anexarDocumento = async function() {
 
         let docsAtuais = clienteAtual.documentos;
         const novoDocObj = {
-            nome: nomeInput,
+            // Compatibilidade com as duas estruturas já usadas no CRM:
+            // CRM antigo usa "name"; Clientes/Jurídico usam "nome".
+            // Em todos os casos, o valor gravado é o NOME ORIGINAL do arquivo.
+            name: file.name,
+            nome: file.name,
+            nomeOriginal: file.name,
+            nomeArquivo: file.name,
             url: downloadURL,
             dataEnvio: new Date().toISOString()
         };
@@ -890,7 +889,6 @@ window.anexarDocumento = async function() {
         if (idxCache > -1) clientesData[idxCache] = clienteAtual;
         atualizarCacheLocal();
         
-        document.getElementById('addDocNome').value = "";
         fileInput.value = "";
         
         renderizarDocumentos();
@@ -905,6 +903,92 @@ window.anexarDocumento = async function() {
     }
 }
 
+function obterNomeOriginalDocumento(doc) {
+    if (!doc) return "Documento";
+
+    // Em versões antigas do CRM, alguns documentos podem eventualmente
+    // aparecer como uma URL/string em vez de objeto.
+    if (typeof doc === 'string') {
+        if (!doc.includes('://')) return doc;
+        return extrairNomeOriginalDaUrl(doc) || "Documento";
+    }
+
+    // IMPORTANTE: o CRM que fez os uploads antigos grava assim:
+    // { name: file.name, url: url }
+    // Por isso "name" precisa ser lido antes de qualquer fallback.
+    const candidatosOriginais = [
+        doc.name,
+        doc.nomeOriginal,
+        doc.nomeArquivo,
+        doc.fileName,
+        doc.filename,
+        doc.originalName,
+        doc.originalFilename
+    ];
+
+    for (const candidato of candidatosOriginais) {
+        if (typeof candidato === 'string' && candidato.trim() && candidato !== 'undefined') {
+            return candidato.trim();
+        }
+    }
+
+    // Se o objeto antigo não tiver o campo de nome, recupera pelo caminho
+    // do Firebase Storage. Isso funciona para URLs no formato /o/pasta%2Farquivo.
+    const urlDocumento = doc.url || doc.downloadURL || doc.downloadUrl || doc.href || doc.link || '';
+    const nomePelaUrl = extrairNomeOriginalDaUrl(urlDocumento);
+    if (nomePelaUrl) return nomePelaUrl;
+
+    // Último fallback para documentos criados pela página Clientes antiga.
+    // Nessa estrutura o campo disponível era "nome".
+    if (typeof doc.nome === 'string' && doc.nome.trim() && doc.nome !== 'undefined') {
+        return doc.nome.trim();
+    }
+
+    return "Documento";
+}
+
+function extrairNomeOriginalDaUrl(urlDocumento) {
+    if (!urlDocumento || typeof urlDocumento !== 'string') return '';
+
+    try {
+        const url = new URL(urlDocumento);
+        let caminho = url.pathname || '';
+
+        // Firebase Storage: /v0/b/<bucket>/o/documentos%2Fuid%2F123_nome.pdf
+        const marcador = '/o/';
+        const posicao = caminho.indexOf(marcador);
+        if (posicao >= 0) caminho = caminho.substring(posicao + marcador.length);
+
+        caminho = decodeURIComponent(caminho);
+        let nome = caminho.split('/').filter(Boolean).pop() || '';
+
+        // Os uploads existentes usam Date.now() + "_" + file.name.
+        // Remove SOMENTE o timestamp gerado pelo sistema, preservando o nome real.
+        nome = nome.replace(/^\d{10,17}_/, '');
+
+        return nome.trim();
+    } catch (e) {
+        // Fallback para URLs que não forem aceitas pelo construtor URL.
+        try {
+            let limpa = decodeURIComponent(urlDocumento.split('?')[0]);
+            let nome = limpa.split('/').filter(Boolean).pop() || '';
+            nome = nome.replace(/^\d{10,17}_/, '');
+            return nome.trim();
+        } catch (_) {
+            return '';
+        }
+    }
+}
+
+function escaparHtml(valor) {
+    return String(valor ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 function renderizarDocumentos() {
     const containerDocs = document.getElementById('listaDocsContainer');
     const documentos = extrairDocumentos(clienteAtual.documentos);
@@ -915,14 +999,18 @@ function renderizarDocumentos() {
     }
 
     containerDocs.innerHTML = documentos.map(doc => {
-        let nomeDoArquivo = doc.nome || "Documento";
+        const nomeDoArquivo = obterNomeOriginalDocumento(doc);
+        const urlDocumento = typeof doc === 'string' ? doc : (doc.url || doc.downloadURL || doc.downloadUrl || doc.href || doc.link || '#');
+        const nomeSeguro = escaparHtml(nomeDoArquivo);
+        const urlSegura = escaparHtml(urlDocumento);
+
         return `
             <div class="doc-item">
                 <div class="doc-info">
                     <i class="fi fi-tr-document"></i>
-                    <span title="${nomeDoArquivo}">${nomeDoArquivo}</span>
+                    <span title="${nomeSeguro}">${nomeSeguro}</span>
                 </div>
-                <a href="${doc.url}" target="_blank" class="btn-view-doc">Acessar</a>
+                <a href="${urlSegura}" target="_blank" rel="noopener noreferrer" class="btn-view-doc">Acessar</a>
             </div>
         `;
     }).join('');
