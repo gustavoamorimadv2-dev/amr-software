@@ -222,7 +222,7 @@ textarea { resize: vertical; }
     </div>
 
     <div class="search-container">
-        <input type="text" id="buscarCliente" class="search-input" placeholder="Buscar por nome, CPF, telefone ou processo...">
+        <input type="text" id="buscarCliente" class="search-input" placeholder="Buscar por nome, CPF, telefone, processo, tipo ou vendedor...">
     </div>
 
     <div class="container" id="clientesContainer"></div>
@@ -260,6 +260,18 @@ textarea { resize: vertical; }
                     <div style="grid-column: 1 / -1;">
                         <label>Número do Processo</label>
                         <input type="text" id="editProcesso">
+                    </div>
+                    <div>
+                        <label>Tipo de Processo</label>
+                        <input type="text" id="editTipoProcesso" placeholder="Ex.: Cível, Trabalhista, Previdenciário...">
+                    </div>
+                    <div>
+                        <label>Nome do Vendedor</label>
+                        <input type="text" id="editVendedor">
+                    </div>
+                    <div style="grid-column: 1 / -1;">
+                        <label>Observação do Vendedor</label>
+                        <textarea id="editObservacaoVendedor" rows="3" placeholder="Observações registradas pelo vendedor"></textarea>
                     </div>
                 </div>
 
@@ -533,7 +545,10 @@ window.aplicarFiltrosEOrdenacao = function() {
             const nome = (c.nome || "").toLowerCase();
             const cpf = (c.cpf || "").toLowerCase();
             const processo = (c.processo || "").toLowerCase();
-            return nome.includes(termo) || cpf.includes(termo) || processo.includes(termo);
+            const telefone = (c.numeros || "").toLowerCase();
+            const tipoProcesso = (c.tipoProcesso || c.tipo_processo || "").toLowerCase();
+            const vendedor = (c.nomeVendedor || c.vendedor || "").toLowerCase();
+            return nome.includes(termo) || cpf.includes(termo) || processo.includes(termo) || telefone.includes(termo) || tipoProcesso.includes(termo) || vendedor.includes(termo);
         });
     }
 
@@ -712,6 +727,9 @@ function exibirClientes(lista) {
                 <h2>${cliente.nome || "Sem nome"}</h2>
                 <p><strong>CPF:</strong> ${cliente.cpf || "-"}</p>
                 <p><strong>Processo:</strong> ${cliente.processo || "Não informado"}</p>
+                <p><strong>Tipo de Processo:</strong> ${cliente.tipoProcesso || cliente.tipo_processo || "Não informado"}</p>
+                <p><strong>Vendedor:</strong> ${cliente.nomeVendedor || cliente.vendedor || "Não informado"}</p>
+                <p><strong>Observação do Vendedor:</strong> ${cliente.observacaoVendedor || cliente.observacao_vendedor || "Sem observação"}</p>
                 
                 <div class="tramitacao-box">
                     <p><strong>Último Andamento:</strong> ${dataAndamentoStr}</p>
@@ -741,6 +759,9 @@ window.abrirModalEdicao = function(cliente) {
     document.getElementById('editTelefone').value = cliente.numeros || "";
     document.getElementById('editEmail').value = cliente.email || "";
     document.getElementById('editProcesso').value = cliente.processo || "";
+    document.getElementById('editTipoProcesso').value = cliente.tipoProcesso || cliente.tipo_processo || "";
+    document.getElementById('editVendedor').value = cliente.nomeVendedor || cliente.vendedor || "";
+    document.getElementById('editObservacaoVendedor').value = cliente.observacaoVendedor || cliente.observacao_vendedor || "";
     
     // Preencher Andamento
     document.getElementById('editTramitacao').value = cliente.tramitacaoProcessual || "";
@@ -790,6 +811,9 @@ window.salvarAlteracoes = async function() {
             numeros: document.getElementById('editTelefone').value.trim(),
             email: document.getElementById('editEmail').value.trim(),
             processo: document.getElementById('editProcesso').value.trim(),
+            tipoProcesso: document.getElementById('editTipoProcesso').value.trim(),
+            nomeVendedor: document.getElementById('editVendedor').value.trim(),
+            observacaoVendedor: document.getElementById('editObservacaoVendedor').value.trim(),
             tramitacaoProcessual: document.getElementById('editTramitacao').value.trim(),
             ultimoAndamento: dataAndamentoFormatada
         };
