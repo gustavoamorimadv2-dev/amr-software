@@ -1,1 +1,236 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#07111f" />
+  <title>RSW Consultoria | Acesso ao Painel</title>
+  <style>
+    :root{
+      --bg:#06101d;--bg2:#0b1d31;--card:rgba(12,29,49,.88);
+      --line:rgba(255,255,255,.10);--text:#f7f9fc;--muted:#9eafc3;
+      --accent:#d5aa52;--accent2:#f3ce79;--danger:#ff6b74;
+      --success:#35d39a;--shadow:0 24px 70px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(circle at 10% 15%,rgba(213,170,82,.12),transparent 28%),
+        radial-gradient(circle at 90% 85%,rgba(37,92,150,.22),transparent 36%),
+        linear-gradient(145deg,var(--bg),var(--bg2));
+      display:grid;place-items:center;padding:28px;
+    }
+    .shell{
+      width:min(1080px,100%);min-height:640px;display:grid;
+      grid-template-columns:1.05fr .95fr;border:1px solid var(--line);
+      border-radius:28px;overflow:hidden;box-shadow:var(--shadow);
+      background:rgba(7,18,31,.68);backdrop-filter:blur(18px);
+    }
+    .brand{
+      padding:54px;position:relative;display:flex;flex-direction:column;
+      justify-content:space-between;background:
+        linear-gradient(180deg,rgba(213,170,82,.08),rgba(4,12,22,.18)),
+        rgba(7,17,30,.7);border-right:1px solid var(--line);
+    }
+    .brand::after{
+      content:"";position:absolute;width:340px;height:340px;right:-190px;top:120px;
+      border:1px solid rgba(213,170,82,.16);border-radius:50%;
+      box-shadow:0 0 0 46px rgba(213,170,82,.025),0 0 0 92px rgba(213,170,82,.018);
+      pointer-events:none;
+    }
+    .logo{display:flex;align-items:center;gap:14px;font-weight:800;letter-spacing:.4px;font-size:20px}
+    .logo-mark{
+      width:46px;height:46px;border-radius:14px;display:grid;place-items:center;
+      background:linear-gradient(145deg,var(--accent2),#9b722a);color:#142033;
+      font-weight:900;box-shadow:0 10px 30px rgba(213,170,82,.18);
+    }
+    .brand-copy{position:relative;z-index:1;max-width:520px}
+    .eyebrow{color:var(--accent2);text-transform:uppercase;letter-spacing:2px;font-size:12px;font-weight:800;margin-bottom:18px}
+    h1{font-size:clamp(34px,4vw,58px);line-height:1.05;margin:0 0 18px}
+    .brand p{color:var(--muted);font-size:17px;line-height:1.7;margin:0}
+    .brand-foot{color:#70859c;font-size:13px}
+    .login-area{
+      padding:54px;display:flex;align-items:center;justify-content:center;
+      background:rgba(10,25,43,.62);
+    }
+    .login-card{width:min(420px,100%)}
+    .login-card h2{font-size:30px;margin:0 0 8px}
+    .sub{color:var(--muted);margin:0 0 30px;line-height:1.55}
+    .google-btn{
+      width:100%;height:56px;border-radius:14px;border:1px solid var(--line);
+      background:#fff;color:#1f2937;font-weight:800;font-size:15px;
+      display:flex;align-items:center;justify-content:center;gap:12px;
+      cursor:pointer;transition:.15s;box-shadow:0 12px 30px rgba(0,0,0,.16);
+    }
+    .google-btn:hover{transform:translateY(-1px);filter:brightness(.98)}
+    .google-btn:disabled{opacity:.65;cursor:not-allowed;transform:none}
+    .google-icon{
+      width:22px;height:22px;border-radius:50%;display:grid;place-items:center;
+      font-weight:900;font-size:18px;color:#4285f4;background:#fff;
+    }
+    .msg{
+      display:none;margin:18px 0 0;padding:13px 14px;border-radius:12px;
+      font-size:13px;line-height:1.5;border:1px solid var(--line);
+    }
+    .msg.error{display:block;color:#ffd7da;background:rgba(255,107,116,.08);border-color:rgba(255,107,116,.22)}
+    .msg.success{display:block;color:#c9ffe9;background:rgba(53,211,154,.08);border-color:rgba(53,211,154,.22)}
+    .security{
+      display:flex;gap:10px;align-items:flex-start;color:#72869b;font-size:12px;
+      line-height:1.5;margin-top:26px;padding-top:20px;border-top:1px solid var(--line);
+    }
+    .spinner{
+      width:18px;height:18px;border-radius:50%;border:2px solid rgba(31,41,55,.2);
+      border-top-color:#1f2937;display:none;animation:spin .7s linear infinite;
+    }
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @media(max-width:820px){
+      .shell{grid-template-columns:1fr;min-height:auto}.brand{display:none}
+      .login-area{padding:34px 24px;min-height:620px}
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="brand">
+      <div class="logo"><div class="logo-mark">RSW</div><span>RSW Consultoria</span></div>
+      <div class="brand-copy">
+        <div class="eyebrow">Painel do escritório</div>
+        <h1>Gestão do cliente em um só lugar.</h1>
+        <p>Cadastre clientes do aplicativo, acompanhe processos, registre andamentos e organize cobranças.</p>
+      </div>
+      <div class="brand-foot">Ambiente administrativo • acesso restrito</div>
+    </section>
+
+    <section class="login-area">
+      <div class="login-card">
+        <h2>Entrar no painel</h2>
+        <p class="sub">O acesso administrativo é feito com a conta Google autorizada no Firebase.</p>
+
+        <button class="google-btn" id="googleLoginButton" type="button">
+          <span class="google-icon" id="googleIcon">G</span>
+          <span id="googleText">Continuar com Google</span>
+          <span class="spinner" id="spinner"></span>
+        </button>
+
+        <div class="msg" id="message"></div>
+
+        <div class="security">
+          <span>🔒</span>
+          <span>Depois do login, o sistema confirma se o UID da conta existe na coleção <b>administradores</b> e está ativo.</span>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+    import {
+      getAuth,
+      GoogleAuthProvider,
+      signInWithPopup,
+      onAuthStateChanged,
+      setPersistence,
+      browserLocalPersistence,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+  apiKey: "AIzaSyAVaWq65gTmrMH99a4QJHs8I8DoSpQbvFo",
+  authDomain: "rsw-consultoria.firebaseapp.com",
+  projectId: "rsw-consultoria",
+  storageBucket: "rsw-consultoria.firebasestorage.app",
+  messagingSenderId: "872728271248",
+  appId: "1:872728271248:web:b9115034c3bdcf2ed87b15",
+  measurementId: "G-5R4FCGLFV7"
+};
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
+
+    const button = document.getElementById("googleLoginButton");
+    const text = document.getElementById("googleText");
+    const icon = document.getElementById("googleIcon");
+    const spinner = document.getElementById("spinner");
+    const message = document.getElementById("message");
+
+    function setLoading(active) {
+      button.disabled = active;
+      text.style.display = active ? "none" : "inline";
+      icon.style.display = active ? "none" : "grid";
+      spinner.style.display = active ? "block" : "none";
+    }
+
+    function showMessage(value, type = "error") {
+      message.className = `msg ${type}`;
+      message.textContent = value;
+    }
+
+    function clearMessage() {
+      message.className = "msg";
+      message.textContent = "";
+    }
+
+    async function isAdministrator(user) {
+      const snap = await getDoc(doc(db, "administradores", user.uid));
+      return snap.exists() && snap.data()?.ativo !== false;
+    }
+
+    async function validateAndEnter(user) {
+      if (!user) return false;
+      try {
+        const allowed = await isAdministrator(user);
+        if (!allowed) {
+          await signOut(auth);
+          showMessage("Esta conta Google não possui permissão para acessar o painel.");
+          return false;
+        }
+        window.location.replace("painel.html");
+        return true;
+      } catch (error) {
+        console.error(error);
+        showMessage("Não foi possível validar o acesso administrativo.");
+        return false;
+      }
+    }
+
+    await setPersistence(auth, browserLocalPersistence);
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return;
+      setLoading(true);
+      const redirected = await validateAndEnter(user);
+      if (!redirected) setLoading(false);
+    });
+
+    button.addEventListener("click", async () => {
+      clearMessage();
+      setLoading(true);
+      try {
+        const credential = await signInWithPopup(auth, provider);
+        await validateAndEnter(credential.user);
+      } catch (error) {
+        console.error(error);
+        if (error?.code === "auth/popup-closed-by-user") {
+          showMessage("O login com Google foi cancelado.");
+        } else if (error?.code === "auth/popup-blocked") {
+          showMessage("O navegador bloqueou a janela do Google. Libere pop-ups para este site.");
+        } else if (error?.code === "auth/unauthorized-domain") {
+          showMessage("Este domínio ainda não está autorizado no Firebase Authentication.");
+        } else {
+          showMessage("Não foi possível entrar com Google.");
+        }
+      } finally {
+        if (!auth.currentUser) setLoading(false);
+      }
+    });
+  </script>
+</body>
+</html>
 
