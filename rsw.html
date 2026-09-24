@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#07111f" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
   <title>RSW Consultoria | Acesso ao Painel</title>
   <style>
     :root{
@@ -107,7 +110,7 @@
     <section class="login-area">
       <div class="login-card">
         <h2>Entrar no painel</h2>
-        <p class="sub">O acesso administrativo é feito com a conta Google autorizada no Firebase.</p>
+        <p class="sub">Entre com sua conta Google para acessar o painel administrativo.</p>
 
         <button class="google-btn" id="googleLoginButton" type="button">
           <span class="google-icon" id="googleIcon">G</span>
@@ -128,13 +131,10 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
     import {
-      getAuth,
+      initializeAuth,
       GoogleAuthProvider,
       signInWithPopup,
-      onAuthStateChanged,
-      setPersistence,
-      browserLocalPersistence,
-      signOut
+      browserLocalPersistence
     } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 
     const firebaseConfig = {
@@ -148,7 +148,9 @@
 };
 
     const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+    const auth = initializeAuth(app, {
+      persistence: browserLocalPersistence
+    });
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: "select_account" });
 
@@ -175,27 +177,37 @@
       message.textContent = "";
     }
 
-    async function validateAndEnter(user) {
-      if (!user) return false;
-      window.location.replace("painel.html");
-      return true;
+    async function goToPanel(user) {
+      if (!user) return;
+      try {
+        // Força a emissão/validação do token antes de trocar de página.
+        await user.getIdToken(true);
+        sessionStorage.setItem("rswGoogleLoginOk", "1");
+        window.location.replace(`painel.html?v=${Date.now()}`);
+      } catch (error) {
+        console.error(error);
+        showMessage("Não foi possível concluir a autenticação com Google.");
+        setLoading(false);
+      }
     }
 
-    await setPersistence(auth, browserLocalPersistence);
+    // Aguarda o Firebase terminar de restaurar a sessão persistida.
+    if (typeof auth.authStateReady === "function") {
+      await auth.authStateReady();
+    }
 
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) return;
+    // Se já existe sessão Google válida, entra sem abrir outro popup.
+    if (auth.currentUser) {
       setLoading(true);
-      const redirected = await validateAndEnter(user);
-      if (!redirected) setLoading(false);
-    });
+      await goToPanel(auth.currentUser);
+    }
 
     button.addEventListener("click", async () => {
       clearMessage();
       setLoading(true);
       try {
         const credential = await signInWithPopup(auth, provider);
-        await validateAndEnter(credential.user);
+        await goToPanel(credential.user);
       } catch (error) {
         console.error(error);
         if (error?.code === "auth/popup-closed-by-user") {
