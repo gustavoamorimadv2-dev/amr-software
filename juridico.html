@@ -120,6 +120,18 @@ input.search-input:focus { border-color: #3b82f6; background:rgba(255,255,255,0.
     border: 1px solid rgba(59, 130, 246, 0.3); display: flex; align-items: center; gap: 5px;
 }
 
+/* Indicador de Documentação Nova */
+.indicator-docs-nova {
+    position: absolute; top: 15px; left: 15px;
+    background: rgba(245, 158, 11, 0.18); color: #fbbf24;
+    padding: 5px 9px; border-radius: 7px; font-size: 11px; font-weight: 700;
+    border: 1px solid rgba(245, 158, 11, 0.45); display: flex; align-items: center; gap: 5px;
+    box-shadow: 0 4px 14px rgba(245, 158, 11, 0.12);
+}
+.indicator-docs.indicator-docs-abaixo {
+    top: 49px;
+}
+
 .card-header-info { margin-bottom: 12px; margin-top: 25px; display: flex; align-items: center; justify-content: space-between; }
 .card-date { font-size: 11px; color: rgba(255,255,255,0.6); font-weight: 500; }
 
@@ -522,6 +534,42 @@ function extrairDocumentos(docsOriginais) {
     return listaDocs;
 }
 
+
+function possuiDocumentacaoNova(cliente, documentosArr) {
+    if (!cliente || !Array.isArray(documentosArr) || documentosArr.length === 0) return false;
+
+    let dataFechamento = null;
+
+    try {
+        if (cliente.dataFechamento) {
+            dataFechamento = cliente.dataFechamento.toDate
+                ? cliente.dataFechamento.toDate()
+                : new Date(cliente.dataFechamento);
+        }
+    } catch (e) {
+        dataFechamento = null;
+    }
+
+    if (!dataFechamento || isNaN(dataFechamento.getTime())) return false;
+
+    return documentosArr.some(documento => {
+        if (!documento || typeof documento !== 'object') return false;
+
+        const dataEnvio = documento.dataEnvio || documento.dataUpload || documento.dataCriacao || documento.createdAt;
+        if (!dataEnvio) return false;
+
+        try {
+            const dataDocumento = dataEnvio.toDate
+                ? dataEnvio.toDate()
+                : new Date(dataEnvio);
+
+            return !isNaN(dataDocumento.getTime()) && dataDocumento.getTime() > dataFechamento.getTime();
+        } catch (e) {
+            return false;
+        }
+    });
+}
+
 function atualizarResumo(lista) {
     const total = lista.length;
     const lancados = lista.filter(c => c.lancadoSistemaInterno === true).length;
@@ -695,10 +743,15 @@ function exibirClientes(lista) {
         } catch(e) {}
 
         const documentosArr = extrairDocumentos(cliente.documentos);
+        const temDocumentacaoNova = possuiDocumentacaoNova(cliente, documentosArr);
         let docsIndicator = '';
         if (documentosArr.length > 0) {
-            docsIndicator = `<div class="indicator-docs"><i class="fi fi-tr-clip"></i> ${documentosArr.length} Doc(s)</div>`;
+            docsIndicator = `<div class="indicator-docs ${temDocumentacaoNova ? 'indicator-docs-abaixo' : ''}"><i class="fi fi-tr-clip"></i> ${documentosArr.length} Doc(s)</div>`;
         }
+
+        const docsNovaIndicator = temDocumentacaoNova
+            ? `<div class="indicator-docs-nova"><i class="fi fi-tr-clip"></i> DOCUMENTAÇÃO NOVA</div>`
+            : '';
 
         const btnIcon = isLancado ? '✔️' : '⏳';
         const btnTitle = isLancado ? 'Desmarcar Lançamento' : 'Marcar como Lançado';
@@ -706,6 +759,7 @@ function exibirClientes(lista) {
         card.innerHTML = `
             <div class="color-bar"></div>
             <div class="card-content">
+                ${docsNovaIndicator}
                 ${docsIndicator}
                 
                 <div class="action-badges">
