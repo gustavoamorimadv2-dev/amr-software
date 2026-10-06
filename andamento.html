@@ -471,6 +471,126 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 /* ===== FILA DE ANDAMENTO — ADIÇÃO SEM ALTERAR A ESTRUTURA EXISTENTE ===== */
 .queue-panel{padding:14px 30px 0;flex-shrink:0}.queue-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.queue-stat{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:11px 14px}.queue-stat-label{font-size:10px;text-transform:uppercase;font-weight:800;letter-spacing:.5px;color:rgba(255,255,255,.55)}.queue-stat-value{font-size:24px;font-weight:800;margin-top:3px}.queue-stat-sub{font-size:10px;color:rgba(255,255,255,.45);margin-top:2px}.queue-controls{display:flex;align-items:center;gap:9px;margin-top:9px}.queue-controls select{background:rgba(255,255,255,.07);color:#fff;border:1px solid rgba(255,255,255,.12);border-radius:9px;padding:8px 10px;outline:none}.queue-controls option{background:#111827;color:#fff}.queue-help{font-size:11px;color:rgba(255,255,255,.48)}.queue-fixed{margin-top:9px;padding:10px 12px;border:1px solid rgba(245,158,11,.22);background:rgba(245,158,11,.055);border-radius:12px}.queue-fixed-head{display:flex;align-items:center;justify-content:space-between}.queue-fixed-title{font-size:10px;text-transform:uppercase;font-weight:800;letter-spacing:.5px}.queue-fixed-count{font-size:10px;padding:3px 7px;border-radius:7px;background:rgba(245,158,11,.15);color:#fcd34d}.queue-fixed-list{display:flex;gap:7px;overflow-x:auto;margin-top:8px}.queue-fixed-item{min-width:175px;padding:7px 8px;border-radius:8px;background:rgba(0,0,0,.16);border:1px solid rgba(255,255,255,.06)}.queue-fixed-item strong{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.queue-fixed-item span{display:block;font-size:9px;color:rgba(255,255,255,.48);margin-top:2px}.queue-fixed-item select{width:100%;margin-top:5px;padding:4px 5px;background:#111827;color:#fff;border:1px solid rgba(255,255,255,.1);border-radius:6px;font-size:9px}.queue-pos{font-size:10px;color:rgba(255,255,255,.42);margin-top:7px}.queue-pass-button{display:flex;gap:7px}.queue-status-button{width:auto!important;padding-left:10px!important;padding-right:10px!important}.queue-empty{padding:25px;text-align:center;color:rgba(255,255,255,.4);font-size:12px}@media(max-width:900px){.queue-stats{grid-template-columns:repeat(2,1fr)}.queue-panel{padding-left:15px;padding-right:15px}}
 
+
+/* ===== MENSAGENS PRONTAS DE ANDAMENTO — ADIÇÃO ===== */
+
+/* ===== MODAL DE ESCOLHA DA MENSAGEM — ADIÇÃO ===== */
+.modal-mensagem-escolha {
+    background:#0f172a;
+    border:1px solid rgba(255,255,255,0.1);
+    padding:24px;
+    border-radius:24px;
+    min-width:320px;
+    max-width:620px;
+    width:calc(100% - 30px);
+    box-shadow:0 20px 50px rgba(0,0,0,0.5);
+}
+
+.modal-mensagem-escolha h3 {
+    margin-bottom:8px;
+    font-size:20px;
+    font-weight:700;
+}
+
+.modal-mensagem-escolha > p {
+    margin-bottom:20px;
+    color:rgba(255,255,255,0.6);
+    font-size:13px;
+    line-height:1.5;
+}
+
+.opcoes-mensagens-prontas {
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+}
+
+.opcao-mensagem-pronta {
+    width:100%;
+    padding:16px;
+    text-align:left;
+    background:rgba(255,255,255,0.06);
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:14px;
+    color:#fff;
+    cursor:pointer;
+    transition:all 0.25s;
+}
+
+.opcao-mensagem-pronta:hover {
+    background:rgba(255,255,255,0.11);
+    border-color:rgba(255,255,255,0.25);
+    transform:translateY(-2px);
+}
+
+.opcao-mensagem-pronta strong {
+    display:block;
+    font-size:14px;
+    margin-bottom:6px;
+}
+
+.opcao-mensagem-pronta span {
+    display:block;
+    color:rgba(255,255,255,0.55);
+    font-size:11px;
+    line-height:1.5;
+}
+
+.opcao-mensagem-pronta.cancelar {
+    text-align:center;
+    background:rgba(255,255,255,0.03);
+    color:rgba(255,255,255,0.7);
+}
+
+.mensagens-prontas-box {
+    margin-bottom: 15px;
+    padding: 14px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+}
+
+.mensagens-prontas-box label {
+    display: block;
+    margin-bottom: 8px;
+    color: rgba(255,255,255,0.75);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.mensagens-prontas-box select {
+    width: 100%;
+    padding: 11px 13px;
+    background: #111827;
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    outline: none;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.mensagens-prontas-box select:focus {
+    border-color: rgba(255,255,255,0.3);
+}
+
+.mensagens-prontas-preview {
+    margin-top: 10px;
+    padding: 10px 12px;
+    background: rgba(0,0,0,0.18);
+    border-radius: 9px;
+    color: rgba(255,255,255,0.65);
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.mensagens-prontas-preview strong {
+    color: #fff;
+    display: block;
+    margin-bottom: 5px;
+    font-size: 11px;
+}
+
 </style>
 
 <script type="module">
@@ -522,10 +642,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const btnFecharModal = document.getElementById('btnFecharModal');
     const btnEnviarAndamento = document.getElementById('btnEnviarAndamento');
     const btnSalvarObs = document.getElementById('btnSalvarObs');
+    const selectMensagemPronta = document.getElementById('selectMensagemPronta');
+    const modalEscolhaMensagem = document.getElementById('modalEscolhaMensagem');
+    const previewMensagemPronta = document.getElementById('previewMensagemPronta');
 
     let currentUser = null;
     let clientesFechados = [];
     let clienteSelecionado = null;
+    let mensagemProntaSelecionada = '';
 
     // Fila: os campos abaixo são adicionados somente aos documentos quando o
     // cliente passa pelo andamento. O restante do CRM continua intacto.
@@ -921,6 +1045,122 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+
+    // ================= MENSAGENS PRONTAS DE ANDAMENTO =================
+    function obterPrimeiroNome(cliente){
+        const nomeCompleto = String(cliente?.nome || '').trim();
+        return nomeCompleto ? nomeCompleto.split(/\s+/)[0] : 'cliente';
+    }
+
+    function obterNumeroProcesso(cliente){
+        return cliente?.processo || cliente?.numeroProcesso || 'Não informado';
+    }
+
+    function gerarMensagemAndamento(tipo, cliente, andamentoAtual){
+        const nome = obterPrimeiroNome(cliente);
+        const numeroProcesso = obterNumeroProcesso(cliente);
+        const descricaoAndamento = String(andamentoAtual || '').trim() || '[DESCREVER O ANDAMENTO]';
+
+        if(tipo === 'sem_movimentacao'){
+            return `Olá, ${nome}! Tudo bem? Estamos entrando em contato para manter você atualizado(a) sobre o seu processo nº ${numeroProcesso}. No momento, não houve nova movimentação relevante no processo desde a última atualização. Continuamos acompanhando regularmente e, assim que houver qualquer novidade, informaremos você por aqui. Não é necessária nenhuma providência neste momento. Atenciosamente, Grupo Nascimento e Souza.`;
+        }
+
+        return `Olá, ${nome}! Tudo bem? Passando para atualizar você sobre o andamento do seu processo nº ${numeroProcesso}. No momento, houve a seguinte movimentação: ${descricaoAndamento}. Seguimos acompanhando o processo de perto e, caso seja necessária alguma providência da sua parte, avisaremos você por aqui. Ficamos à disposição!Grupo Nascimento e Souza.`;
+    }
+
+    function atualizarMensagemPronta(){
+        if(!selectMensagemPronta || !previewMensagemPronta || !clienteSelecionado) return;
+
+        const tipo = selectMensagemPronta.value;
+        if(!tipo){
+            previewMensagemPronta.innerHTML = '<strong>Pré-visualização</strong>Selecione uma mensagem pronta para preencher o campo de WhatsApp.';
+            return;
+        }
+
+        const mensagem = gerarMensagemAndamento(tipo, clienteSelecionado, inputAndamento.value);
+        previewMensagemPronta.innerHTML = `<strong>Pré-visualização</strong>${mensagem.replace(/\n/g, '<br>')}`;
+        inputAndamento.value = mensagem;
+    }
+
+    if(selectMensagemPronta){
+        selectMensagemPronta.onchange = () => {
+            atualizarMensagemPronta();
+        };
+    }
+
+    if(inputAndamento){
+        inputAndamento.addEventListener('input', () => {
+            if(!clienteSelecionado || !selectMensagemPronta || !selectMensagemPronta.value) return;
+
+            if(selectMensagemPronta.value === 'com_movimentacao'){
+                const textoAtual = inputAndamento.value;
+                const marcador = '[DESCREVER O ANDAMENTO]';
+
+                if(textoAtual.includes(marcador)){
+                    atualizarMensagemPronta();
+                }else if(previewMensagemPronta){
+                    previewMensagemPronta.innerHTML = `<strong>Pré-visualização</strong>${textoAtual.replace(/\n/g, '<br>')}`;
+                }
+            }
+        });
+    }
+
+
+    function abrirModalEscolhaMensagem(cliente){
+        clienteSelecionado = cliente;
+        mensagemProntaSelecionada = '';
+
+        if(selectMensagemPronta){
+            selectMensagemPronta.value = '';
+        }
+
+        if(previewMensagemPronta){
+            previewMensagemPronta.innerHTML = '<strong>Pré-visualização</strong>Selecione uma mensagem pronta para preencher o campo de WhatsApp.';
+        }
+
+        if(modalEscolhaMensagem){
+            modalEscolhaMensagem.style.display = 'flex';
+        }
+    }
+
+    function fecharModalEscolhaMensagem(){
+        if(modalEscolhaMensagem){
+            modalEscolhaMensagem.style.display = 'none';
+        }
+        clienteSelecionado = null;
+        mensagemProntaSelecionada = '';
+    }
+
+    function selecionarMensagemPronta(tipo){
+        if(!clienteSelecionado) return;
+
+        mensagemProntaSelecionada = tipo;
+
+        if(selectMensagemPronta){
+            selectMensagemPronta.value = tipo;
+        }
+
+        if(modalEscolhaMensagem){
+            modalEscolhaMensagem.style.display = 'none';
+        }
+
+        modalTitle.innerText = `Andamento: ${clienteSelecionado.nome}`;
+
+        if(tipo === 'com_movimentacao'){
+            inputAndamento.value = gerarMensagemAndamento(tipo, clienteSelecionado, '[DESCREVER O ANDAMENTO]');
+        }else{
+            inputAndamento.value = gerarMensagemAndamento(tipo, clienteSelecionado, '');
+        }
+
+        inputObservacoes.value = clienteSelecionado.obs || '';
+
+        modalBackdrop.style.display = 'flex';
+
+        if(previewMensagemPronta){
+            previewMensagemPronta.innerHTML = `<strong>Mensagem selecionada</strong>${inputAndamento.value.replace(/\n/g, '<br>')}`;
+        }
+    }
+
     function abrirModal(cliente) {
         clienteSelecionado = cliente;
         
@@ -928,6 +1168,14 @@ document.addEventListener('DOMContentLoaded', () => {
         modalTitle.innerText = `Andamento: ${cliente.nome}`;
         inputAndamento.value = `Olá ${cliente.nome.split(' ')[0]}, tudo bem?\nAqui é do setor de andamento da AMR ADV. \n\nA atualização do seu processo é: \n\n`;
         inputObservacoes.value = cliente.obs || '';
+
+        if(selectMensagemPronta){
+            selectMensagemPronta.value = '';
+        }
+
+        if(previewMensagemPronta){
+            previewMensagemPronta.innerHTML = '<strong>Pré-visualização</strong>Selecione uma mensagem pronta para preencher o campo de WhatsApp.';
+        }
         
         // Renderizar Detalhes do Cliente no Modal
         modalClientInfo.innerHTML = `
@@ -947,7 +1195,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </p>
         `;
 
-        modalBackdrop.style.display = 'flex';
+        abrirModalEscolhaMensagem(cliente);
 
         const statusSelect = document.getElementById('modalStatusFila');
         if(statusSelect){
@@ -963,6 +1211,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btnFecharModal.onclick = () => {
         modalBackdrop.style.display = 'none';
         clienteSelecionado = null;
+        mensagemProntaSelecionada = '';
     };
 
     btnSalvarObs.onclick = async () => {
@@ -1251,6 +1500,29 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
 </div>
 
+<div class="modal-backdrop" id="modalEscolhaMensagem">
+    <div class="modal-mensagem-escolha">
+        <h3>Escolha a mensagem para enviar</h3>
+        <p>Selecione o modelo de mensagem que deseja utilizar para este cliente. Os dados do nome e do processo serão preenchidos automaticamente.</p>
+
+        <div class="opcoes-mensagens-prontas">
+            <button class="opcao-mensagem-pronta" type="button" onclick="selecionarMensagemPronta('com_movimentacao')">
+                <strong>Mensagem 1 — Com movimentação</strong>
+                <span>Informa ao cliente que houve uma movimentação no processo e permite descrever o andamento ocorrido.</span>
+            </button>
+
+            <button class="opcao-mensagem-pronta" type="button" onclick="selecionarMensagemPronta('sem_movimentacao')">
+                <strong>Mensagem 2 — Sem nova movimentação</strong>
+                <span>Informa que não houve nova movimentação relevante e que o escritório continua acompanhando o processo.</span>
+            </button>
+
+            <button class="opcao-mensagem-pronta cancelar" type="button" onclick="fecharModalEscolhaMensagem()">
+                Cancelar
+            </button>
+        </div>
+    </div>
+</div>
+
 <div class="modal-backdrop" id="modalBackdrop">
     <div class="modal">
         <h3 id="modalTitle">Escrever Andamento</h3>
@@ -1272,6 +1544,19 @@ document.addEventListener('DOMContentLoaded', () => {
             A mensagem abaixo será enviada para o WhatsApp do cliente. Salvar move o card para "Concluídos".
         </p>
         
+        <div class="mensagens-prontas-box">
+            <label for="selectMensagemPronta">Escolha uma mensagem pronta para enviar</label>
+            <select id="selectMensagemPronta">
+                <option value="">Selecione uma mensagem...</option>
+                <option value="com_movimentacao">Mensagem 1 — Com movimentação</option>
+                <option value="sem_movimentacao">Mensagem 2 — Sem nova movimentação</option>
+            </select>
+            <div class="mensagens-prontas-preview" id="previewMensagemPronta">
+                <strong>Pré-visualização</strong>
+                Selecione uma mensagem pronta para preencher o campo de WhatsApp.
+            </div>
+        </div>
+
         <textarea id="inputAndamento" placeholder="Digite o andamento do processo aqui..."></textarea>
         
         <div class="actions">
