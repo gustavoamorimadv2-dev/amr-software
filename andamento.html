@@ -1161,6 +1161,15 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    /*
+     * As funções acima estão dentro de um <script type="module">.
+     * Por isso, funções locais do módulo não ficam disponíveis para onclick=""
+     * inline no HTML. Estas três referências expõem somente as funções dos
+     * botões do modal de escolha, sem alterar a lógica existente.
+     */
+    window.selecionarMensagemPronta = selecionarMensagemPronta;
+    window.fecharModalEscolhaMensagem = fecharModalEscolhaMensagem;
+
     function abrirModal(cliente) {
         clienteSelecionado = cliente;
         
@@ -1506,17 +1515,17 @@ document.addEventListener('DOMContentLoaded', () => {
         <p>Selecione o modelo de mensagem que deseja utilizar para este cliente. Os dados do nome e do processo serão preenchidos automaticamente.</p>
 
         <div class="opcoes-mensagens-prontas">
-            <button class="opcao-mensagem-pronta" type="button" onclick="selecionarMensagemPronta('com_movimentacao')">
+            <button id="btnMensagemComMovimentacao" class="opcao-mensagem-pronta" type="button" onclick="selecionarMensagemPronta('com_movimentacao')">
                 <strong>Mensagem 1 — Com movimentação</strong>
                 <span>Informa ao cliente que houve uma movimentação no processo e permite descrever o andamento ocorrido.</span>
             </button>
 
-            <button class="opcao-mensagem-pronta" type="button" onclick="selecionarMensagemPronta('sem_movimentacao')">
+            <button id="btnMensagemSemMovimentacao" class="opcao-mensagem-pronta" type="button" onclick="selecionarMensagemPronta('sem_movimentacao')">
                 <strong>Mensagem 2 — Sem nova movimentação</strong>
                 <span>Informa que não houve nova movimentação relevante e que o escritório continua acompanhando o processo.</span>
             </button>
 
-            <button class="opcao-mensagem-pronta cancelar" type="button" onclick="fecharModalEscolhaMensagem()">
+            <button id="btnCancelarEscolhaMensagem" class="opcao-mensagem-pronta cancelar" type="button" onclick="fecharModalEscolhaMensagem()">
                 Cancelar
             </button>
         </div>
