@@ -221,6 +221,15 @@ input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); co
     display:none; z-index:9999; font-size:14px; font-weight: 500;
 }
 
+
+/* RECEITA PREVISTA E AVISO DE VENCIMENTO — somente interface */
+.resumo-previsto { border-bottom:4px solid #38bdf8; cursor:pointer; }
+.resumo-previsto .value { color:#38bdf8; }
+.resumo-previsto:hover { transform:translateY(-2px); background:rgba(56,189,248,.09); }
+.card.parcela-proxima { border-color:#f59e0b; box-shadow:0 0 0 1px rgba(245,158,11,.5),0 8px 30px rgba(245,158,11,.12); }
+.aviso-parcela { margin:9px 0; padding:9px; background:rgba(245,158,11,.13); border:1px solid rgba(245,158,11,.5); color:#fde68a; border-radius:9px; font-size:12px; font-weight:700; line-height:1.5; }
+.receita-linha { padding:12px 0; border-bottom:1px solid rgba(255,255,255,.1); display:flex; justify-content:space-between; gap:14px; align-items:center; }
+.receita-linha small { color:rgba(255,255,255,.65); display:block; margin-top:4px; }
 </style>
 </head>
 <body>
@@ -253,6 +262,10 @@ input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); co
         <div class="resumo-card resumo-aberto">
             <span class="title">Total em Aberto</span>
             <span class="value" id="resumoAberto">R$ 0,00</span>
+        </div>
+        <div class="resumo-card resumo-previsto" onclick="abrirModalReceitaPrevista()" title="Clique para consultar a receita prevista para o próximo mês">
+            <span class="title">Receita prevista — próximo mês</span>
+            <span class="value" id="resumoPrevisto">R$ 0,00</span>
         </div>
         <div class="resumo-card resumo-atraso" onclick="toggleFiltroAtrasados()" title="Clique para filtrar apenas devedores">
             <span class="title">Total em Atraso</span>
@@ -463,6 +476,21 @@ input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); co
     </div>
 </div>
 
+<!-- MODAL RECEITA PREVISTA -->
+<div class="modal-backdrop" id="modalReceitaPrevista">
+    <div class="modal modal-large">
+        <div class="modal-header">
+            <h3>Receita prevista — próximo mês</h3>
+            <button class="btn-close" onclick="fecharModalReceitaPrevista()">✖</button>
+        </div>
+        <p style="color:rgba(255,255,255,.7);font-size:13px;margin-bottom:16px">Somente a primeira parcela não paga de cada cliente, quando seu vencimento ocorrer no próximo mês. Parcelas posteriores não são antecipadas.</p>
+        <div id="receitaPrevistaMes" style="color:#93c5fd;font-size:14px;margin-bottom:8px"></div>
+        <div id="receitaPrevistaTotal" style="font-size:30px;font-weight:800;color:#38bdf8;margin-bottom:12px"></div>
+        <div id="receitaPrevistaLista"></div>
+        <div class="actions"><button class="btn ghost" onclick="fecharModalReceitaPrevista()">Fechar</button></div>
+    </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script type="module">
@@ -554,6 +582,79 @@ function obterStatusEfetivo(parcela) {
     return "Pendente";
 }
 
+// Cálculos locais: não acrescentam leituras ou gravações no Firebase.
+function dataParcelaReceita(valor) {
+    if (!valor) return null;
+    if (typeof valor.toDate === 'function') return valor.toDate();
+    if (typeof valor === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(valor)) {
+        const [a,m,d] = valor.split('-').map(Number);
+        const data = new Date(a,m-1,d);
+        return data.getFullYear() === a && data.getMonth() === m-1 && data.getDate() === d ? data : null;
+    }
+    const data = new Date(valor);
+    return Number.isNaN(data.getTime()) ? null : data;
+}
+function proximaParcelaNaoPaga(cliente) {
+    const parcelas = Array.isArray(cliente.honorarios) ? cliente.honorarios : [];
+    return parcelas.filter(p => p && String(p.status || '').trim().toLowerCase() !== 'pago' && dataParcelaReceita(p.vencimento))
+        .sort((a,b) => dataParcelaReceita(a.vencimento) - dataParcelaReceita(b.vencimento))[0] || null;
+}
+function calcularReceitaPrevista(lista) {
+    const hoje = new Date();
+    const mes = (hoje.getMonth()+1)%12;
+    const ano = hoje.getFullYear() + (hoje.getMonth()===11 ? 1 : 0);
+    const itens = [];
+    lista.forEach(cliente => {
+        const parcela = proximaParcelaNaoPaga(cliente);
+        if (!parcela) return;
+        const data = dataParcelaReceita(parcela.vencimento);
+        if (data.getMonth() !== mes || data.getFullYear() !== ano) return;
+        const valor = converterMoedaParaFloat(String(parcela.valor ?? '0'));
+        if (!Number.isFinite(valor)) return;
+        itens.push({cliente, parcela, data, valor});
+    });
+    itens.sort((a,b)=>a.data-b.data);
+    return {itens, total:itens.reduce((total,item)=>total+item.valor,0), mes, ano};
+}
+function atualizarReceitaPrevista() {
+    const resultado = calcularReceitaPrevista(clientesData);
+    document.getElementById('resumoPrevisto').textContent = formatarFloatParaMoeda(resultado.total);
+    if (document.getElementById('modalReceitaPrevista').style.display === 'flex') renderizarReceitaPrevista();
+}
+function textoSeguroReceita(valor) {
+    return String(valor ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function renderizarReceitaPrevista() {
+    const dados = calcularReceitaPrevista(clientesData);
+    const mesTexto = new Date(dados.ano,dados.mes,1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'});
+    document.getElementById('receitaPrevistaMes').textContent = mesTexto[0].toUpperCase()+mesTexto.slice(1)+' • '+dados.itens.length+' cliente(s)';
+    document.getElementById('receitaPrevistaTotal').textContent = formatarFloatParaMoeda(dados.total);
+    document.getElementById('receitaPrevistaLista').innerHTML = dados.itens.length ? dados.itens.map(item => `
+        <div class="receita-linha">
+            <div><strong>${textoSeguroReceita(item.cliente.nome || 'Sem nome')}</strong><small>Vencimento: ${item.data.toLocaleDateString('pt-BR')}</small></div>
+            <strong style="white-space:nowrap;color:#7dd3fc">${formatarFloatParaMoeda(item.valor)}</strong>
+        </div>`).join('') : '<p style="color:rgba(255,255,255,.65)">Nenhuma próxima parcela de cliente vence no próximo mês.</p>';
+}
+window.abrirModalReceitaPrevista = function() {
+    renderizarReceitaPrevista();
+    document.getElementById('modalReceitaPrevista').style.display = 'flex';
+};
+window.fecharModalReceitaPrevista = function() {
+    document.getElementById('modalReceitaPrevista').style.display = 'none';
+};
+function avisoProximoVencimento(cliente) {
+    const parcela = proximaParcelaNaoPaga(cliente);
+    if (!parcela) return '';
+    const data = dataParcelaReceita(parcela.vencimento);
+    const hoje = new Date(); hoje.setHours(0,0,0,0);
+    const vencimento = new Date(data.getFullYear(),data.getMonth(),data.getDate());
+    const dias = Math.round((vencimento-hoje)/86400000);
+    if (dias < 0 || dias > 5) return '';
+    const descricao = dias===0 ? 'VENCE HOJE' : dias===1 ? 'VENCE AMANHÃ' : `VENCE EM ${dias} DIAS`;
+    const valor = converterMoedaParaFloat(String(parcela.valor ?? '0'));
+    return `<div class="aviso-parcela">⚠️ ${descricao}<div>Parcela: ${Number.isFinite(valor)?formatarFloatParaMoeda(valor):'Valor não informado'} • ${vencimento.toLocaleDateString('pt-BR')}</div></div>`;
+}
+
 function atualizarResumoFinanceiro(listaClientes) {
     let totalPago = 0;
     let totalAberto = 0;
@@ -578,6 +679,7 @@ function atualizarResumoFinanceiro(listaClientes) {
     document.getElementById('resumoPago').textContent = formatarFloatParaMoeda(totalPago);
     document.getElementById('resumoAberto').textContent = formatarFloatParaMoeda(totalAberto);
     document.getElementById('resumoAtraso').textContent = formatarFloatParaMoeda(totalAtraso);
+    atualizarReceitaPrevista();
 }
 
 function extrairDocumentos(docsOriginais) {
@@ -1066,6 +1168,7 @@ async function carregarClientes(opcoes = {}) {
 
 function exibirClientes(lista) {
     atualizarResumoFinanceiro(lista);
+    atualizarReceitaPrevista();
     
     container.innerHTML = "";
     if(lista.length === 0) {
@@ -1077,7 +1180,7 @@ function exibirClientes(lista) {
         const card = document.createElement("div");
         const isRenunciar = cliente.situacao === "Renunciar";
         
-        card.className = `card ${isRenunciar ? 'renunciar' : ''}`;
+        card.className = `card ${isRenunciar ? 'renunciar' : ''} ${avisoProximoVencimento(cliente) ? 'parcela-proxima' : ''}`;
         card.id = `card-cliente-${cliente.id}`;
         
         let dataFechamentoStr = "";
@@ -1133,6 +1236,7 @@ function exibirClientes(lista) {
                     ${dataFechamentoStr ? `<span class="card-date">${isFechado ? 'Fechado em:' : 'Data:'} ${dataFechamentoStr}</span>` : ''}
                 </div>
                 <h2>${cliente.nome || "Sem nome"}</h2>
+                ${avisoProximoVencimento(cliente)}
                 <p><strong>CPF:</strong> ${cliente.cpf || "-"}</p>
                 <p><strong>Vendedor:</strong> ${cliente.vendedor || "Não informado"}</p>
                 ${cliente.observacoes ? `<p style="font-size:11px; margin-top:6px; margin-bottom:6px; padding:6px; border-radius:6px; background:rgba(255,255,255,0.05); border-left:3px solid #f59e0b; color:rgba(255,255,255,0.8); line-height: 1.4;"><strong>Obs:</strong> ${cliente.observacoes.substring(0, 65)}${cliente.observacoes.length > 65 ? '...' : ''}</p>` : ''}
@@ -1569,7 +1673,8 @@ window.atualizarStatusParcela = async function(index, novoStatus) {
         atualizarResumoFinanceiro(clientesData);
         
         atualizarCacheLocal();
-        renderizarHonorarios(); 
+        renderizarHonorarios();
+        aplicarFiltros();
         showToast(`Parcela atualizada para ${novoStatus}!`);
     } catch(err) {
         console.error(err);
