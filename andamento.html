@@ -591,6 +591,28 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     font-size: 11px;
 }
 
+/* Contador ÚNICO da página: ciclo global de 10 dias, não por cliente. */
+.ciclo-global-painel {
+    display:flex;
+    align-items:center;
+    gap:20px;
+    padding:15px 18px;
+    margin-bottom:11px;
+    border:1px solid rgba(96,165,250,.23);
+    border-radius:14px;
+    background:linear-gradient(100deg,rgba(37,99,235,.13),rgba(255,255,255,.035));
+}
+.ciclo-global-relogio {display:flex;flex-direction:column;gap:2px;flex-shrink:0}
+.ciclo-global-titulo {font-size:11px;font-weight:800;letter-spacing:.7px;text-transform:uppercase;color:#bfdbfe}
+.ciclo-global-numero {font-size:30px;font-weight:800;color:#fff;line-height:1.1;font-variant-numeric:tabular-nums}
+.ciclo-global-numero span {font-size:14px;font-weight:600;color:rgba(255,255,255,.65)}
+.ciclo-global-detalhes {flex:1;min-width:0}
+.ciclo-global-info {font-size:12px;color:rgba(255,255,255,.8);margin-bottom:8px}
+.ciclo-global-trilha {height:7px;background:rgba(255,255,255,.1);border-radius:20px;overflow:hidden}
+.ciclo-global-progresso {height:100%;width:10%;background:#60a5fa;border-radius:20px;transition:width .25s}
+.ciclo-global-rodape {font-size:10px;color:rgba(255,255,255,.55);margin-top:6px}
+@media(max-width:600px){.ciclo-global-painel{align-items:flex-start;flex-direction:column;gap:10px}.ciclo-global-detalhes{width:100%}}
+
 </style>
 
 <script type="module">
@@ -653,7 +675,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Fila: os campos abaixo são adicionados somente aos documentos quando o
     // cliente passa pelo andamento. O restante do CRM continua intacto.
-    let filaRetornoModo = 'final';
     let filaAtiva = [];
     let clientesForaFila = [];
 
@@ -885,35 +906,104 @@ document.addEventListener('DOMContentLoaded', () => {
         clientesForaFila = clientesFechados.filter(estaForaDaFila);
         const ativos = clientesFechados.filter(c => !estaForaDaFila(c));
 
-        // A primeira carga usa a ordem que já veio do sistema. Depois que um
-        // cliente passa, filaOrdem recebe o maior número + 1, portanto ele
-        // nunca volta para a posição antiga.
+        // Mantém a ordem já armazenada. A volta coletiva à coluna inicial
+        // depende do ciclo GLOBAL, e não do prazo individual do cliente.
         filaAtiva = ativos.map((c,i) => ({cliente:c,ordem:numeroFila(c,i+1)}));
         filaAtiva.sort((a,b) => a.ordem - b.ordem);
         filaAtiva = filaAtiva.map(x => x.cliente);
     }
 
-    function clienteEstaPendente(cliente){
-        return calcularDiasAndamento(cliente.dataUltimoAndamento) >= 10;
+    // REGRA GLOBAL: todos os clientes participam do mesmo ciclo de 10 dias.
+    // Dia 1 começa em 14/10/2026, data de ativação, no horário de Brasília.
+    // O ciclo se repete a cada 10 dias corridos, sem precisar alterar o Firestore.
+    // Assim, todos os usuários veem o mesmo dia do ciclo, sem contadores individuais.
+    const INICIO_CICLO_GLOBAL = '2026-10-14'; // Mude só esta data se desejar redefinir o dia 1.
+    const FUSO_CICLO_GLOBAL = 'America/Sao_Paulo';
+    const DIAS_POR_CICLO = 10;
+    const UM_DIA_MS = 24 * 60 * 60 * 1000;
+    let chaveUltimoCicloExibido = '';
+
+    function serialDia(ano, mes, dia){
+        return Math.floor(Date.UTC(ano, mes - 1, dia) / UM_DIA_MS);
     }
 
-    function ordemParaFila(cliente, index){
-        const temPassagem = !!cliente.filaUltimaPassagem;
-        const pendente = clienteEstaPendente(cliente);
+    function dataBrasileira(agora = new Date()){
+        const partes = new Intl.DateTimeFormat('en-US', {
+            timeZone: FUSO_CICLO_GLOBAL, year:'numeric', month:'2-digit', day:'2-digit'
+        }).formatToParts(agora);
+        const valores = Object.fromEntries(partes.map(parte => [parte.type, parte.value]));
+        return {ano:Number(valores.year), mes:Number(valores.month), dia:Number(valores.day)};
+    }
 
-        // Sem passagem anterior: mantém a ordem inicial.
-        if(!temPassagem) return numeroFila(cliente,index+1);
+    function obterCicloGlobal(agora = new Date()){
+        const hoje = dataBrasileira(agora);
+        const [anoInicio, mesInicio, diaInicio] = INICIO_CICLO_GLOBAL.split('-').map(Number);
+        const diasDesdeInicio = Math.max(0,
+            serialDia(hoje.ano, hoje.mes, hoje.dia) - serialDia(anoInicio, mesInicio, diaInicio)
+        );
+        const numeroCiclo = Math.floor(diasDesdeInicio / DIAS_POR_CICLO);
+        const diaAtual = (diasDesdeInicio % DIAS_POR_CICLO) + 1;
+        const inicioEmDias = serialDia(anoInicio, mesInicio, diaInicio) + numeroCiclo * DIAS_POR_CICLO;
+        const proximoInicio = new Date((inicioEmDias + DIAS_POR_CICLO) * UM_DIA_MS);
+        return {
+            numeroCiclo, diaAtual,
+            inicioCicloMs: inicioEmDias * UM_DIA_MS,
+            proximoInicioTexto: new Intl.DateTimeFormat('pt-BR', {
+                timeZone:'UTC', day:'2-digit', month:'2-digit', year:'numeric'
+            }).format(proximoInicio)
+        };
+    }
 
-        // Se já passou e ainda está no ciclo de 10 dias, permanece atrás dos
-        // clientes que precisam ser atendidos.
-        if(!pendente) return numeroFila(cliente,index+1);
+    function instanteUltimoAndamento(cliente){
+        // Os dois campos já existem na página; não cria um campo por cliente.
+        const valor = cliente.filaUltimaPassagem || cliente.dataUltimoAndamento;
+        if(!valor) return null;
+        let data;
+        if(typeof valor.toDate === 'function') data = valor.toDate();
+        else if(typeof valor === 'object' && typeof valor.seconds === 'number') data = new Date(valor.seconds * 1000);
+        else data = new Date(valor);
+        const instante = data.getTime();
+        return Number.isFinite(instante) ? instante : null;
+    }
 
-        // Ao completar 10 dias ele entra novamente na fila. No modo FINAL,
-        // clientes que estão retornando ficam depois dos que ainda não passaram.
-        // No modo INÍCIO, entram antes.
-        const base = numeroFila(cliente,index+1);
-        if(filaRetornoModo === 'inicio') return -1000000000 + base;
-        return 1000000000 + base;
+    function clienteEstaPendente(cliente){
+        const instante = instanteUltimoAndamento(cliente);
+        if(instante === null) return true; // Nunca recebeu andamento.
+        const inicioCiclo = obterCicloGlobal();
+        // A comparação é feita por DATA LOCAL em São Paulo: no novo dia 1,
+        // todas as passagens do ciclo anterior deixam de contar imediatamente.
+        const dataAndamento = dataBrasileira(new Date(instante));
+        const diaAndamento = serialDia(dataAndamento.ano, dataAndamento.mes, dataAndamento.dia);
+        return diaAndamento * UM_DIA_MS < inicioCiclo.inicioCicloMs;
+    }
+
+    function ordemParaFila(cliente,index){
+        // Todos voltam para a coluna de atendimento juntos no dia 1;
+        // a ordem relativa existente entre os cards é preservada.
+        return numeroFila(cliente,index+1);
+    }
+
+    function atualizarContadorCicloGlobal(){
+        const ciclo = obterCicloGlobal();
+        const diaEl = document.getElementById('cicloGlobalDia');
+        const barraEl = document.getElementById('cicloGlobalProgresso');
+        const proximoEl = document.getElementById('cicloGlobalProximo');
+        if(diaEl) diaEl.textContent = ciclo.diaAtual;
+        if(barraEl) {
+            barraEl.style.width = `${(ciclo.diaAtual / DIAS_POR_CICLO) * 100}%`;
+            barraEl.setAttribute('aria-valuenow', String(ciclo.diaAtual));
+        }
+        if(proximoEl) proximoEl.textContent = `Reinício geral da fila: ${ciclo.proximoInicioTexto}`;
+
+        const chaveAtual = String(ciclo.numeroCiclo);
+        if(chaveUltimoCicloExibido !== '' && chaveUltimoCicloExibido !== chaveAtual){
+            // O dia 10 acabou: volta a dia 1 e TODOS os cards ativos
+            // retornam aos pendentes sem escrita/leitura extra no banco.
+            chaveUltimoCicloExibido = chaveAtual;
+            renderCards();
+        } else {
+            chaveUltimoCicloExibido = chaveAtual;
+        }
     }
 
     function montarFilaOrdenada(){
@@ -923,8 +1013,8 @@ document.addEventListener('DOMContentLoaded', () => {
             pendente: clienteEstaPendente(cliente)
         }));
 
-        // Primeiro os que precisam de andamento; depois os que já passaram.
-        // Dentro dos pendentes, respeita a posição mecânica da fila.
+        // Os pendentes do ciclo atual ficam primeiro. No novo dia 1,
+        // todos os clientes ativos voltam juntos para os pendentes.
         itens.sort((a,b) => {
             if(a.pendente !== b.pendente) return a.pendente ? -1 : 1;
             return a.ordem - b.ordem;
@@ -980,12 +1070,6 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error('Erro ao alterar status da fila:',error);
             showToast('Erro ao alterar o status da fila.');
         }
-    }
-
-    function marcarFilaRetorno(){
-        const select = document.getElementById('filaRetornoModo');
-        if(select) filaRetornoModo = select.value || 'final';
-        renderCards();
     }
 
     function calcularDiasAndamento(dataAndamento) {
@@ -1282,8 +1366,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const dataAgora = new Date().toISOString();
             const docRef = doc(db, "clientes", clienteSelecionado.id);
-            // Sempre que passa, recebe uma nova posição no FINAL da fila.
-            // Isso é o que impede o cliente de voltar para o mesmo lugar.
+            // Ao enviar, sai dos pendentes do ciclo atual. Todos retornam
+            // juntos ao início da fila no próximo dia 1 do ciclo global.
             const maiorOrdem = clientesFechados.reduce((maior,c) => {
                 const n = Number(c.filaOrdem);
                 return Number.isFinite(n) ? Math.max(maior,n) : maior;
@@ -1331,7 +1415,7 @@ document.addEventListener('DOMContentLoaded', () => {
         atualizarPainelFila();
 
         colAberto.innerHTML = `<h2>ANDAMENTOS EM ABERTO — FILA DE ATENDIMENTO</h2><div class="cards-grid" id="grid-aberto"></div>`;
-        colConcluido.innerHTML = `<h2>JÁ PASSARAM — AGUARDANDO 10 DIAS</h2><div class="cards-grid" id="grid-concluido"></div>`;
+        colConcluido.innerHTML = `<h2>JÁ PASSARAM — AGUARDANDO O PRÓXIMO CICLO</h2><div class="cards-grid" id="grid-concluido"></div>`;
 
         const gridAberto = document.getElementById('grid-aberto');
         const gridConcluido = document.getElementById('grid-concluido');
@@ -1362,7 +1446,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const matchProcesso = cliente.processo && String(cliente.processo).toLowerCase().includes(qTexto);
             if(qTexto && !(matchNome || matchCpf || matchProcesso)) return;
 
-            const diasPassados = calcularDiasAndamento(cliente.dataUltimoAndamento);
             const card = document.createElement('div');
             card.className = `card ${pendente ? 'aberto' : 'concluido'}`;
 
@@ -1373,7 +1456,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const textoObs = cliente.obs || 'Nenhuma observação registrada.';
             const posicao = pendente ? ordenados.filter(x => x.pendente).findIndex(x => x.cliente.id === cliente.id) + 1 : 0;
 
-            const badgeTexto = pendente ? `Falta passar — ${diasPassados}d` : `Já passou — ${diasPassados === 0 ? 'hoje' : diasPassados + 'd'}`;
+            const badgeTexto = pendente ? 'Pendente neste ciclo' : 'Atendido neste ciclo';
             const badgeColor = pendente ? '#fca5a5' : '#6ee7b7';
             const badgeBg = pendente ? 'rgba(239,68,68,.15)' : 'rgba(16,185,129,.15)';
 
@@ -1386,7 +1469,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p><strong>CPF/CNPJ:</strong> ${cpf}</p>
                     <p><strong>Estado:</strong> ${estado}</p>
                     <p style="word-break:break-all;"><strong>Processo:</strong> ${todosProcessos}</p>
-                    <div class="queue-pos">${pendente ? `Posição na fila: ${posicao}º` : 'Aguardando completar 10 dias para retornar à fila'}</div>
+                    <div class="queue-pos">${pendente ? `Posição na fila: ${posicao}º` : 'Aguardando o próximo ciclo geral da fila'}</div>
                     <div class="card-observacao"><strong>Observações Internas</strong><p title="${String(textoObs).replace(/"/g,'&quot;')}">${textoObs}</p></div>
                     ${textoAndamento ? `<div class="ultimo-andamento"><strong>Último Andamento Enviado</strong><p title="${String(textoAndamento).replace(/"/g,'&quot;')}">${textoAndamento}</p></div>` : `<div class="ultimo-andamento" style="opacity:.5;"><strong>Último Andamento Enviado</strong><p style="font-style:italic;">Nenhum andamento registrado ainda no sistema.</p></div>`}
                 </div>
@@ -1414,6 +1497,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     searchInput.oninput = renderCards;
+
+    // Atualiza somente o contador compartilhado; não lê nem grava no Firestore.
+    // Ao virar o ciclo, a função atualiza a fila inteira automaticamente.
+    atualizarContadorCicloGlobal();
+    setInterval(atualizarContadorCicloGlobal, 15000);
+    document.addEventListener('visibilitychange', () => {
+        if(!document.hidden){
+            atualizarContadorCicloGlobal();
+            renderCards();
+        }
+    });
 
     /* ================= LOGIN ================= */
     onAuthStateChanged(auth, user => {
@@ -1465,7 +1559,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div style="display:flex; align-items:center; gap:12px;">
             <div style="font-size: 14px; color: rgba(255,255,255,0.7);">
                 <!-- <-- ALTERADO DE 5 PARA 10 DIAS -->
-                Fila automática: ao passar, o cliente vai para o final; após 10 dias, retorna ao ciclo.
+                Fila automática: todos os clientes retornam juntos ao início a cada 10 dias.
             </div>
             <button class="btn ghost" onclick="forcarAtualizacao()" title="Sincronizar dados com o servidor" style="width:auto; padding:10px 14px;">🔄 Sincronizar</button>
         </div>
@@ -1476,19 +1570,27 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
 
     <section class="queue-panel">
+        <div class="ciclo-global-painel" aria-label="Contador geral do ciclo de 10 dias">
+            <div class="ciclo-global-relogio">
+                <div class="ciclo-global-titulo">🗓️ Ciclo geral da fila</div>
+                <div class="ciclo-global-numero">Dia <strong id="cicloGlobalDia">1</strong> <span>de 10</span></div>
+            </div>
+            <div class="ciclo-global-detalhes">
+                <div class="ciclo-global-info">Um contador para todos os clientes. No novo dia 1, todos os cards ativos voltam para o início.</div>
+                <div class="ciclo-global-trilha"><div class="ciclo-global-progresso" id="cicloGlobalProgresso" role="progressbar" aria-valuemin="1" aria-valuemax="10" aria-valuenow="1"></div></div>
+                <div class="ciclo-global-rodape" id="cicloGlobalProximo">Próximo reinício geral da fila</div>
+            </div>
+        </div>
         <div class="queue-stats">
             <div class="queue-stat"><div class="queue-stat-label">Clientes na fila</div><div class="queue-stat-value" id="queueTotal">0</div><div class="queue-stat-sub">clientes ativos</div></div>
             <div class="queue-stat"><div class="queue-stat-label">Faltam passar</div><div class="queue-stat-value" id="queueFaltam">0</div><div class="queue-stat-sub">precisam de andamento</div></div>
-            <div class="queue-stat"><div class="queue-stat-label">Já passaram</div><div class="queue-stat-value" id="queuePassaram">0</div><div class="queue-stat-sub">aguardando 10 dias</div></div>
+            <div class="queue-stat"><div class="queue-stat-label">Já passaram</div><div class="queue-stat-value" id="queuePassaram">0</div><div class="queue-stat-sub">atendidos neste ciclo</div></div>
             <div class="queue-stat"><div class="queue-stat-label">Fora da fila</div><div class="queue-stat-value" id="queueFora">0</div><div class="queue-stat-sub">revogado, arquivado ou inadimplente</div></div>
         </div>
         <div class="queue-controls">
-            <label style="font-size:11px;color:rgba(255,255,255,.55);">Quando completar 10 dias:</label>
-            <select id="filaRetornoModo" onchange="marcarFilaRetorno()">
-                <option value="final" selected>voltar para o FINAL da fila</option>
-                <option value="inicio">voltar para o INÍCIO da fila</option>
-            </select>
-            <span class="queue-help">A posição anterior não é preservada.</span>
+            <label style="font-size:11px;color:rgba(255,255,255,.55);">Regra da fila:</label>
+            <span style="font-size:12px;font-weight:700;color:#6ee7b7;">No próximo dia 1, todos os cards ativos retornam ao INÍCIO.</span>
+            <span class="queue-help">Contador único de 10 dias; não reinicia por cliente.</span>
         </div>
         <div class="queue-fixed">
             <div class="queue-fixed-head"><div class="queue-fixed-title">Lista fixa — não precisam mais de andamento</div><div class="queue-fixed-count" id="queueFixedCount">0</div></div>
