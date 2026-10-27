@@ -343,8 +343,13 @@ select option {
 .dia-4 .color-bar{ background:#8b5cf6; } 
 .dia-5 .color-bar{ background:#ef4444; } 
 .em-negociacao .color-bar{ background:#eab308; } 
-.contrato-assinado .color-bar{ background:#0284c7; } 
-.fechado .color-bar{ background:#16a34a; } 
+.contrato-assinado .color-bar,
+.fechado .color-bar{ background:#0284c7; }
+.card.contrato-assinado,
+.card.fechado{ border-color:rgba(2,132,199,0.5); background:rgba(2,132,199,0.1); }
+.card.contrato-assinado.lancado-sistema,
+.card.fechado.lancado-sistema{ border-color:#10b981; background:rgba(16,185,129,0.1); }
+.card.lancado-sistema .color-bar{ background:#10b981; } 
 
 /* ================= AÇÕES DOS CARDS (BOTÕES) ================= */
 
@@ -630,6 +635,7 @@ import {
     collection,
     addDoc,
     getDocs,
+    onSnapshot,
     doc,
     setDoc,
     updateDoc,
@@ -827,6 +833,27 @@ document.addEventListener('DOMContentLoaded', () => {
 
     let currentUser = null;
     let todosClientesCache = []; 
+    let pararAtualizacaoLancamentos = null;
+
+    function aplicarCorLancamento(card, cliente) {
+        const etapaFinal = card.dataset.status === 'contrato-assinado' || card.dataset.status === 'fechado';
+        card.classList.toggle('lancado-sistema', etapaFinal && cliente.lancadoSistemaInterno === true);
+    }
+
+    function acompanharLancamentos() {
+        if (pararAtualizacaoLancamentos) pararAtualizacaoLancamentos();
+        const consulta = query(collection(db, 'clientes'), where('userId', '==', currentUser.uid));
+        pararAtualizacaoLancamentos = onSnapshot(consulta, snapshot => {
+            snapshot.docChanges().forEach(change => {
+                if (change.type === 'removed') return;
+                const cliente = change.doc.data();
+                const cache = todosClientesCache.find(c => c.id === change.doc.id);
+                if (cache) cache.lancadoSistemaInterno = cliente.lancadoSistemaInterno === true;
+                const card = cardsMap[change.doc.id];
+                if (card) aplicarCorLancamento(card, cliente);
+            });
+        }, error => console.error('Erro ao acompanhar lançamentos do jurídico:', error));
+    }
 
     /* ================= VARIÁVEIS AGENTE WHATSAPP ================= */
     const btnAgente = document.getElementById('btnAgente');
@@ -1377,6 +1404,7 @@ document.addEventListener('DOMContentLoaded', () => {
         card.className = `card ${status}`;
         card.dataset.id = cliente.id;
         card.dataset.status = status;
+        aplicarCorLancamento(card, cliente);
         card.dataset.nome = cliente.nome.toLowerCase();
         card.dataset.cpf = (cliente.cpf || '').toLowerCase();
         card.dataset.processo = (cliente.processo || '').toLowerCase();
@@ -1753,11 +1781,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Atualiza a memória e recria só esse card (Zero leituras na nuvem)
                 const index = todosClientesCache.findIndex(c => c.id === novo.id);
-                if(index !== -1) todosClientesCache[index] = novo;
+                const clienteAtualizado = { ...(todosClientesCache[index] || {}), ...novo };
+                if(index !== -1) todosClientesCache[index] = clienteAtualizado;
                 
                 const cardAntigo = document.querySelector(`.card[data-id="${novo.id}"]`);
                 if(cardAntigo) cardAntigo.remove();
-                criarCard(novo);
+                criarCard(clienteAtualizado);
                 
             }else{
                 novo.dataCadastro = new Date().toISOString();
@@ -1865,6 +1894,7 @@ document.addEventListener('DOMContentLoaded', () => {
             col.appendChild(draggedCard); 
             draggedCard.dataset.status = novoStatus;
             draggedCard.className = `card ${novoStatus}`; 
+            aplicarCorLancamento(draggedCard, cacheCli || {});
             atualizarContadores();
         });
     });
@@ -1906,13 +1936,15 @@ document.addEventListener('DOMContentLoaded', () => {
     filterStatus.onchange = filtragemAplicada;
 
     /* ================= LOGIN ================= */
-    onAuthStateChanged(auth, user => {
+    onAuthStateChanged(auth, async user => {
         if(user){
             currentUser = user;
             const emailDisplay = document.getElementById('userEmailDisplay');
             if (emailDisplay) emailDisplay.innerHTML = `👤 ${user.email}`;
-            render();
+            await render();
+            if (auth.currentUser?.uid === user.uid) acompanharLancamentos();
         }else{
+            if (pararAtualizacaoLancamentos) pararAtualizacaoLancamentos();
             window.location.href = "login.html";
         }
     });
