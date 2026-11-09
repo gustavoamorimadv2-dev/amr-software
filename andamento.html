@@ -632,6 +632,8 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
 
 /* ================= FIREBASE ================= */
+import {getFunctions, httpsCallable} from "https://www.gstatic.com/firebasejs/10.5.0/firebase-functions.js";
+
 const firebaseConfig = {
     apiKey: "AIzaSyAFJJAqVf3ge0WDHBpmS9E6sXKvnjuFkhw",
     authDomain: "dapapp-38637.firebaseapp.com",
@@ -646,6 +648,7 @@ const db = getFirestore(app);
 
 
 const auth = getAuth(app);
+const consultarAndamento = httpsCallable(getFunctions(app, "us-central1"), "consultarTribunalCrm", {timeout:160000});
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -1140,16 +1143,71 @@ document.addEventListener('DOMContentLoaded', () => {
         return cliente?.processo || cliente?.numeroProcesso || 'Não informado';
     }
 
+    function obterMovimentacaoDatajud(cliente){
+        const texto = String(cliente?.datajudUltimoAndamentoTexto || '').trim();
+        if (!texto) return '';
+        const data = new Date(cliente.datajudUltimaMovimentacaoEm);
+        const quando = Number.isFinite(data.getTime())
+            ? ` (${data.toLocaleString('pt-BR', {timeZone:'America/Sao_Paulo'})})` : '';
+        return `${texto}${quando}`;
+    }
+
     function gerarMensagemAndamento(tipo, cliente, andamentoAtual){
         const nome = obterPrimeiroNome(cliente);
-        const numeroProcesso = obterNumeroProcesso(cliente);
-        const descricaoAndamento = String(andamentoAtual || '').trim() || '[DESCREVER O ANDAMENTO]';
+        const numeroProcesso = cliente?.datajudNumeroProcesso || obterNumeroProcesso(cliente);
+        const movimentacaoSalva = obterMovimentacaoDatajud(cliente);
+        const descricaoAndamento = movimentacaoSalva || String(andamentoAtual || '').trim() || '[DESCREVER O ANDAMENTO]';
+        const referenciaUltima = movimentacaoSalva ? ` A última movimentação disponível na consulta é: ${movimentacaoSalva}.` : '';
 
         if(tipo === 'sem_movimentacao'){
-            return `Olá, ${nome}! Tudo bem? Estamos entrando em contato para manter você atualizado(a) sobre o seu processo nº ${numeroProcesso}. No momento, não houve nova movimentação relevante no processo desde a última atualização. Continuamos acompanhando regularmente e, assim que houver qualquer novidade, informaremos você por aqui. Não é necessária nenhuma providência neste momento. Atenciosamente, Grupo Nascimento e Souza.`;
+            return `Olá, ${nome}! Tudo bem? Estamos entrando em contato para manter você atualizado(a) sobre o seu processo nº ${numeroProcesso}. No momento, não houve nova movimentação relevante no processo desde a última atualização.${referenciaUltima} Continuamos acompanhando regularmente e, assim que houver qualquer novidade, informaremos você por aqui. Não é necessária nenhuma providência neste momento. Atenciosamente, Grupo Rodrigues & Amorim.`;
         }
 
-        return `Olá, ${nome}! Tudo bem? Passando para atualizar você sobre o andamento do seu processo nº ${numeroProcesso}. No momento, houve a seguinte movimentação: ${descricaoAndamento}.  Seguimos acompanhando o processo de perto e, caso seja necessária alguma providência da sua parte, avisaremos você por aqui. Ficamos à disposição! Grupo Nascimento e Souza.`;
+        return `Olá, ${nome}! Tudo bem? Passando para atualizar você sobre o andamento do seu processo nº ${numeroProcesso}. No momento, houve a seguinte movimentação: ${descricaoAndamento}.  Seguimos acompanhando o processo de perto e, caso seja necessária alguma providência da sua parte, avisaremos você por aqui. Ficamos à disposição! Grupo Rodrigues & Amorim.`;
+    }
+
+    async function gerarAndamentoDatajud(cliente, botao) {
+        if (window.location.protocol !== 'https:') {
+            window.location.assign('https://amrsoftware.com.br/andamento.html');
+            return;
+        }
+        if (!auth.currentUser) { showToast('Entre no sistema para consultar.'); return; }
+        const cadastro = String(cliente.processo || cliente.numeroProcesso || '').trim();
+        const numeros = [...new Set(cadastro.match(/(?<!\d)(?:\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}|\d{20})(?!\d)/g) || [])];
+        if (!numeros.length) { showToast('Cadastre o número completo do processo no padrão CNJ.'); return; }
+        let numero = numeros[0];
+        if (numeros.length > 1) {
+            const escolha = window.prompt('Qual processo deseja consultar? Digite a opção:\n' + numeros.map((n, i) => `${i + 1}: ${n}`).join('\n'));
+            if (escolha === null) return;
+            const indice = Number(escolha) - 1;
+            if (!Number.isInteger(indice) || !numeros[indice]) { showToast('Opção de processo inválida.'); return; }
+            numero = numeros[indice];
+        }
+        botao.disabled = true;
+        botao.textContent = 'Consultando DataJud…';
+        const avisoDemora = setTimeout(() => {
+            botao.textContent = 'Aguardando CNJ…';
+            showToast('O DataJud está demorando. A consulta continua em andamento.');
+        }, 20000);
+        try {
+            const {data} = await consultarAndamento({numeroProcesso: numero, idClienteFirebase: cliente.id});
+            if (data.atualizacaoCrm) {
+                Object.assign(cliente, data.atualizacaoCrm);
+                await atualizarCachesAposGravacao(cliente.id, data.atualizacaoCrm);
+            }
+            // A escolha do modelo usa o rascunho salvo, inclusive ao reabrir o card.
+            abrirModal(cliente);
+            showToast('Consulta salva. Escolha a mensagem e revise antes de enviar.');
+        } catch (error) {
+            const mensagem = !error.message || error.message.toLowerCase() === 'internal'
+                ? 'O servidor de consulta está temporariamente indisponível. Tente novamente em instantes.'
+                : error.message;
+            showToast(mensagem);
+        } finally {
+            clearTimeout(avisoDemora);
+            botao.disabled = false;
+            botao.textContent = 'Gerar andamento';
+        }
     }
 
     function atualizarMensagemPronta(){
@@ -1161,7 +1219,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        const mensagem = gerarMensagemAndamento(tipo, clienteSelecionado, inputAndamento.value);
+        const mensagem = gerarMensagemAndamento(tipo, clienteSelecionado, '');
         previewMensagemPronta.innerHTML = `<strong>Pré-visualização</strong>${mensagem.replace(/\n/g, '<br>')}`;
         inputAndamento.value = mensagem;
     }
@@ -1475,11 +1533,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div class="card-footer">
                     <div class="queue-pass-button">
+                        <button class="btn btn-blue btn-gerar-andamento" type="button">Gerar andamento</button>
                         <button class="btn ${pendente ? 'btn-blue' : 'btn-green'} btn-abrir-andamento">💬 ${pendente ? 'Escrever Andamento' : 'Novo Andamento'}</button>
                         <button class="btn ghost queue-status-button btn-retirar-fila" title="Retirar da fila">⋮</button>
                     </div>
                 </div>`;
 
+            card.querySelector('.btn-gerar-andamento').onclick = e => { e.stopPropagation(); gerarAndamentoDatajud(cliente, e.currentTarget); };
             card.querySelector('.btn-abrir-andamento').onclick = e => { e.stopPropagation(); abrirModal(cliente); };
             card.querySelector('.btn-retirar-fila').onclick = async e => {
                 e.stopPropagation();
@@ -1683,4 +1743,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
