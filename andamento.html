@@ -591,7 +591,7 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     font-size: 11px;
 }
 
-/* Contador ÚNICO da página: ciclo global de 10 dias, não por cliente. */
+/* Contador ÚNICO da página: ciclo global de 10 dias úteis, não por cliente. */
 .ciclo-global-painel {
     display:flex;
     align-items:center;
@@ -916,9 +916,9 @@ document.addEventListener('DOMContentLoaded', () => {
         filaAtiva = filaAtiva.map(x => x.cliente);
     }
 
-    // REGRA GLOBAL: todos os clientes participam do mesmo ciclo de 10 dias.
+    // REGRA GLOBAL: todos os clientes participam do mesmo ciclo de 10 dias úteis.
     // Dia 1 começa em 14/10/2026, data de ativação, no horário de Brasília.
-    // O ciclo se repete a cada 10 dias corridos, sem precisar alterar o Firestore.
+    // O ciclo se repete a cada 10 dias úteis, sem precisar alterar o Firestore.
     // Assim, todos os usuários veem o mesmo dia do ciclo, sem contadores individuais.
     const INICIO_CICLO_GLOBAL = '2026-10-14'; // Mude só esta data se desejar redefinir o dia 1.
     const FUSO_CICLO_GLOBAL = 'America/Sao_Paulo';
@@ -938,16 +938,45 @@ document.addEventListener('DOMContentLoaded', () => {
         return {ano:Number(valores.year), mes:Number(valores.month), dia:Number(valores.day)};
     }
 
+    function diaDeSemana(serial) {
+        const dia = new Date(serial * UM_DIA_MS).getUTCDay();
+        return dia !== 0 && dia !== 6;
+    }
+
+    function contarDiasUteis(inicio, fim) {
+        if (fim < inicio) return 0;
+        const total = fim - inicio + 1;
+        let uteis = Math.floor(total / 7) * 5;
+        for (let i = total - total % 7; i < total; i++) {
+            if (diaDeSemana(inicio + i)) uteis++;
+        }
+        return uteis;
+    }
+
+    function adicionarDiasUteis(inicio, quantidade) {
+        let dia = inicio;
+        let restantes = quantidade;
+        while (!diaDeSemana(dia)) dia++;
+        dia += Math.floor(restantes / 5) * 7;
+        restantes %= 5;
+        while (restantes > 0) {
+            dia++;
+            if (diaDeSemana(dia)) restantes--;
+        }
+        return dia;
+    }
+
     function obterCicloGlobal(agora = new Date()){
         const hoje = dataBrasileira(agora);
         const [anoInicio, mesInicio, diaInicio] = INICIO_CICLO_GLOBAL.split('-').map(Number);
+        const inicio = adicionarDiasUteis(serialDia(anoInicio, mesInicio, diaInicio), 0);
         const diasDesdeInicio = Math.max(0,
-            serialDia(hoje.ano, hoje.mes, hoje.dia) - serialDia(anoInicio, mesInicio, diaInicio)
+            contarDiasUteis(inicio, serialDia(hoje.ano, hoje.mes, hoje.dia)) - 1
         );
         const numeroCiclo = Math.floor(diasDesdeInicio / DIAS_POR_CICLO);
         const diaAtual = (diasDesdeInicio % DIAS_POR_CICLO) + 1;
-        const inicioEmDias = serialDia(anoInicio, mesInicio, diaInicio) + numeroCiclo * DIAS_POR_CICLO;
-        const proximoInicio = new Date((inicioEmDias + DIAS_POR_CICLO) * UM_DIA_MS);
+        const inicioEmDias = adicionarDiasUteis(inicio, numeroCiclo * DIAS_POR_CICLO);
+        const proximoInicio = new Date(adicionarDiasUteis(inicio, (numeroCiclo + 1) * DIAS_POR_CICLO) * UM_DIA_MS);
         return {
             numeroCiclo, diaAtual,
             inicioCicloMs: inicioEmDias * UM_DIA_MS,
@@ -1619,7 +1648,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div style="display:flex; align-items:center; gap:12px;">
             <div style="font-size: 14px; color: rgba(255,255,255,0.7);">
                 <!-- <-- ALTERADO DE 5 PARA 10 DIAS -->
-                Fila automática: todos os clientes retornam juntos ao início a cada 10 dias.
+                Fila automática: todos os clientes retornam juntos ao início a cada 10 dias úteis.
             </div>
             <button class="btn ghost" onclick="forcarAtualizacao()" title="Sincronizar dados com o servidor" style="width:auto; padding:10px 14px;">🔄 Sincronizar</button>
         </div>
@@ -1630,7 +1659,7 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
 
     <section class="queue-panel">
-        <div class="ciclo-global-painel" aria-label="Contador geral do ciclo de 10 dias">
+        <div class="ciclo-global-painel" aria-label="Contador geral do ciclo de 10 dias úteis">
             <div class="ciclo-global-relogio">
                 <div class="ciclo-global-titulo">🗓️ Ciclo geral da fila</div>
                 <div class="ciclo-global-numero">Dia <strong id="cicloGlobalDia">1</strong> <span>de 10</span></div>
@@ -1650,7 +1679,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="queue-controls">
             <label style="font-size:11px;color:rgba(255,255,255,.55);">Regra da fila:</label>
             <span style="font-size:12px;font-weight:700;color:#6ee7b7;">No próximo dia 1, todos os cards ativos retornam ao INÍCIO.</span>
-            <span class="queue-help">Contador único de 10 dias; não reinicia por cliente.</span>
+            <span class="queue-help">Contador único de 10 dias úteis; sábados e domingos não contam; não reinicia por cliente.</span>
         </div>
         <div class="queue-fixed">
             <div class="queue-fixed-head"><div class="queue-fixed-title">Lista fixa — não precisam mais de andamento</div><div class="queue-fixed-count" id="queueFixedCount">0</div></div>
@@ -1743,5 +1772,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
 
