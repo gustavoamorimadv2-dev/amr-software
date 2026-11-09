@@ -368,6 +368,11 @@ input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); co
                 <h4 class="section-title">Dados Pessoais</h4>
                 <div class="info-pessoal" id="dadosPessoaisContainer"></div>
 
+                <section id="secaoObservacaoInterna" hidden style="margin-top:20px;">
+                    <h4 class="section-title">Observações internas — Andamento</h4>
+                    <p id="observacaoInternaCompleta" style="white-space:pre-wrap;overflow-wrap:anywhere;background:rgba(255,255,255,.04);padding:14px;border-radius:12px;"></p>
+                </section>
+
                 <!-- NOVA SEÇÃO: OBSERVAÇÕES -->
                 <h4 class="section-title" style="margin-top: 25px;">Observações</h4>
                 <div class="honorarios-box">
@@ -1257,6 +1262,13 @@ function exibirClientes(lista) {
             </div>
         `;
         
+        if (String(cliente.obs || '').trim()) {
+            const resumo = document.createElement('p');
+            resumo.style.cssText = 'font-size:12px;margin-top:8px;padding:8px;border-left:3px solid #3b82f6;white-space:pre-wrap;overflow-wrap:anywhere;';
+            const texto = String(cliente.obs).trim();
+            resumo.textContent = `Observação interna: ${texto.slice(0,120)}${texto.length > 120 ? '… (abra o card para ler)' : ''}`;
+            card.querySelector('.card-content').appendChild(resumo);
+        }
         card.onclick = () => abrirModalCompleto(cliente);
         container.appendChild(card);
 
@@ -1389,6 +1401,9 @@ window.abrirModalCompleto = function(cliente) {
     
     document.getElementById('editVendedor').value = cliente.vendedor || "";
     document.getElementById('editObservacoes').value = cliente.observacoes || "";
+    const observacaoInterna = String(cliente.obs || '').trim();
+    document.getElementById('secaoObservacaoInterna').hidden = !observacaoInterna;
+    document.getElementById('observacaoInternaCompleta').textContent = observacaoInterna;
 
     document.getElementById('editTramitacao').value = cliente.tramitacaoProcessual || "";
     try {
@@ -1909,3 +1924,4 @@ carregarClientes();
 </script>
 </body>
 </html>
+
