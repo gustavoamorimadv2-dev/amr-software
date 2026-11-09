@@ -615,6 +615,11 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
 
 </style>
 
+<dialog id="dialogObservacaoInterna" style="background:#0f172a;color:#fff;border:1px solid #475569;border-radius:16px;padding:24px;width:min(600px,85vw);">
+    <h3>Observação interna do cliente</h3>
+    <p id="textoObservacaoInterna" style="white-space:pre-wrap;overflow-wrap:anywhere;max-height:60vh;overflow:auto;margin:16px 0;"></p>
+    <button class="btn btn-blue" type="button" autofocus onclick="document.getElementById('dialogObservacaoInterna').close()">Fechar</button>
+</dialog>
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
 import {
@@ -1557,7 +1562,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <p><strong>Estado:</strong> ${estado}</p>
                     <p style="word-break:break-all;"><strong>Processo:</strong> ${todosProcessos}</p>
                     <div class="queue-pos">${pendente ? `Posição na fila: ${posicao}º` : 'Aguardando o próximo ciclo geral da fila'}</div>
-                    <div class="card-observacao"><strong>Observações Internas</strong><p title="${String(textoObs).replace(/"/g,'&quot;')}">${textoObs}</p></div>
+                    <div class="card-observacao"><strong>Observações Internas</strong><p class="resumo-obs-interna"></p><button class="btn ghost btn-ver-observacao" type="button">Ver observação</button></div>
                     ${textoAndamento ? `<div class="ultimo-andamento"><strong>Último Andamento Enviado</strong><p title="${String(textoAndamento).replace(/"/g,'&quot;')}">${textoAndamento}</p></div>` : `<div class="ultimo-andamento" style="opacity:.5;"><strong>Último Andamento Enviado</strong><p style="font-style:italic;">Nenhum andamento registrado ainda no sistema.</p></div>`}
                 </div>
                 <div class="card-footer">
@@ -1568,6 +1573,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </div>`;
 
+            card.querySelector('.resumo-obs-interna').textContent = textoObs;
+            card.querySelector('.btn-ver-observacao').onclick = e => {
+                e.stopPropagation();
+                document.getElementById('textoObservacaoInterna').textContent = textoObs;
+                document.getElementById('dialogObservacaoInterna').showModal();
+            };
             card.querySelector('.btn-gerar-andamento').onclick = e => { e.stopPropagation(); gerarAndamentoDatajud(cliente, e.currentTarget); };
             card.querySelector('.btn-abrir-andamento').onclick = e => { e.stopPropagation(); abrirModal(cliente); };
             card.querySelector('.btn-retirar-fila').onclick = async e => {
@@ -1772,6 +1783,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
 
 
