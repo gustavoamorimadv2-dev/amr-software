@@ -12,7 +12,9 @@
       "**/.*",
       "**/node_modules/**",
       "amorim_souza_site.zip",
-      "CRM"
+      "CRM",
+      "datajud-functions/**",
+      "tests/**"
     ],
     "cleanUrls": true,
     "trailingSlash": false,
@@ -36,5 +38,19 @@
         ]
       }
     ]
-  }
+  },
+  "functions": [
+    {
+      "source": "datajud-functions",
+      "codebase": "datajud-crm",
+      "runtime": "nodejs22",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "*.test.js",
+        "README.md",
+        "fixtures"
+      ]
+    }
+  ]
 }
