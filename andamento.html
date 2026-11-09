@@ -900,7 +900,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function statusFila(cliente){
         const valor = String(cliente.statusAndamento || '').trim().toLowerCase();
-        return ['revogado','arquivado','inadimplente'].includes(valor) ? valor : '';
+        return ['revogado','arquivado','inadimplente','em-negociacao','em-acordo'].includes(valor) ? valor : '';
     }
 
     function estaForaDaFila(cliente){ return !!statusFila(cliente); }
@@ -1086,7 +1086,7 @@ document.addEventListener('DOMContentLoaded', () => {
             item.className = 'queue-fixed-item';
             item.innerHTML = `<strong title="${String(cliente.nome||'').replace(/"/g,'&quot;')}">${cliente.nome || 'Sem nome'}</strong><span>${cliente.processo || cliente.cpf || 'Sem identificação'}</span>`;
             const select = document.createElement('select');
-            select.innerHTML = `<option value="revogado">Revogado</option><option value="arquivado">Arquivado</option><option value="inadimplente">Inadimplente</option><option value="">Voltar para fila</option>`;
+            select.innerHTML = `<option value="revogado">Revogado</option><option value="arquivado">Arquivado</option><option value="inadimplente">Inadimplente</option><option value="em-negociacao">Em negociação</option><option value="em-acordo">Em acordo</option><option value="">Voltar para fila</option>`;
             select.value = statusFila(cliente);
             select.onchange = async () => await alterarStatusFila(cliente,select.value);
             item.appendChild(select);
@@ -1375,7 +1375,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <option value="">Na fila</option>
                     <option value="revogado">Revogado</option>
                     <option value="arquivado">Arquivado</option>
-                    <option value="inadimplente">Inadimplente</option>
+                    <option value="inadimplente">Inadimplente</option><option value="em-negociacao">Em negociação</option><option value="em-acordo">Em acordo</option>
                 </select>
             </p>
         `;
@@ -1583,8 +1583,8 @@ document.addEventListener('DOMContentLoaded', () => {
             card.querySelector('.btn-abrir-andamento').onclick = e => { e.stopPropagation(); abrirModal(cliente); };
             card.querySelector('.btn-retirar-fila').onclick = async e => {
                 e.stopPropagation();
-                const escolha = prompt(`Retirar "${cliente.nome || 'cliente'}" da fila.\n\n1 - Revogado\n2 - Arquivado\n3 - Inadimplente\n\nCancelar = não alterar`);
-                const mapa = {'1':'revogado','2':'arquivado','3':'inadimplente'};
+                const escolha = prompt(`Retirar "${cliente.nome || 'cliente'}" da fila.\n\n1 - Revogado\n2 - Arquivado\n3 - Inadimplente\n4 - Em negociação\n5 - Em acordo\n\nCancelar = não alterar`);
+                const mapa = {'1':'revogado','2':'arquivado','3':'inadimplente','4':'em-negociacao','5':'em-acordo'};
                 if(mapa[escolha]) await alterarStatusFila(cliente,mapa[escolha]);
             };
             card.onclick = () => abrirModal(cliente);
@@ -1685,7 +1685,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="queue-stat"><div class="queue-stat-label">Clientes na fila</div><div class="queue-stat-value" id="queueTotal">0</div><div class="queue-stat-sub">clientes ativos</div></div>
             <div class="queue-stat"><div class="queue-stat-label">Faltam passar</div><div class="queue-stat-value" id="queueFaltam">0</div><div class="queue-stat-sub">precisam de andamento</div></div>
             <div class="queue-stat"><div class="queue-stat-label">Já passaram</div><div class="queue-stat-value" id="queuePassaram">0</div><div class="queue-stat-sub">atendidos neste ciclo</div></div>
-            <div class="queue-stat"><div class="queue-stat-label">Fora da fila</div><div class="queue-stat-value" id="queueFora">0</div><div class="queue-stat-sub">revogado, arquivado ou inadimplente</div></div>
+            <div class="queue-stat"><div class="queue-stat-label">Fora da fila</div><div class="queue-stat-value" id="queueFora">0</div><div class="queue-stat-sub">revogado, arquivado, inadimplente, em negociação ou em acordo</div></div>
         </div>
         <div class="queue-controls">
             <label style="font-size:11px;color:rgba(255,255,255,.55);">Regra da fila:</label>
@@ -1783,6 +1783,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
 
 
