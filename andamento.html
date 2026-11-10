@@ -1197,7 +1197,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return `Olá, ${nome}! Tudo bem? Estamos entrando em contato para manter você atualizado(a) sobre o seu processo nº ${numeroProcesso}. No momento, não houve nova movimentação relevante no processo desde a última atualização.${referenciaUltima} Continuamos acompanhando regularmente e, assim que houver qualquer novidade, informaremos você por aqui. Não é necessária nenhuma providência neste momento. Atenciosamente, Grupo Rodrigues & Amorim.`;
         }
 
-        return `Olá, ${nome}! Tudo bem? Passando para atualizar você sobre o andamento do seu processo nº ${numeroProcesso}. No momento, houve a seguinte movimentação: ${descricaoAndamento}.  Seguimos acompanhando o processo de perto e, caso seja necessária alguma providência da sua parte, avisaremos você por aqui. Ficamos à disposição! Grupo Rodrigues & Amorim.`;
+        return `Olá, ${nome}! Tudo bem? Passando para atualizar você sobre o andamento do seu processo nº ${numeroProcesso}. No momento, houve a seguinte movimentação: ${descricaoAndamento}.  Seguimos acompanhando o processo de perto e, caso seja necessária alguma providência da sua parte, avisaremos você por aqui. Ficamos à disposição! Grupo Nascimentos e Souza .`;
     }
 
     async function gerarAndamentoDatajud(cliente, botao) {
@@ -1351,7 +1351,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // Título e saudação padrão
         modalTitle.innerText = `Andamento: ${cliente.nome}`;
-        inputAndamento.value = `Olá ${cliente.nome.split(' ')[0]}, tudo bem?\nAqui é do setor de andamento da AMR ADV. \n\nA atualização do seu processo é: \n\n`;
+        inputAndamento.value = `Olá ${cliente.nome.split(' ')[0]}, tudo bem?\nAqui é do setor de andamento do grupo Nascimento e Souza. \n\nA atualização do seu processo é: \n\n`;
         inputObservacoes.value = cliente.obs || '';
 
         if(selectMensagemPronta){
