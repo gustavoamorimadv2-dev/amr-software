@@ -918,7 +918,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function saveCliente(cliente){
         if(!currentUser){
-            throw new Error("auth/usuario-nao-autenticado");
+            return;
         }
         cliente.userId = currentUser.uid;
 
@@ -1721,25 +1721,17 @@ document.addEventListener('DOMContentLoaded', () => {
             if (processos.length > 0) {
                 let processoDuplicado = null;
                 
-                // A falha na leitura global não deve impedir a gravação.
-                // Nesse caso, verifica duplicidade apenas contra os clientes já carregados.
-                let baseDuplicidade;
-                try {
-                    const clientesGlobais = await getDocs(collection(db, "clientes"));
-                    baseDuplicidade = clientesGlobais.docs.map(d => ({ id: d.id, ...d.data() }));
-                } catch (erroConsulta) {
-                    console.warn("Consulta global indisponível; validação de duplicidade limitada aos clientes da sessão.", erroConsulta);
-                    baseDuplicidade = todosClientesCache;
-                }
-
+                const clientesGlobais = await getDocs(collection(db, "clientes"));
+                
                 for (let proc of processos) {
                     const cleanInputProc = proc.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
                     if(!cleanInputProc) continue;
                     
-                    const clienteExistente = baseDuplicidade.find(cliente => {
-                        if (clientForm.dataset.editId && cliente.id === clientForm.dataset.editId) return false;
-                        if (!cliente.processo) return false;
-                        return String(cliente.processo).split(',').map(p => p.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()).includes(cleanInputProc);
+                    const clienteExistente = clientesGlobais.docs.find(doc => {
+                        if (clientForm.dataset.editId && doc.id === clientForm.dataset.editId) return false;
+                        const data = doc.data();
+                        if (!data.processo) return false;
+                        return data.processo.split(',').map(p => p.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()).includes(cleanInputProc);
                     });
                     
                     if (clienteExistente) { processoDuplicado = proc; break; }
@@ -1814,17 +1806,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // REMOVIDO o "await render()" que causava o vazamento de leituras!
             
         } catch (error) {
-            console.error("Falha ao salvar cliente no CRM:", error);
-            const codigo = error?.code || error?.message || "";
-            if (codigo === "permission-denied" || codigo === "firestore/permission-denied") {
-                showToast("Firebase bloqueou o salvamento: permissão negada. Consulte o administrador.");
-            } else if (codigo === "auth/usuario-nao-autenticado" || codigo === "unauthenticated") {
-                showToast("Sua sessão expirou. Entre novamente no CRM antes de salvar.");
-            } else if (codigo === "unavailable" || codigo === "firestore/unavailable") {
-                showToast("Firebase indisponível. Verifique a conexão e tente novamente.");
-            } else {
-                showToast("Não foi possível salvar o cliente. Consulte o erro no console.");
-            }
+            showToast("Erro inesperado ao salvar!");
         } finally {
             submitBtn.disabled = false;
             submitBtn.innerText = originalBtnText;
