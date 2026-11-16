@@ -326,7 +326,7 @@ textarea { resize: vertical; }
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
 import { getFirestore, collection, query, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
-import { getStorage, ref, uploadBytes, getDownloadURL, setMaxUploadRetryTime } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js";
+import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAFJJAqVf3ge0WDHBpmS9E6sXKvnjuFkhw",
@@ -364,7 +364,6 @@ async function exigirUsuarioJuridico() {
 
 
 const storage = getStorage(app);
-setMaxUploadRetryTime(storage, 60000);
 
 const sidebar = document.querySelector(".sidebar");
 const mainContent = document.querySelector(".main");
