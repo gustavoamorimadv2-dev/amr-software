@@ -326,13 +326,13 @@ textarea { resize: vertical; }
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
 import { getFirestore, collection, query, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-auth.js";
-import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js";
+import { getStorage, ref, uploadBytes, getDownloadURL, setMaxUploadRetryTime } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-storage.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyAFJJAqVf3ge0WDHBpmS9E6sXKvnjuFkhw",
     authDomain: "dapapp-38637.firebaseapp.com",
     projectId: "dapapp-38637",
-    storageBucket: "dapapp-38637.appspot.com",
+    storageBucket: "dapapp-38637.firebasestorage.app",
     messagingSenderId: "628852295313",
     appId: "1:628852295313:web:1234567890abcdef123456"
 };
@@ -364,6 +364,7 @@ async function exigirUsuarioJuridico() {
 
 
 const storage = getStorage(app);
+setMaxUploadRetryTime(storage, 60000);
 
 const sidebar = document.querySelector(".sidebar");
 const mainContent = document.querySelector(".main");
@@ -920,6 +921,7 @@ window.salvarAlteracoes = async function() {
 window.anexarDocumento = async function() {
     if(!clienteAtual) return;
 
+    const cliente = clienteAtual;
     const fileInput = document.getElementById('addDocFile');
     const file = fileInput.files[0];
     const btn = document.getElementById('btnAnexarDoc');
@@ -933,11 +935,16 @@ window.anexarDocumento = async function() {
     btn.disabled = true;
 
     try {
-        const storageRef = ref(storage, `documentos_clientes/${clienteAtual.id}/${Date.now()}_${file.name}`);
-        const uploadTask = await uploadBytesResumable(storageRef, file);
-        const downloadURL = await getDownloadURL(uploadTask.ref);
+        await exigirUsuarioJuridico();
+        const storageRef = ref(storage, `documentos/${auth.currentUser.uid}/${Date.now()}_${file.name}`);
+        await uploadBytes(storageRef, file);
+        const downloadURL = await getDownloadURL(storageRef);
 
-        let docsAtuais = clienteAtual.documentos;
+        // Prepara a lista sem alterar os anexos em memória antes de salvar.
+        const docsOriginais = cliente.documentos;
+        let docsAtuais = Array.isArray(docsOriginais)
+            ? [...docsOriginais]
+            : (docsOriginais && typeof docsOriginais === 'object' ? { ...docsOriginais } : null);
         const novoDocObj = {
             // Compatibilidade com as duas estruturas já usadas no CRM:
             // CRM antigo usa "name"; Clientes/Jurídico usam "nome".
@@ -953,31 +960,36 @@ window.anexarDocumento = async function() {
         if (Array.isArray(docsAtuais)) {
             docsAtuais.push(novoDocObj);
         } else if (docsAtuais && typeof docsAtuais === 'object') {
-            if (!docsAtuais.outros) docsAtuais.outros = [];
+            docsAtuais.outros = Array.isArray(docsAtuais.outros) ? [...docsAtuais.outros] : [];
             docsAtuais.outros.push(novoDocObj);
         } else {
             docsAtuais = { outros: [novoDocObj] };
         }
 
-        const docRef = doc(db, "clientes", clienteAtual.id);
+        const docRef = doc(db, "clientes", cliente.id);
         const documentosNovosVersao = crypto.randomUUID();
         await updateDoc(docRef, { documentos: docsAtuais, documentosNovosVersao });
 
-        clienteAtual.documentos = docsAtuais;
-        clienteAtual.documentosNovosVersao = documentosNovosVersao;
-        const idxCache = clientesData.findIndex(c => c.id === clienteAtual.id);
-        if (idxCache > -1) clientesData[idxCache] = clienteAtual;
+        cliente.documentos = docsAtuais;
+        cliente.documentosNovosVersao = documentosNovosVersao;
+        const idxCache = clientesData.findIndex(c => c.id === cliente.id);
+        if (idxCache > -1) clientesData[idxCache] = cliente;
         atualizarCacheLocal();
         
-        fileInput.value = "";
-        
-        renderizarDocumentos();
+        if (clienteAtual && clienteAtual.id === cliente.id) {
+            fileInput.value = "";
+            renderizarDocumentos();
+        }
         aplicarFiltrosEOrdenacao();
         showToast("Documento anexado com sucesso!");
 
     } catch (error) {
         console.error("Erro no upload:", error);
-        showToast("Erro ao anexar arquivo.");
+        const codigo = error && error.code ? ` (${error.code})` : "";
+        const mensagem = error && error.code === 'auth/unauthenticated'
+            ? "Sua sessão expirou. Entre novamente no CRM para anexar documentos."
+            : `Erro ao anexar arquivo${codigo}. Tente novamente.`;
+        showToast(mensagem);
     } finally {
         btn.textContent = "Anexar Documento";
         btn.disabled = false;
