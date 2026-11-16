@@ -117,6 +117,8 @@ header h1 { font-size:24px; color:#fff; font-weight:800; }
     border: 1px solid rgba(59, 130, 246, 0.3); display: flex; align-items: center; gap: 5px;
 }
 
+.indicator-docs.novos-documentos { background: rgba(245, 158, 11, 0.18); color: #fde68a; border-color: rgba(245, 158, 11, 0.5); }
+
 .card-header-info { margin-bottom: 12px; margin-top: 25px; display: flex; align-items: center; justify-content: space-between; }
 .card-date { font-size: 11px; color: rgba(255,255,255,0.6); font-weight: 500; }
 
@@ -447,6 +449,8 @@ input[type="file"]::file-selector-button { background: rgba(255,255,255,0.1); co
                     <button class="btn blue" style="width: 100%;" onclick="anexarDocumento()" id="btnAnexarDoc">Anexar Documento</button>
                 </div>
 
+                <button class="btn ghost" id="btnConferirDocumentos" style="display:none; margin-bottom:10px;" onclick="marcarDocumentosConferidos()">Marcar documentos como conferidos</button>
+
                 <div id="listaDocsContainer" class="boletos-list" style="max-height: 250px;">
                 </div>
             </div>
@@ -701,6 +705,38 @@ function extrairDocumentos(docsOriginais) {
     }
     return listaDocs;
 }
+
+// O aviso só é criado por novos cadastros/anexos desta página.
+// A conferência guarda a versão vista, sem apagar um envio posterior.
+function temNovosDocumentos(cliente) {
+    return Boolean(cliente.documentosNovosVersao &&
+        cliente.documentosNovosVersao !== cliente.documentosConferidosVersao);
+}
+
+window.marcarDocumentosConferidos = async function() {
+    if (!clienteAtual || !temNovosDocumentos(clienteAtual)) return;
+    const cliente = clienteAtual;
+    const versaoConferida = cliente.documentosNovosVersao;
+    const btn = document.getElementById('btnConferirDocumentos');
+    btn.disabled = true;
+    try {
+        await updateDoc(doc(db, "clientes", cliente.id), {
+            documentosConferidosVersao: versaoConferida
+        });
+        cliente.documentosConferidosVersao = versaoConferida;
+        const clienteCache = clientesData.find(c => c.id === cliente.id);
+        if (clienteCache) clienteCache.documentosConferidosVersao = versaoConferida;
+        atualizarCacheLocal();
+        aplicarFiltros();
+        if (clienteAtual && clienteAtual.id === cliente.id) renderizarDocumentos();
+        showToast("Documentos marcados como conferidos!");
+    } catch (error) {
+        console.error("Erro ao conferir documentos:", error);
+        showToast("Erro ao confirmar a conferência dos documentos.");
+    } finally {
+        btn.disabled = false;
+    }
+};
 
 // ================= CACHE LOCAL ROBUSTO (INDEXEDDB) =================
 // O localStorage tem um limite pequeno e não é adequado para milhares de clientes.
@@ -1209,7 +1245,9 @@ function exibirClientes(lista) {
         const honorariosArr = Array.isArray(cliente.honorarios) ? cliente.honorarios : [];
 
         let docsIndicator = '';
-        if (documentosArr.length > 0) {
+        if (temNovosDocumentos(cliente)) {
+            docsIndicator = '<div class="indicator-docs novos-documentos"><i class="fi fi-tr-clip"></i> novos documentos</div>';
+        } else if (documentosArr.length > 0) {
             docsIndicator = `<div class="indicator-docs"><i class="fi fi-tr-clip"></i> ${documentosArr.length} Doc(s)</div>`;
         }
 
@@ -1341,6 +1379,7 @@ window.salvarNovoCliente = async function() {
         situacao: "",
         honorarios: [],
         documentos: [],
+        documentosNovosVersao: crypto.randomUUID(),
         ultimoAndamento: "",
         tramitacaoProcessual: "",
         observacoes: "" 
@@ -1830,15 +1869,18 @@ window.anexarDocumento = async function() {
         }
 
         const docRef = doc(db, "clientes", clienteAtual.id);
-        await updateDoc(docRef, { documentos: docsAtuais });
+        const documentosNovosVersao = crypto.randomUUID();
+        await updateDoc(docRef, { documentos: docsAtuais, documentosNovosVersao });
 
         clienteAtual.documentos = docsAtuais;
+        clienteAtual.documentosNovosVersao = documentosNovosVersao;
         
         document.getElementById('addDocNome').value = "";
         fileInput.value = "";
         
         atualizarCacheLocal();
         renderizarDocumentos();
+        aplicarFiltros();
         showToast("Documento anexado com sucesso!");
 
     } catch (error) {
@@ -1854,6 +1896,8 @@ window.anexarDocumento = async function() {
 function renderizarDocumentos() {
     const containerDocs = document.getElementById('listaDocsContainer');
     const documentos = extrairDocumentos(clienteAtual.documentos);
+    document.getElementById('btnConferirDocumentos').style.display =
+        temNovosDocumentos(clienteAtual) ? 'flex' : 'none';
 
     if (documentos.length === 0) {
         containerDocs.innerHTML = '<p style="font-size:12px; color:rgba(255,255,255,0.4);">Nenhum documento anexado.</p>';
