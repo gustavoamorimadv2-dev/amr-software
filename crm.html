@@ -637,7 +637,6 @@ import {
     getDocs,
     onSnapshot,
     doc,
-    setDoc,
     updateDoc,
     deleteDoc,
     query,
@@ -661,22 +660,20 @@ import {
 
 /* ================= CONFIGURAÇÃO DE DOCUMENTOS DO CLIENTE ================= */
 const DOCUMENTOS_CONFIG = [
-    // Obrigatórios
-    { id: 'procuracao', label: 'Procuração', obrigatorio: true },
-    { id: 'declaracao_hipossuficiencia', label: 'Declaração de hipossuficiência', obrigatorio: true },
-    { id: 'contrato', label: 'Contrato de honorários', obrigatorio: true },
-    { id: 'identidade', label: 'Documento de identificação', obrigatorio: true },
-    { id: 'comprovante_residencia', label: 'Comprovante de residência', obrigatorio: true },
-    { id: 'extratos_bancarios', label: 'Últimos 3 extratos bancários', obrigatorio: true },
-    { id: 'comprovante_renda', label: 'Últimos 3 comprovantes de renda', obrigatorio: true },
-    { id: 'imposto_renda', label: 'Última Declaração de Imposto de Renda e recibo de entrega', obrigatorio: true },
+    { id: 'procuracao', label: 'Procuração' },
+    { id: 'declaracao_hipossuficiencia', label: 'Declaração de hipossuficiência' },
+    { id: 'contrato', label: 'Contrato de honorários' },
+    { id: 'identidade', label: 'Documento de identificação' },
+    { id: 'comprovante_residencia', label: 'Comprovante de residência' },
+    { id: 'extratos_bancarios', label: 'Últimos 3 extratos bancários' },
+    { id: 'comprovante_renda', label: 'Últimos 3 comprovantes de renda' },
+    { id: 'imposto_renda', label: 'Última Declaração de Imposto de Renda e recibo de entrega' },
     
-    // Complementares
-    { id: 'despesas_mensais', label: 'Comprovantes de despesas mensais', obrigatorio: false },
-    { id: 'faturas_cartao', label: 'Últimas 3 faturas do cartão de crédito', obrigatorio: false },
-    { id: 'peticao_inicial', label: 'Petição Inicial', obrigatorio: false },
-    { id: 'contrato_financiamento', label: 'Contrato de Financiamento', obrigatorio: false },
-    { id: 'outros', label: 'Outros', obrigatorio: false }
+    { id: 'despesas_mensais', label: 'Comprovantes de despesas mensais' },
+    { id: 'faturas_cartao', label: 'Últimas 3 faturas do cartão de crédito' },
+    { id: 'peticao_inicial', label: 'Petição Inicial' },
+    { id: 'contrato_financiamento', label: 'Contrato de Financiamento' },
+    { id: 'outros', label: 'Outros' }
 ];
 /* ========================================================================= */
 
@@ -829,7 +826,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const uploadProgress = document.getElementById('uploadProgress');
     
     let currentDocs = {}; 
-    window.currentUploadDocId = null; 
+    let selectedDocId = null;
+    const submitBtn = clientForm.querySelector('button[type="submit"]');
 
     let currentUser = null;
     let todosClientesCache = []; 
@@ -924,7 +922,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if(cliente.id){
             const docRef = doc(db,"clientes",cliente.id);
-            await setDoc(docRef,cliente);
+            await updateDoc(docRef, cliente);
         }else{
             const docRef = await addDoc(
                 collection(db,"clientes"),
@@ -1038,12 +1036,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!docsListContainer) return;
         docsListContainer.innerHTML = '';
         
-        const reqDiv = document.createElement('div');
-        reqDiv.innerHTML = '<h5 style="color:#ef4444; margin: 10px 0 6px 0; font-size:12px;">Obrigatórios (Impedem Fechamento)</h5>';
-        
-        const compDiv = document.createElement('div');
-        compDiv.innerHTML = '<h5 style="color:#10b981; margin: 20px 0 6px 0; font-size:12px;">Complementares</h5>';
-        
         DOCUMENTOS_CONFIG.forEach(docConf => {
             const rowWrapper = document.createElement('div');
             rowWrapper.style.cssText = 'background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; margin-bottom:8px;';
@@ -1055,7 +1047,6 @@ document.addEventListener('DOMContentLoaded', () => {
             label.style.fontSize = '13px';
             label.style.fontWeight = '500';
             label.innerText = docConf.label;
-            if (docConf.obrigatorio) label.innerHTML += ' <span style="color:#ef4444">*</span>';
             
             const btnAnexar = document.createElement('button');
             btnAnexar.type = 'button';
@@ -1065,7 +1056,8 @@ document.addEventListener('DOMContentLoaded', () => {
             btnAnexar.style.fontSize = '11px';
             
             btnAnexar.onclick = () => {
-                window.currentUploadDocId = docConf.id;
+                if (submitBtn.disabled) return;
+                selectedDocId = docConf.id;
                 inputFile.click();
             };
             
@@ -1081,12 +1073,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 files.forEach((f, idx) => {
                     const fRow = document.createElement('div');
                     fRow.className = 'doc-item';
-                    fRow.innerHTML = `<a href="javascript:void(0)" onclick="window.forceDownload('${f.url}', '${f.name}', event)" title="Baixar">📄 ${f.name}</a>`;
+                    const link = document.createElement('a');
+                    link.href = '#';
+                    link.title = 'Baixar';
+                    link.textContent = `📄 ${f.name}`;
+                    link.onclick = event => window.forceDownload(f.url, f.name, event);
+                    fRow.appendChild(link);
                     
                     const btnRem = document.createElement('button');
                     btnRem.type = 'button';
                     btnRem.innerText = 'X';
                     btnRem.onclick = () => {
+                        if (submitBtn.disabled) return;
                         currentDocs[docConf.id].splice(idx, 1);
                         renderDocsList();
                     };
@@ -1096,15 +1094,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 rowWrapper.appendChild(filesContainer);
             }
             
-            if (docConf.obrigatorio) {
-                reqDiv.appendChild(rowWrapper);
-            } else {
-                compDiv.appendChild(rowWrapper);
-            }
+            docsListContainer.appendChild(rowWrapper);
         });
-        
-        docsListContainer.appendChild(reqDiv);
-        docsListContainer.appendChild(compDiv);
     }
 
     inputFile.onchange = async (e) => {
@@ -1114,8 +1105,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const files = Array.from(e.target.files);
-        if (!files.length || !currentUser) return;
+        if (!files.length || !currentUser || submitBtn.disabled) return;
+
+        const docId = selectedDocId || 'outros';
+        submitBtn.disabled = true;
+        btnCancel.disabled = true;
         
+        clearTimeout(uploadProgress.hideTimer);
         uploadProgress.style.display = 'block';
         uploadProgress.style.color = '#f59e0b';
         uploadProgress.innerText = `Enviando ${files.length} arquivo(s)... Aguarde.`;
@@ -1130,7 +1126,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     await uploadBytes(storageRef, file);
                     const url = await getDownloadURL(storageRef);
                     
-                    const docId = window.currentUploadDocId || 'outros';
                     if (!currentDocs[docId]) currentDocs[docId] = [];
                     currentDocs[docId].push({ name: file.name, url: url });
 
@@ -1144,13 +1139,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (errorOccurred) {
                 uploadProgress.style.color = '#ef4444';
                 uploadProgress.innerText = 'Erro ao salvar. Verifique permissões.';
-                setTimeout(() => { uploadProgress.style.display = 'none'; }, 5000);
+                uploadProgress.hideTimer = setTimeout(() => { uploadProgress.style.display = 'none'; }, 5000);
             } else {
                 uploadProgress.style.color = '#10b981';
                 uploadProgress.innerText = 'Upload concluído com sucesso!';
-                setTimeout(() => { uploadProgress.style.display = 'none'; }, 2000);
+                uploadProgress.hideTimer = setTimeout(() => { uploadProgress.style.display = 'none'; }, 2000);
             }
-            inputFile.value = ''; 
+            inputFile.value = '';
+            submitBtn.disabled = false;
+            btnCancel.disabled = false;
             renderDocsList();
         }
     };
@@ -1167,6 +1164,9 @@ document.addEventListener('DOMContentLoaded', () => {
     /* ================= MODAL ================= */
 
     function openModal(edit = false, data = null){
+        if (!currentUser || submitBtn.disabled) return;
+        clearTimeout(uploadProgress.hideTimer);
+        selectedDocId = null;
         modalBackdrop.style.display = 'flex';
         document.getElementById('modalTitle').innerText = edit ? "Editar Cliente" : "Novo Cliente";
         processosContainer.innerHTML = '';
@@ -1409,14 +1409,6 @@ document.addEventListener('DOMContentLoaded', () => {
         card.dataset.cpf = (cliente.cpf || '').toLowerCase();
         card.dataset.processo = (cliente.processo || '').toLowerCase();
         
-        let totalDocsLength = 0;
-        if (Array.isArray(cliente.documentos)) {
-            totalDocsLength = cliente.documentos.length;
-        } else if (cliente.documentos) {
-            Object.values(cliente.documentos).forEach(arr => totalDocsLength += arr.length);
-        }
-        card.dataset.hasDocs = totalDocsLength > 0 ? 'true' : 'false';
-
         card.draggable = true;
 
         const colorBar = document.createElement('div');
@@ -1584,7 +1576,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 link.href = "javascript:void(0)";
                 link.style.cssText = "display:block; font-size:13px; color:#60a5fa; text-decoration:none; margin:4px 0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;";
                 
-                link.innerHTML = `<span style="color:#9ca3af; font-size:10px;">[${arquivo.label}]</span> 📄 ${arquivo.name}`;
+                const categoria = document.createElement('span');
+                categoria.style.cssText = 'color:#9ca3af; font-size:10px;';
+                categoria.textContent = `[${arquivo.label}]`;
+                link.append(categoria, ` 📄 ${arquivo.name}`);
                 
                 link.onclick = (e) => { e.stopPropagation(); window.forceDownload(arquivo.url, arquivo.name, e); };
                 docsDiv.appendChild(link);
@@ -1708,10 +1703,11 @@ document.addEventListener('DOMContentLoaded', () => {
    /* ================= FORM ================= */
     clientForm.onsubmit = async function(e){
         e.preventDefault();
-        const submitBtn = clientForm.querySelector('button[type="submit"]');
+        if (!currentUser || submitBtn.disabled) return;
         const originalBtnText = submitBtn.innerText;
         submitBtn.disabled = true;
         submitBtn.innerText = "Salvando...";
+        btnCancel.disabled = true;
 
         try {
             const nome = inputNome.value.trim();
@@ -1810,6 +1806,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             submitBtn.disabled = false;
             submitBtn.innerText = originalBtnText;
+            btnCancel.disabled = false;
         }
     };
 
@@ -1830,52 +1827,24 @@ document.addEventListener('DOMContentLoaded', () => {
         col.addEventListener('dragover', e => { e.preventDefault(); });
         col.addEventListener('dragleave', e => { col.classList.remove('drag-over'); });
         
-        col.addEventListener('drop', async () => {
+        col.addEventListener('drop', async event => {
+            event.preventDefault();
             col.classList.remove('drag-over');
-            if(!draggedCard) return;
+            const card = draggedCard;
+            if (!card || !currentUser) return;
 
             const novoStatus = col.id;
-            const currentStatus = draggedCard.dataset.status;
-            const hasDocs = draggedCard.dataset.hasDocs === 'true';
+            if (novoStatus === card.dataset.status || !card.draggable) return;
 
-            if (novoStatus === currentStatus) return;
-
-            if (currentStatus === 'fechado') { showToast("Negado: Um contrato 'Fechado' não pode retroceder."); return; }
-
-            if (novoStatus !== 'contrato-assinado' && novoStatus !== 'fechado' && novoStatus !== 'em-negociacao') {
-                showToast("Avanço automático! Movimente apenas para 'Em Negociação', 'Contrato Assinado' ou 'Fechado'."); return;
-            }
-
-            if (novoStatus === 'contrato-assinado' && !hasDocs) {
-                showToast("Bloqueado: Para mover para 'Contrato Assinado', anexe documentos no card."); return;
-            }
-
-            if (novoStatus === 'fechado') {
-                if (currentStatus !== 'contrato-assinado') {
-                    showToast("Bloqueado: O card precisa passar por 'Contrato Assinado' primeiro."); return;
-                }
-
-                const clienteDragged = todosClientesCache.find(c => c.id === draggedCard.dataset.id);
-                if (clienteDragged) {
-                    const docsDoCliente = clienteDragged.documentos || {};
-                    let pendentes = [];
-                    
-                    DOCUMENTOS_CONFIG.forEach(docConf => {
-                        if (docConf.obrigatorio) {
-                            if (!docsDoCliente[docConf.id] || docsDoCliente[docConf.id].length === 0) {
-                                pendentes.push(docConf.label);
-                            }
-                        }
-                    });
-
-                    if (pendentes.length > 0) {
-                        showToast(`Bloqueado! Faltam os seguintes documentos obrigatórios: ${pendentes.join(', ')}`);
-                        return; 
-                    }
-                }
-            }
+            const cliente = todosClientesCache.find(c => c.id === card.dataset.id);
+            if (!cliente) return;
 
             const updatePayload = { status: novoStatus };
+            const diaDestino = /^dia-([1-5])$/.exec(novoStatus);
+            if (diaDestino) {
+                const diasDecorridos = Number(diaDestino[1]) - 1;
+                updatePayload.dataPipeline = new Date(Date.now() - diasDecorridos * 86400000).toISOString();
+            }
             if (novoStatus === 'em-negociacao') updatePayload.dataEmNegociacao = new Date().toISOString();
             if (novoStatus === 'contrato-assinado') updatePayload.dataContratoAssinado = new Date().toISOString();
             if (novoStatus === 'fechado') {
@@ -1884,18 +1853,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 updatePayload.dataFechamento = new Date().toISOString(); 
             }
 
-            await updateDoc(doc(db, "clientes", draggedCard.dataset.id), updatePayload);
-            
-            // <-- CORRIGIDO: Atualiza a memória local para não afetar as buscas ou precisar de novo download
-            const cacheCli = todosClientesCache.find(c => c.id === draggedCard.dataset.id);
-            if(cacheCli) Object.assign(cacheCli, updatePayload);
-
-            showToast("Sucesso! Card movimentado e salvo.");
-            col.appendChild(draggedCard); 
-            draggedCard.dataset.status = novoStatus;
-            draggedCard.className = `card ${novoStatus}`; 
-            aplicarCorLancamento(draggedCard, cacheCli || {});
-            atualizarContadores();
+            card.draggable = false;
+            try {
+                await updateDoc(doc(db, "clientes", cliente.id), updatePayload);
+                Object.assign(cliente, updatePayload);
+                card.remove();
+                criarCard(cliente);
+                filtragemAplicada();
+                atualizarContadores();
+                atualizarInfosHoje();
+                showToast("Sucesso! Card movimentado e salvo.");
+            } catch (error) {
+                console.error("Erro ao movimentar card:", error);
+                showToast("Erro ao salvar a movimentação do card.");
+            } finally {
+                card.draggable = true;
+            }
         });
     });
 
@@ -1941,8 +1914,15 @@ document.addEventListener('DOMContentLoaded', () => {
             currentUser = user;
             const emailDisplay = document.getElementById('userEmailDisplay');
             if (emailDisplay) emailDisplay.innerHTML = `👤 ${user.email}`;
-            await render();
-            if (auth.currentUser?.uid === user.uid) acompanharLancamentos();
+            try {
+                await render();
+                if (auth.currentUser?.uid === user.uid) acompanharLancamentos();
+            } catch (error) {
+                console.error("Erro ao carregar clientes:", error);
+                showToast("Erro ao carregar clientes.");
+            } finally {
+                if (auth.currentUser?.uid === user.uid && btnAdd) btnAdd.disabled = false;
+            }
         }else{
             if (pararAtualizacaoLancamentos) pararAtualizacaoLancamentos();
             window.location.href = "login.html";
@@ -2015,7 +1995,7 @@ document.addEventListener('DOMContentLoaded', () => {
             🤖 Agente de Whatsapp
         </button>
         
-        <button id="btnAdd" class="btn primary">
+        <button id="btnAdd" class="btn primary" disabled>
             + Adicionar Cliente
         </button>
     </div>
@@ -2119,7 +2099,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             <!-- NOVA SEÇÃO DE DOCUMENTOS -->
             <div class="docs-section">
-                <h4>Documentos do Cliente</h4>
+                <h4>Documentos do Cliente (opcionais)</h4>
                 <div id="docsListContainer"></div>
                 <!-- Input genérico oculto reutilizado por cada botão de anexar -->
                 <input type="file" id="inputSpecificFile" style="display: none;" multiple />
