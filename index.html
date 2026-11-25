@@ -899,6 +899,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
     /* ================= FIRESTORE ================= */
 
+    function listaProcessos(valor) {
+        return (Array.isArray(valor) ? valor : [valor])
+            .filter(item => typeof item === "string" || typeof item === "number")
+            .flatMap(item => String(item).split(","))
+            .map(item => item.trim()).filter(Boolean);
+    }
+
+    async function clientesParaConferirProcesso() {
+        try {
+            const snapshot = await getDocs(collection(db, "clientes"));
+            return snapshot.docs.map(registro => ({ ...registro.data(), id: registro.id }));
+        } catch (error) {
+            if (error.code !== "permission-denied") throw error;
+            return getClientes();
+        }
+    }
+
     async function getClientes(){
         if(!currentUser){
             return [];
@@ -908,10 +925,10 @@ document.addEventListener('DOMContentLoaded', () => {
             where("userId","==",currentUser.uid)
         );
         const snapshot = await getDocs(q);
-        return snapshot.docs.map(docData => ({
-            id: docData.id,
-            ...docData.data()
-        }));
+        return snapshot.docs.map(registro => {
+            const dados = registro.data();
+            return { ...dados, id: registro.id, processo: listaProcessos(dados.processo || dados.processos).join(", ") };
+        });
     }
 
     async function saveCliente(cliente){
@@ -1708,6 +1725,7 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.disabled = true;
         submitBtn.innerText = "Salvando...";
         btnCancel.disabled = true;
+        let gravado = false;
 
         try {
             const nome = inputNome.value.trim();
@@ -1717,17 +1735,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (processos.length > 0) {
                 let processoDuplicado = null;
                 
-                const clientesGlobais = await getDocs(collection(db, "clientes"));
+                const clientesVisiveis = await clientesParaConferirProcesso();
                 
                 for (let proc of processos) {
                     const cleanInputProc = proc.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
                     if(!cleanInputProc) continue;
                     
-                    const clienteExistente = clientesGlobais.docs.find(doc => {
-                        if (clientForm.dataset.editId && doc.id === clientForm.dataset.editId) return false;
-                        const data = doc.data();
-                        if (!data.processo) return false;
-                        return data.processo.split(',').map(p => p.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()).includes(cleanInputProc);
+                    const clienteExistente = clientesVisiveis.find(data => {
+                        if (data.id === clientForm.dataset.editId) return false;
+                        return listaProcessos(data.processo || data.processos).map(p => p.replace(/[^a-zA-Z0-9]/g, '').toLowerCase()).includes(cleanInputProc);
                     });
                     
                     if (clienteExistente) { processoDuplicado = proc; break; }
@@ -1773,6 +1789,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     novo.status = antigo.status || "lista-fria";
                 }
                 await saveCliente(novo);
+                gravado = true;
                 showToast("Cliente atualizado!");
 
                 // Atualiza a memória e recria só esse card (Zero leituras na nuvem)
@@ -1788,6 +1805,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 novo.dataCadastro = new Date().toISOString();
                 novo.status = "lista-fria";
                 await saveCliente(novo);
+                gravado = true;
                 showToast("Cliente adicionado!");
                 
                 // Adiciona na memória local (Zero leituras na nuvem)
@@ -1802,7 +1820,13 @@ document.addEventListener('DOMContentLoaded', () => {
             // REMOVIDO o "await render()" que causava o vazamento de leituras!
             
         } catch (error) {
-            showToast("Erro inesperado ao salvar!");
+            console.error("Falha ao salvar ou exibir cliente:", error);
+            if (gravado) {
+                closeModal();
+                showToast("Cliente salvo. Atualize a página para visualizar o card.");
+            } else {
+                showToast("Não foi possível salvar o cliente (" + (error.code || error.message) + ").");
+            }
         } finally {
             submitBtn.disabled = false;
             submitBtn.innerText = originalBtnText;
