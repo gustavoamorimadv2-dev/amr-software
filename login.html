@@ -184,12 +184,7 @@ import {
 import {
   getFirestore,
   doc,
-  setDoc,
-  collection,
-  query,
-  where,
-  getDocs,
-  deleteDoc
+  setDoc
 } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore.js";
 
 /* =========================================================
@@ -347,46 +342,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  async function tentarFluxoConviteDAP(email, senha) {
-    try {
-      btnSubmit.innerText = "Verificando convite...";
-
-      const qPre = query(
-        collection(dbDAP, "pre_cadastros"),
-        where("email", "==", email),
-        where("senhaPadrao", "==", senha)
-      );
-
-      const preSnap = await getDocs(qPre);
-
-      if (preSnap.empty) {
-        return { sucesso: false, motivo: "sem-convite" };
-      }
-
-      const docDados = preSnap.docs[0];
-      const dadosFunc = docDados.data();
-
-      showToast("Configurando seu primeiro acesso...");
-      btnSubmit.innerText = "Criando conta...";
-
-      const userCredential = await createUserWithEmailAndPassword(authDAP, email, senha);
-      const novoUid = userCredential.user.uid;
-
-      await setDoc(doc(dbDAP, "funcionarios", novoUid), {
-        nome: dadosFunc.nome || "Usuário",
-        email: email,
-        criadoEm: new Date().toISOString()
-      });
-
-      await deleteDoc(doc(dbDAP, "pre_cadastros", docDados.id));
-
-      return { sucesso: true, user: userCredential.user };
-
-    } catch (error) {
-      return { sucesso: false, error, motivo: "erro" };
-    }
-  }
-
   async function loginGoogleDAP() {
     errorMsg.style.display = "none";
 
@@ -521,29 +476,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    // =====================================================
-    // PRESERVA O FLUXO DE CONVITES NO FIRESTORE DO DAP
-    // Só roda quando o Auth DAP recusa a credencial.
-    // =====================================================
     if (isErroCredencial(tentativa1.error)) {
-      const convite = await tentarFluxoConviteDAP(email, senha);
-
-      if (convite.sucesso) {
-        showToast("Tudo pronto! Redirecionando...");
-        redirecionarUmaVez("index.html");
-        return;
-      }
-
-      if (convite.error?.code === 'permission-denied') {
-        resetBotao("As regras de banco de dados do Firebase bloquearam a criação da conta. Avise o Administrador.");
-        return;
-      }
-
-      if (convite.motivo === "erro" && convite.error) {
-        console.error("Erro no fluxo de convite:", convite.error);
-      }
-
-      resetBotao("E-mail ou senha inválidos.");
+      resetBotao("Confira o e-mail e a senha. No primeiro acesso, peça ao administrador para ativar seu cadastro.");
       return;
     }
 
